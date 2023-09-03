@@ -1,0 +1,19 @@
+打印 wikipedia 页面为 pdf，到 kindle 上阅读
+
+用下面的 code 在 console 中执行，去除网页的链接：
+
+document.querySelectorAll("a").forEach(n => {
+    var img = n.querySelector("img")
+    if (img != null) {
+        n.replaceWith(img)
+        console.log("replace link with img: " + n.href)
+    }
+    else {
+        n.replaceWith(n.innerText)
+        console.log("replace link with text: " +n.href + "=>" + n.innerText)
+    }
+})
+
+打印尺寸设置为 A5，但是不同的页面还要设置缩放，一般是 120 效果就比较好，但是有的网页需要 150 甚至 180 才足够大，在预览中查看缩放的效果。
+
+打印为 pdf 时注意页面范围，后面的 reference 不要。
