@@ -204,3 +204,5 @@ Infof(slog.Default(), "hello, %s", "world")
 ## Working with Records
 
 有时一个 Handler 会需要在将它传递到另一个 Handler 或 backend 之前修改 Record。一个 Record 包含简单 public fields（例如 Time，Level，Message）和间接引用 state（例如 attributes）的 hidden fields 的混合。这意味着修改一个简单的 Record 的 copy（例如调用 Record.Add 或 Record.AddAttr 来添加属性）可能导致原来的 Record 上意料之外的效果。在修改一个 Record 之前，使用 Record.Clone 来创建一个和原始 Record 不共享任何 state 的 copy，或者使用 NewRecord 创建一个新的 Record，并且使用 Record.Attrs 遍历旧的 Record 的属性来构建新 Record 的属性。
+
+各种语言的日志库主要提供的格式化日志和组织日志的功能，而不是日志的目的地，日志的目的地由其他系统实施。日志只需要打印到控制台即可。
