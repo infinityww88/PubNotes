@@ -1,5 +1,7 @@
 # Sqlite3 FTS5
 
+普通 FTS5 表可以和一般的数据表一样 Update 和 Delete，只有特殊的 FTS5 表（external content table，contentless table，contentless-delete table）的 delete 需要特殊处理。
+
 Andoird 内置的 sqlite3 从 API 24（Andoird 7， 2016）开始默认支持 fts5.
 
 FTS5 是 SQLite virtual table 模块，为数据库应用程序提供全文索引功能。
