@@ -50,6 +50,10 @@ Create > Text> Font Asset Variant 来创建 font asset variant。
 
 也可以在移动平台上开启这个选项，在那里一个强制的 texture size 阻止了完全的 glyphs 集合填充到一个 atlas 中。
 
+注意，对于 CJK 这样包含大量字符的语言使用 populate：dynamic 的 font asset 时，必须设置 Multi Atlas Textures。因为一个 texture 根本装不下那么多字符。如果不开启，当 texure 添满之后，后面的字符就不会再生成了，就会导致开始出现的字符可以显示，随着字符增多，后面的字符就变成 missing 了。
+
+dynamic font 动态生成字体到纹理中，是每次程序运行都会重新开始的，不会缓存到本地文件。Unity 本身是游戏引擎，游戏重度使用文本的地方并不多。要避免每次都重新生成字体 glyphs，可以使用 static font，预先生成 font asset。但是 Text font asset creator 中没有提供 Multi Atlas 的选项，这需要自己来实现字符分组生成。可以只为常见的字符生成 font asset，最后再加一个 dynamic font 作为 fallback。
+
 ## 使用 font asset
 
 要使用 font asset，在 Inspector window 中的 Font Asset 选择 font。
