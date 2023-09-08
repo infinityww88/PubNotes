@@ -32,3 +32,5 @@ private void OnSearchFieldChange(ChangeEvent<string> evt) {
 visualTreeAsset.CloneTree() 默认克隆出的 off-screen 的 tree 是有一个 TemplateContainer 元素作为 root 包装的。只有指定 Clone Target 才会去掉这个包装元素。直接将 CloneTree 挂载到当前 UIDocument 上会将包装元素也加上去，而这个包装元素没法在 UIBuilder 中设定样式。
 
 ListView 用于在一个已知固定范围 Rect 内显示更多内容的。因此 ListView 通常具有固定 size，不用于动态 List，动态 List 直接使用 VisualElement 即可。
+
+ScrollView 也是如此。
