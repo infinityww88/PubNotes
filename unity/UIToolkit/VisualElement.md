@@ -12,3 +12,25 @@
 因此重用 VisualElement 和 VisualElement Tree 的唯一方法就是使用外部的 UXML 和 StyleSheet。
 
 UGUI 可以很方便地重用、赋值一个元素和 tree。但是 UGUI 不能方便地改变整体 UI 外观，实现样式主题功能，而 UITK 通过样式表则可以很方便地实现。
+
+有几种方法可以加速 UITK 重用的过程：
+
+- 创建 Template
+
+  右键点击 UIBuilder Hierarchy 的某个子树，右键选择 Create Template。这会将这个子树导出到 Project 中一个 UXML 资源。同时当前 UIBuilder 编辑的 UXML 将以 Template 引用这个子树。导出的子树会同时将 inline style，USS class 一并导出到 UXML 中。Template 以一个容器元素包装整个子树，这个 Template 元素自动创建，并以 position=relative，shrink=1，grow=1 添加到当前 UXML tree 中。
+
+  类似 GameObject Prefab，以 Template 引用的子树可以 unpack，移除容器元素：
+  
+  ![UITK_Template](image/UITK_Template.png)
+
+- 将一个元素的 inline style 全部导出到一个 class，保存到一个 USS 文件中。这样元素上就没有内置样式，而是完全依赖 USS 样式表应用
+
+  ![ExtractInlineStyleToNewClass](image/ExtractInlineStyleToNewClass.png)
+
+- 在 UIBuilder 中以 Template 导入子树
+
+  在 Library 中，选择 Project 选显卡，选择一个 UXML 资源文件，然后拖拽到 Hierarchy 中：
+
+  ![UITK_Template_Project](image/UITK_Template_Project.png)
+
+  这种 Template 导入 tree，效果和在 C# 中引用 VisualTreeAsset，并调用 CloneTree 是一样的。
