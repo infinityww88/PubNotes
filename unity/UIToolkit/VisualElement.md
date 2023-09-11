@@ -34,3 +34,5 @@ UGUI 可以很方便地重用、赋值一个元素和 tree。但是 UGUI 不能�
   ![UITK_Template_Project](image/UITK_Template_Project.png)
 
   这种 Template 导入 tree，效果和在 C# 中引用 VisualTreeAsset，并调用 CloneTree 是一样的。
+
+尽量不使用 inline style。每次创建一个 UXML，先在 StyleSheet中创建一个新的 USS 文件。然后为每个目的的样式创建一个 class，使用 class 样式设置 UI 外观。
