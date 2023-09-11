@@ -17,13 +17,13 @@ UGUI 可以很方便地重用、赋值一个元素和 tree。但是 UGUI 不能�
 
 - 创建 Template
 
-  右键点击 UIBuilder Hierarchy 的某个子树，右键选择 Create Template。这会将这个子树导出到 Project 中一个 UXML 资源。同时当前 UIBuilder 编辑的 UXML 将以 Template 引用这个子树。导出的子树会同时将 inline style，USS class 一并导出到 UXML 中。Template 以一个容器元素包装整个子树，这个 Template 元素自动创建，并以 position=relative，shrink=1，grow=1 添加到当前 UXML tree 中。
+  右键点击 UIBuilder Hierarchy 的某个子树，右键选择 Create Template。这会将这个子树导出到 Project 中一个 UXML 资源。导出的子树会同时将 inline style，USS class 一并导出到 UXML 中。导出的 UXML 文件就像任何手工编辑或 UIBuilder 编辑的 UXML 文件一样，可以被以 Tempalte 导入其他 UXML 中，还可以加载到场景中的 UIDocument 中作为 main document。
 
   类似 GameObject Prefab，以 Template 引用的子树可以 unpack，移除容器元素：
   
   ![UITK_Template](image/UITK_Template.png)
 
-- 将一个元素的 inline style 全部导出到一个 class，保存到一个 USS 文件中。这样元素上就没有内置样式，而是完全依赖 USS 样式表应用
+- 将一个元素的 inline style 全部导出到一个 class，保存到一个 USS 文件中。这不会移除 inline 样式，而 inline 样式覆盖任何样式表规则。可以在 Inspector 中点击任何样式属性，然后选择 unset all，这移除全部 inline style，这样元素上就没有内置样式，而是完全依赖 USS 样式表应用
 
   ![ExtractInlineStyleToNewClass](image/ExtractInlineStyleToNewClass.png)
 
@@ -35,4 +35,32 @@ UGUI 可以很方便地重用、赋值一个元素和 tree。但是 UGUI 不能�
 
   这种 Template 导入 tree，效果和在 C# 中引用 VisualTreeAsset，并调用 CloneTree 是一样的。
 
+  Template 以一个容器元素包装整个子树，这个 Template 元素自动创建，并以 position=relative，shrink=1，grow=1 添加到当前 UXML tree 中。
+
 尽量不使用 inline style。每次创建一个 UXML，先在 StyleSheet中创建一个新的 USS 文件。然后为每个目的的样式创建一个 class，使用 class 样式设置 UI 外观。
+
+UIBuilder 左上角 StyleSheet 显示当前 UXML 引用的每个 USS 文件，和每个 USS 文件的每个 class。可以将某个 class 拖拽到 Hierarchy 上的某个元素，来为那个元素添加这个 class，而不需要在 Inspector 中手动输入。
+
+在 Inspector 创建新 class 后，双击 class 可以在 当前 USS 文件中为 class 创建 selector 来定义样式，而不需要在 StyleSheet 中手动输入。
+
+StyleSheet 中的 selector 右键选择 rename 可以重新编辑选择器表达式。
+
+重要：尽量不适用 inline style，尽可能使用 uss 样式表。这可以快速整体地调整 UI 外观，这是 UGUI 所达不到的。
+
+通配选择符，匹配任何元素：
+
+```css
+* {
+    background-color: yellow;
+}
+```
+
+这可以为整个 UXML 的元素设置某个样式，例如字体或文本颜色，而不变为每个元素设置相应的样式。
+
+还可以在 complex selectors 中使用通配符选择器，例如：
+
+```css
+.yellow > * > Button {...}
+```
+
+这匹配 .yellow 下面直接子元素下面的类型为 Button 的直接子元素。
