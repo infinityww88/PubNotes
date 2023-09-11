@@ -12,3 +12,5 @@ UITK 的 ScrollView == UGUI 的 ScrollView
 UITK 的 ListView == EnhancedScroller
 
 它们的效果应该是一样。
+
+一个改善的方法是，不要应用太多文本，文本字体要宽要重（bold）。
