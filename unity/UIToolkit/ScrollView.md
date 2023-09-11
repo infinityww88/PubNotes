@@ -18,3 +18,7 @@ UITK 的 ListView == EnhancedScroller
 ScrollView 和 ListView 都是固定大小的，即在固定 size 区域内显示更多的内容。
 
 ScrollView 滚动的元素时 unity-content-container，这也是拖放内容元素到 ScrollView 上时，元素添加到的 parent 元素。unity-content-container 默认是 shrink = 0, grow = 0，因此它默认适应子元素大小。当前 ScrollView 实现中，如果内容子元素的 size 小于 ScrollView 时，也会被滚动，只是保证 content-top > scrollview-top && content-bottom < scrollview-bottom。而 UGUI 的 scrollview 在这种情况下则不会滚动内容区域，即 content-top 总是对齐到 scrollview-top。要使 UITK 的 scrollview 不滚动小于 scrollview size 的内容元素，可以设置 unity-content-container 的 min-height = 100%，即让滚动区域最小也是 scrollview 大小，这样当 content 元素更小时，也不会滚动了，因为 unity-content-container 填满了 scrollview 区域。如果 content 元素大于 scrollview 大小，则正常滚动。
+
+因为 ScrollView 滚动的是 unity-content-container，只有按住并拖放它才会滚动。默认情况下，如果内容元素小于 ScrollView 并且 ScrollView 设置为 elastic 的，内容仍然可以被拖拽，只是放开之后立即回复原位，但是必须按住 unity-content-container 元素。因此拖拽空白区域是没有作用的。如果设置了 unity-content-container 的 min-height = 100%，则可以按住空白区域拖拽内容元素了。
+
+UITK 的 ScrollView & ListView 的效果和 UGUI ScrollView & EnhancedScroller 效果一样。UGUI 能达到什么效果，UITK 就能达到什么效果。
