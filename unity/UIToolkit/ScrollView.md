@@ -13,4 +13,4 @@ UITK 的 ListView == EnhancedScroller
 
 它们的效果应该是一样。
 
-一个改善的方法是，UI 不要太花哨，不要应用太多文本，文本字体要宽要重（bold），另外增大阻尼系数，decelerationRate，可以减轻抖动效果，能达到可接受的效果。
+一个改善的方法是，不要应用太多文本，文本字体要宽要重（bold），另外增大阻尼系数，decelerationRate，可以减轻抖动效果，能达到可接受的效果。
