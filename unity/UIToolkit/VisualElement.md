@@ -64,3 +64,28 @@ StyleSheet 中的 selector 右键选择 rename 可以重新编辑选择器表达
 ```
 
 这匹配 .yellow 下面直接子元素下面的类型为 Button 的直接子元素。
+
+```text
+Debug.Log($"{stackBase.resolvedStyle.top} {stackBase.resolvedStyle.left}");
+DOTween.Sequence().AppendInterval(0.1f).AppendCallback(() =>
+{
+    Debug.Log($"after {stackBase.resolvedStyle.top} {stackBase.resolvedStyle.left}");
+    stackBase.style.top = stackBase.resolvedStyle.top - 100; 
+    stackBase.style.left = stackBase.resolvedStyle.left - 100; 
+});
+```
+
+拖动 pointer.position => ve.resolvedStyle.top
+
+use margin，因为 margin 总是相对的（相对元素自身的）
+
+```text
+stackBase.style.marginTop = -stackBase.childCount * 100;
+stackBase.style.marginLeft = -stackBase.childCount * 100;
+```
+
+layout parent control child
+
+first let parent have enough room
+
+component reference script type
