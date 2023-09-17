@@ -75,12 +75,14 @@ timediff 直到 3.43.0 (2023-08-24) 才提供。timediff 考虑每个月天数�
 2456572.84952685    #   儒略日，sqlite3 自动识别浮点数，并以儒略日解析
 ```
 
+4,7,10 格式中的带小数的 seconds 值 SS.SSS 可以有一个或多个小数数字。上面的例子中只显示 3 个数字是因为只有前 3 个数字是显著的，但是输入字符串（time value）可以有更少或更多的数字，而 date/time 函数仍然可以正确操作。
+
+12 格式中 DDDDDDDDDD 可以是整数也可以是浮点数，它默认解释为儒略日（公元-4713年开始，小数表示一天中的时间）。但是如果它后面跟着 "auto" 或 "unixepoch" modifier，则解释为 unix 时间戳。
+
 以数字指定日期有两种方式：
 
-- 整数 integer：表示 Unix 时间戳，从 1970-01-01 00:00:00 UTC 算起的秒数
+- 整数 integer：表示 Unix 时间戳，从 1970-01-01 00:00:00 UTC 算起的秒数（需要加 auto 或 unixepoch modifier）
 - 实数 real：表示儒略日，即从公元前 4714 年 11 月 24 日格林尼治时间的正午开始算起的天数
-
-4,7,10 格式中的带小数的 seconds 值 SS.SSS 可以有一个或多个小数数字。上面的例子中只显示 3 个数字是因为只有前 3 个数字是显著的，但是输入字符串（time value）可以有更少或更多的数字，而 date/time 函数仍然可以正确操作。
 
 ## Modifiers
 
@@ -124,6 +126,15 @@ NNN 可以是整数或实数，可选前面跟着一个 +/- 前缀。
 weekday modifier 如果可能向前修改 date，到下一个 weekday number 是 N 的那天。Sunday 是 0，Monday 是 1，以此类推。
 
 localtime modifier 假设它左边的 time value 是 UTC，并且调整那个 time value 为 local time。如果不是 UTC 时间，行为未定义。utc modifier 是 localtime 的逆操作。
+
+unixepoch modifier 只在它跟随的 time value 是 DDDDDDDDDD 格式的数值时才有效。这导致数值解释为 unix 时间戳，而不是儒略日。
+
+julianday modifier 与 unixepoch 一样，必须紧随这 DDDDDDDDDDD 格式的数值，它强制将数值解释为儒略日。
+
+auto modifier 自动解释 DDDDDDDDDDD time value 为 unix 时间戳或儒略日：
+
+- 如果数值在 0.0 到 5373484.499999 之间，则解释为儒略日（-4713-11-24 12:00:00 and 9999-12-31 23:59:59, inclusive）
+- 否则，解释为 unix 时间戳，但是范围必须在 -210866760000 to 253402300799 之间
 
 ## strftime 格式化指示符
 
