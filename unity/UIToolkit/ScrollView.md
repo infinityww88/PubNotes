@@ -22,3 +22,7 @@ ScrollView 滚动的元素时 unity-content-container，这也是拖放内容元
 因为 ScrollView 滚动的是 unity-content-container，只有按住并拖放它才会滚动。默认情况下，如果内容元素小于 ScrollView 并且 ScrollView 设置为 elastic 的，内容仍然可以被拖拽，只是放开之后立即回复原位，但是必须按住 unity-content-container 元素。因此拖拽空白区域是没有作用的。如果设置了 unity-content-container 的 min-height = 100%，则可以按住空白区域拖拽内容元素了。
 
 UITK 的 ScrollView & ListView 的效果和 UGUI ScrollView & EnhancedScroller 效果一样。UGUI 能达到什么效果，UITK 就能达到什么效果。
+
+用 DOTween 动画文本也是一样的效果，应该是与动画逻辑无关，而是跟渲染方式有关。
+
+用 Godot 旋转 sprite 也同样有相同的视觉残影效果，这应该是使用游戏引擎渲染动画的通用视觉效果，与一般 GUI 脏区重绘不同。
