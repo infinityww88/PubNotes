@@ -78,3 +78,30 @@ ffmpeg -i a.mov -ss 00:00:21 -t 00:00:10 -acodec aac -vcodec h264 -strict -2 out
 其中 -ss 00:00:21 表示开始剪辑的位置（时间点），-t 00:00:10 表示剪辑的长度，即 10 秒钟。
 
 当然一段视频是可以在一个命令里同时进行剪辑、缩放、裁剪的，只需把相关的参数合在一起即可。
+
+## 添加水印
+
+在ffmpeg中，添加水印需要用overlay滤镜，这是一个复杂滤镜，因为它需要两个输入，默认第一个输入是视频，第二输入为水印。
+
+```sh
+ffmpeg -hide_banner -i big_buck_bunny.mp4 -i doggie2.png -filter_complex "overlay=x=0:y=0" out.mp4 -y
+```
+
+这个命令的作用是在视频的左上角添加水印，命令中的x和y表示水印在视频中的位置，视频左上角坐标为(0,0)，向右向下延伸。
+
+要批量处理不同分辨率的视频，引入四个参数：
+
+- main_w(W)：主画面的宽度
+- main_h(H)：主画面的高度
+- overlay_w(w)：水印宽度
+- overlay_h(h)：水印高度
+
+```sh
+ffmpeg -hide_banner -i big_buck_bunny.mp4 -i doggie2.png -filter_complex "overlay=x=W-w:y=0" out.mp4 -y
+```
+
+上面的命令等效于
+
+```sh
+ffmpeg -hide_banner -i big_buck_bunny.mp4 -i doggie2.png -filter_complex "overlay=x=main_w-overlay_w:y=0" out.mp4 -y
+```
