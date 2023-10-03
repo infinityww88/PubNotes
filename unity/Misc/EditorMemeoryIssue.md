@@ -12,5 +12,11 @@ Unity Editor 运行时占用 2-3G 左右的内存，Visual Studio 运行时占�
 
 - 关闭其他非必需的应用，包括 Visual Studio Code、Google Chrome。临时 note 可以先保存到 Sticky Notes 中。
 
-- 使用 Windows 版本的程序，gvim.exe 编辑文件，git.exe(git bash) 版本控制。gvim.exe 和 git.exe 各自只占用 30M 作用的内存。git bash 还可以用来模拟 bash shell 环境。
+- 使用 Windows 版本的程序，gvim.exe 编辑文件，git.exe(git bash) 版本控制。gvim.exe 和 git.exe 各自只占用 30M 作用的内存。git bash 还可以用来模拟 bash shell 环境，包含大多数标准 unix 命令。
+
+  Windows10 安装 git 客户端之后，安装文件夹下有 git-bash.exe 和 git-cmd.exe 两个执行文件。
+
+  Git CMD 就像带有 git 命令的常规 Windows 命令提示符。它允许通过命令行使用所有 Git 功能。如果熟悉 Windows cmd 并且只在 Windows 上工作，则很有用。
+
+  Git Bash 在 Windows 上模拟 bash 环境。它允许在命令行中使用所有 git 功能以及大多数标准 unix 命令。如果习惯了 Linux 并希望保持相同的习惯，则很有用。
 
