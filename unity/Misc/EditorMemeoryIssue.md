@@ -20,3 +20,7 @@ Unity Editor 运行时占用 2-3G 左右的内存，Visual Studio 运行时占�
 
   Git Bash 在 Windows 上模拟 bash 环境。它允许在命令行中使用所有 git 功能以及大多数标准 unix 命令。如果习惯了 Linux 并希望保持相同的习惯，则很有用。
 
+  其他类似软件还有 MSYS2，MinGW64，Cygwin 等。MSYS2 包含一个命令行终端 mintty，bash，版本控制系统 git 等等，它主要目的是提供最小版本的 Cygwin。
+
+  MSYS2 中安装软件使用命令 pacman -S ... 例如 pacman -S openssl。
+
