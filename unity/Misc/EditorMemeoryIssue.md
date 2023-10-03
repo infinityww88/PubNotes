@@ -11,3 +11,6 @@ Unity Editor 运行时占用 2-3G 左右的内存，Visual Studio 运行时占�
 - 关闭 WSL，退出 Vmmem.exe，在 cmd 窗口中执行 wsl --shutdown。注意打开任何 wsl 终端都会启动 wsl，不论是 Cmder 还是 Visual Studio Code。
 
 - 关闭其他非必需的应用，包括 Visual Studio Code、Google Chrome。临时 note 可以先保存到 Sticky Notes 中。
+
+- 使用 Windows 版本的程序，gvim.exe 编辑文件，git.exe(git bash) 版本控制。gvim.exe 和 git.exe 各自只占用 30M 作用的内存。git bash 还可以用来模拟 bash shell 环境。
+
