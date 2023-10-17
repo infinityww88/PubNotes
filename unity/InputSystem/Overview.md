@@ -7,6 +7,10 @@ Unity 支持两个独立的输入系统：
 - 旧的 Input Manager，它是 core Unity platform 的一部分
 - InputSystem，更灵活，目的是替换 Input Manager
 
+对于简单的输入，可以使用 UI 做输入。但是对于复杂的 scene，不可依赖 UI 做输入，必须使用输入设备 device（Input/InputSystem）。UI 系统只适合做 UI。将 UI 做复杂频繁的 input，有时会遇到意料之外的怪异问题。
+
+Gameplay 输入只有直接读取 device(Input/InputSystem) 才是最可靠的。
+
 ## Basic Concepts
 
 ![ConceptsOverview](image/ConceptsOverview.svg)
