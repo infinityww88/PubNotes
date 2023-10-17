@@ -41,3 +41,62 @@ UITK 坐标 <-> UITK scale <-> screen position <-> Canvas scale <-> Canvas 坐�
 ```
 
 注意，UITK panel 坐标系的 Y 轴和 Canvas 坐标系的 Y 轴是相反的，前者从左上角向下，后者从左下角向上。
+
+
+UITK 支持运行时动态图集，UGUI 只支持静态图集。图集是将一组小的 textures 合并到一张大 texture，使得使用这些 textures UI 在一个 drawcall 中被绘制，提高渲染效率。类似 dynamic mesh 合并，也类似 UITK 的动态文本字体图集。可以设置一组过滤规则，指定参与合并到图集的 textures。
+
+UITK 支持抗击锯齿， UGUI 不支持。
+
+UITK 支持全局样式修改，UGUI 如果没有 Prefab，需要单独修改界面中的每个 UI 元素。
+
+UITK 支持矢量图，在任何分辨率上都能保证高清晰度。
+
+UITK 支持圆角、边框、颜色，不必创建 texture，减少内存。
+
+UITK 支持 CSS 过渡动画，UGUI 则需要使用 DoTween 之类的插件做过渡动画。
+
+每个 PanelSetting 实例不会 batch 到一起，但是多个 Visual Elements 和多个 UI Documents 可以，只要它们属于同一个 PanelSettings。
+
+UITK 主要的渲染策略目标是最小化绘制 UI 的 batch drawcall。相比 UGUI 提供定制 UI shader 的灵活性，UITK 有一个 uber-shader 用于整个 UI。通过集成 Text Mesh Pro（TextCore），相同的 shader 还可以绘制 text，因此文本和图片可以在一个 draw call 被绘制（图文混排）。
+
+UIToolkit 同时支持 Static Sprite Atlas 和 Dynamic Atlas（每个 PanelSettings 一个大的 texture）。Dynamic Atlas 随着 elements 添加而被填充，它的一些属性可以在 Panel 的 Dynamic Atlas Settings 中设置。
+
+UITK shader 有 8 个 slots，其可以动态绑定（例如一个 dynamic atlas，一个 sprite atlas，多个 single textures）。在 2022.1 之后，font atlas textures 也可以是 dynamic slots 的一部分，而之前只有一个 font textures slot。
+
+UITK 不需要合并 geometries 来开启 batching。相反，vertices/indices 的 pages 预先分配，并且这些 pages 的 ranges 按照每个元素的需要进行分配。这允许 geometry 在 GPU 中是连续的，以允许一次绘制多个元素。当一个元素变化时，我们只需要更新那个元素的 range，因此我们不需要重新合并 geometry。
+
+Additionally one can use the UsageHints on specific elements to enable some transformations be done on the GPU directly (like moving vertices).
+
+We know all of this information isn't properly documented, I expect our documentation be updated before end of year about this.
+
+In pratice though, any non-trivial UI will actually incur more than 1 draw calls, because:
+- the geometry extends the maximum size for a specific page
+- using UsageHints presents a tradeoff between CPU cost and batch breaks
+- usage of masks changes the stencil buffer which leads to batch breaks
+
+But in practice what we observe is that keeping the same material and just drawing a different range with a few different settings is less expensive that reconfiguring the whole GPU state.
+
+## UsageHints
+
+Offers a set of values that describe the intended usage patterns of a specific VisualElement.
+
+- None
+
+  No particular hints applicable.
+
+- DynamicTransform
+
+  Marks a VisualElement that changes its transformation often (i.e. position, rotation or scale). When specified, this flag hints the system to optimize rendering of the VisualElement for recurring transformation changes. The VisualElement's vertex transformation will be done by the GPU when possible on the target platform. Please note that the number of VisualElements to which this hint effectively applies can be limited by target platform capabilities. For such platforms, it is recommended to prioritize use of this hint to only the VisualElements with the highest frequency of transformation changes.
+
+- GroupTransform
+
+  Marks a VisualElement that hosts many children with DynamicTransform applied on them. A common use-case of this hint is a VisualElement that represents a "viewport" within which there are many DynamicTransform VisualElements that can move individually in addition to the "viewport" element also often changing its transformation. However, if the contents of the aforementioned "viewport" element are mostly static (not moving) then it is enough to use the DynamicTransform hint on that element instead of GroupTransform. Internally, an element hinted with GroupTransform will force a separate draw batch with its world transformation value, but in the same time it will avoid changing the transforms of all its descendants whenever a transformation change occurs on the GroupTransform element.
+
+- MaskContainer
+
+  Marks a VisualElement that hosts non-rectangular descendants using the "overflow: hidden;" style. Non-rectangular masks are implemented with the stencil. If applicable, the renderer breaks the batch to preemptively set the stencil state, before and after drawing the descendants, so that the descendants won't have to set them at the next masking level. When using this flag, consecutive stencil push/pop operations are cheap and don't require modifying the stencil reference. As a result, the batch doesn't need to be broken for each push/pop operation. Consecutive push/push or pop/pop operations are still expensive. Avoid cases that involve many subtrees, where each subtree uses 2 or more levels of masking, to avoid consecutive push/push or pop/pop operations.
+
+- DynamicColor
+
+  Marks a VisualElement that changes its color often (background-color, border-color, etc.). This will store the element's colors in an optimized storage suitable for frequent changes, such as animation.
+
