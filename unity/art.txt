@@ -2,3 +2,4 @@ https://www.freepik.com google infinityww88.proton@gmail.com
 midjourney https://discord.com/ infinityww88@proton.me Vmiamn@l2.6
 https://sketchfab.com/ google infinityww88.proton@gmail.com
 
+制作黑白渐变时，不仅要设置 alpha 从 0 到 1 的渐变，还应设置颜色从黑(0, 0, 0)到白(1, 1, 1)的渐变。
