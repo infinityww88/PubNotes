@@ -1,0 +1,5 @@
+加密解密文件(ack 目录)：
+
+加密 tar cz ack | openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -e > ack.data
+
+解密 openssl enc -aes-256-cbc -d -pbkdf2 -iter 100000 -in ack.data | tar xz
