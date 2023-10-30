@@ -102,3 +102,21 @@ public class ExampleClass : MonoBehaviour
 
 将 RenderTexture 想象为一个虚拟屏幕设备。当将一个 RenderTexture 指定为 Camera.targetTexture 时，可以等价想象为这个 camera 渲染到这个 RenderTexture 的屏幕上。因此 RenderTexture 的分辨率就变成了 "Screen" 的分辨率。例如假设 RenderTexture 的分辨率为 512x512，则渲染的图像等价于在一个 512x512 窗口的程序中渲染这个相机的内容。相机在 RenderTexture 宽高比的矩形中计算视椎体。
 
+
+可以直接用主相机渲染当前游戏内容为 png 图片，必须创建一个 RenderTexture，并设置为 Camera.targetTexture。不能使用直接渲染，否则会得到一个空图像。RenderTexture 的分辨率就变成了 Camera 的虚拟屏幕的图像，渲染的世界内容就是这个分辨率屏幕显示的内容。
+
+```C#
+var t = RenderTexture.active;
+RenderTexture.active = rt;
+Camera.main.targetTexture = rt;
+Camera.main.Render();
+Texture2D tex = new Texture2D(rt.width, rt.height);
+tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+tex.Apply();
+byte[] data = ImageConversion.EncodeToPNG(tex);
+File.WriteAllBytes(Application.dataPath + "/Rocket/Texture/VFX/capture.png", data);
+Camera.main.targetTexture = null;
+RenderTexture.active = t;
+```
+
+
