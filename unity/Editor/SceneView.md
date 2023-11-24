@@ -69,3 +69,5 @@ Input.mousePosition 不能用于 Editor，只能用于 Runtime。
  
 使用 UIToolkit 向 SceneView 中添加 UIElements，要使用 Absolute position。可能是 IMGUI container 本身就使用 Absolute overlay 到 SceneView 中，使用 Relative position 添加的 UIElements 不可见。
 
+通过 SceneView.camera 访问渲染 SceneView 的 camera。
+
