@@ -105,3 +105,14 @@ ffmpeg -hide_banner -i big_buck_bunny.mp4 -i doggie2.png -filter_complex "overla
 ```sh
 ffmpeg -hide_banner -i big_buck_bunny.mp4 -i doggie2.png -filter_complex "overlay=x=main_w-overlay_w:y=0" out.mp4 -y
 ```
+
+## 改变码率
+
+```sh
+ffmpeg -i input.mp4 -b:v 1000k output.mp4
+```
+
+-i 参数指定了输入视频的文件名，-b:v 参数指定了视频的比特率，output.mp4 是输出视频的文件名。
+
+除了 -b:v 参数，还可以使用 -maxrate 和 -bufsize 参数来进一步控制视频的比特率和码率控制模式。
+
