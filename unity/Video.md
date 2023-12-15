@@ -1,4 +1,14 @@
-# Video Player 组件
+# Video Overview
+
+Unity video 系统可以集成 video 到游戏中。Video 片段可以增加真实性，免去复杂的渲染，也可以帮助集成外部内容。
+
+要使用 Unity video，导入 Video Clips，使用 Video Player 组件配置它们。
+
+系统可以让你直接将 video 片段 feed 给任何具有 Texture 参数的组件。Unity 在运行时在那个 Texture 上播放 video。
+
+Unity video 功能包括硬件加速，软件解码视频文件，透明背景支持，多音频轨道（立体声），以及网络视频流。
+
+## Video Player 组件
 
 使用 Video Player 组件来挂载 video 文件到 GameObjects，运行时在 GameObject 的 Texture 上播放它们。
 
@@ -99,3 +109,49 @@
   - Volume
 
   
+## Video Clips
+
+Video Clip 是一个导入的 video 文件，典型扩展名包括 .mp4 .mov .webm .wmv 。
+
+如果 transcode 关闭，video 文件原样不变地使用，这意味着视频和目标平台的兼容性必须人工确认。但是关闭 transcode 可以节省时间已经质量下降。
+
+
+## Video sources
+
+Video Play 组件可以播放从各种 sources(video clips，URLs，AssetBundles，以及 Streaming Asset 目录）的视频内容。
+
+可以从 AssetBundles 中读取 Video Clips。Video clips 被导入后，可以将它赋给 Video Player 组件的 Video Clip 字段。
+
+放在 Unity StreamingAssets 目录的文件通过 Video Player 组件的 URL 选项使用，或者平台特定的 Application.streamingAssetPath 使用。
+
+## Video transparency support
+
+Unity 的 Video Clips 和 Video Player 组件支持 alpha，即透明度。
+
+当 Video Player 组件在 Camera 近平面和远平面播放视频时，支持一个全局 alpha。但是，videos 可以有逐像素的 alpha 值。这意味着透明度在 video image 中可以是不同的。逐像素透明度控制是通过图像、视频编辑软件例如 After Effects 完成的，而不是在 Unity Editor 中。
+
+Unity 支持两种具有 per-pixel alpha 的 sources 类型：Apple ProRes 4444 和 Webm with VP8。
+
+## 理解 video files
+
+视频文件本质是一个容器。这是因为它不仅包含 video 本身，还包含额外的 audio，subtitles，以及更多 video footage 的 tracks。容器中，每种类型可以有多个 track，例如：
+
+- 多 POV（points of view）
+- 立体声音频
+- 不同语言的 subtitles
+- 不同语言的 dialogue
+
+为了节省带宽和 storage，每个 track 内容使用一个 codec 进行编码，并按要求进行压缩和解压缩。
+
+一个常用的 video codec（视频编码器）是 H.264，常用的音频编码器是 AAC。
+
+文件扩展名 .mp4 .mov .webm .avi 指示视频文件是如何组织容器中内容的。
+
+## 硬件和软件解码
+
+大多数现代设备都有专门硬件用于解码视频。硬件解码可以更节省能量。
+
+硬件加速通过 native custom APIS 提供，根据平台不同而不同。Unity 视频架构通过提供一个通用的 UI 和 Scripting API 隐藏了这些不同以访问这些能力。
+
+Unity 还支持软件解码。它使用 VP8 video codec 和 Vorbis audio codec。在硬件解码结果不理想时，可以使用软件解码。例如硬件解码具有不想要的分辨率、音频通道数量的限制，或者要支持 alpha channel 时。
+
