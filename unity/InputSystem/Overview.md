@@ -56,3 +56,8 @@ There are multiple ways to use the Input System, and the workflow that’s right
 ### Workflow - PlayerInput Component
 
 使用 Actions Asset 时，PlayerInput 组件提供 Inspector UI 来连接 actions 到脚本中的 event handlers，不再需要任何 Input System 和 Action Methods 之间的中间桥接代码。
+
+InputAction 的回调总是包含 3 个阶段：start，performed，cancel。阶段可以通过 InputAction.Callback.phase 来判断。使用 InputActionAsset 定义 Input 时，目前没有方法可以配置在哪个阶段触发回调，只能在回调中自己判断。如果在使用 InputAction 在 code 注册回调，可以只注册 InputAction.performed 回调。
+
+PlayerInput 组件无论 disable 它自己，还是 SetActive(false) 它所在的 GameObject，都会导致它的 current map 变成 null，要再次生效必须手工重置需要的 map，不知道是 bug 还是 feature。
+
