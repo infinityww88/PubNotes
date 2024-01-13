@@ -115,3 +115,6 @@ Input System 为了方便使用提供了多种方式，最简单的方法是使�
   - Invoke Unity Events：PlayerInput 内部定义 UnityEvent，在 Inspector 中选择回调函数
   - Invoke C Sharp Events：不在 Inspector 中设置回调函数，而在 Script 中手动设置回调
 
+使用 PlayerInput + UnityEvent 调用 action callback 时，回调函数会触发 3 个事件，分别时 start，performed，cancel。但是如果使用 InputAction 轮询 phase，只会得到 performed 事件，没有 performed 时是 waiting。
+
+
