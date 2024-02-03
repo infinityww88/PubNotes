@@ -19,8 +19,8 @@ Animancer 还需要 Layer，至少一个 Base Layer。使用 Animancer.Play 动�
 
 Animancer Inspector 中的这个播放和暂停按钮就对应的是 Graph 的 pause 和 unpause。
 
-![AnimancerGraphPause.png](image/AnimancerGraphPause.png)
+![AnimancerGraphPause](image/AnimancerGraphPause.png)
 
-![AnimancerGraphUnpause.png](image/AnimancerGraphUnpause.png)
+![AnimancerGraphUnpause](image/AnimancerGraphUnpause.png)
 
 AnimancerState 
