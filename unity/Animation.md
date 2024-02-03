@@ -14,3 +14,5 @@ AnimationClip 通过 Hierarchy 和名字来记录一个动画属性属于哪个 
 
 总之，Animation Clip 就是按照层级加对象名字来记录和应用属性 track 的。
 
+Animation Clip 对属性的操作是类似 SerializedProperty，通过序列化和反序列化写入属性。而且它只记录属性值随时间的变化，在播放时将数值写入到对象属性上，仅此而已。至于属性如何变化，完全由 GameObject 自己解释。因此 Animation Clip 还可以记录 Script（Component）的自定义属性并回放。因为属性的意义由 GameObject 解释，因此组件脚本必须使用这些属性，例如在 Update 中。但是 Update 默认只在 Play mode 运行，因此如果在 Editor 回放属性，是看不见动画效果的，只是属性值在变化而已，要看见动画效果，要么进入 Play Mode，要么在脚本上添加 [ExecuteInEditMode] 属性，使 Update 在 Editor mode 运行。ExecuteInEditMode 是修饰 class 的，而不是修饰函数的。 
+
