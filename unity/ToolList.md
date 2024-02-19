@@ -15,6 +15,4 @@ Amplify shader editor
 Curvy
 SimpleSQL
 YooAsset
-XLua/HotLoadC#
-
-
+XLua
