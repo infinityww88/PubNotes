@@ -77,3 +77,6 @@ group 是 package 内部的逻辑组织单元，没有物理实体，为一组�
 二进制资源在 Unity 中的类型是 TextAsset，通过 TextAsset.bytes 访问字节数据。
 
 每次打包，都会删除之前的结果，然后生成新的 bundles。但是如果资源 asset 没有更新，新生成的打包中 bundle 版本仍然不变，加载时也不会重新下载。但是如果新的 build 改变了 pack 策略，导致 asset 打包的 bundle 改不了，仍然会重新下载。
+
+一个 Package 中的 assets 是自包含的，它们彼此依赖，但是不依赖外部资源。包含的 assets 结构依赖 Group Collector 的设置，与 assets 在 Editor 中的目录位置无关。
+
