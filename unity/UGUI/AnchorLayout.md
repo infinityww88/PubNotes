@@ -72,3 +72,45 @@ x值表示游戏对象相对于Canvas左边缘的水平偏移量。如果x为0�
 y值表示游戏对象相对于Canvas底边缘的垂直偏移量。如果y为0，则表示游戏对象位于Canvas的底边缘上。
 这些值通常用于控制UGUI元素的位置，使其出现在所需的屏幕位置上。通过修改Transform的x和y值，您可以调整游戏对象在用户界面上的位置。这对于创建按钮、文本、图像等UI元素非常有用。
 ```
+
+基于锚定的布局，改变 anchor，pivot，offsetMin/offsetMax，sizeDelta，以及 RectTransform parent 关系，所有布局数值立即改变，不需要等下一帧。因为它是基于 RectTransform 层级关系和固定的布局公式计算得到的。只有自动布局系统，改变元素大小，添加删除元素，才需要等待下一帧生效（布局位置），因为一帧中可能有很多布局元素的变化，它等到一帧的结束统一进行一次布局计算。
+
+改变 RectTransform 的 parent 层级管线，元素在 Viewport 中的位置、旋转、大小都保持不变，只是各种 RectTransform 参数相应变化，来保持它的不变。
+
+AnchorMin/AnchorMax 只能在 0-1 之间，它在父元素矩形中划出一块矩形空间，即 AnchorRect。PivotMin/PivotMax 可以超过 0-1，它在自身矩形中确定一个位置，作为定位、旋转、缩放的 pivot，然后再 AnchorRect 中按照相同的比例确定一个位置，它就是子元素参考的父坐标系的原点，然后x轴向右，y轴向上，子元素的 pivot 的在这个坐标系的位置就是 anchorPosition。因此即使同一个父元素的两个子元素的坐标系也是不一样的。
+
+上面只是确定了自己的原点和父坐标系的原点，RectTransform 还有一个 rect 面积，它是用 offsetMin 和 offsetMax 用来确定的（它们都是可读写属性）。从 AnchorRect 左下角向右上偏移 offMin 就是 RectTransform 矩形的左下角，从 AnchorRect 右上角向左下偏移 offsetMax 就是 RectTransform 矩形的右上角。
+
+sizeDelta = offsetMax - offMin.
+
+sizeDelta 是 self Rect 与 AnchorRect 之间的 delta 大小（Vector2），大小的差分计算是基于元素的 pivot 的。因此 sizeDelta 和 offsetMin/offsetMax 实际是相互推算的关系。直到 sizeDelta 就能确定 RectTransform 的大小和位置，就能推算出相对于 AnchorRect 的 offsetMin/offsetMax，反之知道 offsetMin/offsetMax 也能确定 RectTransform 矩形的大小和位置，就能推算出 sizeDelta。
+
+因为每个 RectTransform 的坐标系都是不同的，因此在不同元素之间的坐标系之间进行换算非常困难。换算的基础有一个共同的标准（共识）。uGUI 提供了 GetLocalCorners 和 GetWorldCorners 用来将元素矩形在 World 和 Local 进行转换，这样就可以通过 world 位置在不同元素的坐标系之间进行转换了。此外，GetWorldCorners 还可以用来确定 3D canvas 的元素在 world 的位置和大小，来和 world GameObject 进行交互。
+
+The placement of their content is based on 7 RectTransform variables (anchoredPosition, anchorMax, anchorMin, offsetMax, offsetMin, pivot, sizeDelta), it’s actually only 5 variables.
+
+rt.sizeDelta <==> rt.offsetMax - rt.offsetMin;
+
+rt.offsetMin <==> -Vector2.Scale(rt.pivot, rt.sizeDelta) + rt.anchoredPosition;
+rt.offsetMax <==> Vector2.Scale(Vector.one - rt.pivot, rt.sizeDelta) + rt.anchoredPosition
+
+rt.anchoredPosition.x <==> Mathf.lerp(rt.offsetMin.x, rt.offsetMax.x, rt.pivot.x);
+rt.anchoredPosition.y <==> Mathf.lerp(rt.offsetMin.y, rt.offsetMax.y, rt.pivot.y);
+
+What about calculating the Transform‘s localPosition and world Position? It’s tricky because the localPosition and the RectTransform‘s rectangle is based off the pivot, anchors, and anchoredPosition. Not only that, but it also depends on the parent RectTransform and those issues also apply to the parent’s content and position – and the parent’s parent, and the parent’s parent’s parent, and… While there may be a simple formula, I can’t think of a generic one, and some non-trivial linear algebra and hierarchy traversal will probably be involved.
+
+But, the RectTransform comes with helpful utility functions to get the local and world corners for you!
+[RectTransform.GetLocalCorners][RectTransform.GetWorldCorners]
+
+If you have pixel position in world coordinates, also don’t forget you can use the RectTransform’s parent-class’ Transform.InverseTransformPoint function to convert that world position to a local position, which will then should then be compatible with RectTransform.GetLocalCorners().
+
+If you want the results of GetLocalCorners() but don’t care about ordered 3D points, but care about the final local size and position, RectTransform.rect is useful. I don’t find the position that useful, but I find myself getting the rect’s size very often for my procedurally generated GUIs.[example]
+
+If you just need to do collision tests with pixels, the RectTransformUtility class has some helpful functions.
+
+
+总是使用 Scale With Screen Size，它能指定一个参考 Screen 分辨率，然后在运行时根据实际设备对 Canvas 进行缩放，而设计 uGUI 时，只需要使用相对于参考分辨率的逻辑 UI 单位就可以了，与实际设备屏幕隔离，不用收到它的干扰，可以无所顾虑的使用任何 anchor 方法来定位、缩放元素，而无需担心在实际屏幕上变成乱糟糟的一团。UI Toolkit 也在 PanelSetting 中提供了相同的功能。
+
+
+
+
