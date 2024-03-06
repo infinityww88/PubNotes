@@ -33,8 +33,31 @@ Physic Raycaster(2D) 要挂载到 Camera 上
 
 The Raycaster raycasts against 3D objects in the scene. This allows messages to be sent to 3D physics objects that implement event interfaces.
 
+创建一个 Canvas 组件，自动创建必需的 CavasScaler 和 GraphicRaycaster 组件。CanvasScaler 确定 Canvas 的模式和分辨率，Canvas 必处于一种 Canvas Scaler 模式中（Screen Overlay、Screen Camera，World）。GraphicRaycaster 用来处理 UI Pointer 事件。如果场景中没有 EventSystem，还会自动创建一个。
 
+## PixelsPerUnit
 
+对于 Sprite(2D or UI) Texture，需要设定 PixelsPerUnit，其他类型的 texture 没有这个属性。
+
+When importing graphics as Sprites, Unity displays a parameter called Pixels per Unit (PPU). Now that we know all about units, this should be very clear. It's expressing how many pixels from your Sprite fit into a unit in the Unity scene when the GameObject is scaled 1,1,1
+
+PixelsPerUnit 用于确定一个 texture 的多少个像素应该对应一个世界单位（或 uGUI 单位）。它关系图片作为 sprite 或 UI image 显示时的分辨率问题。当越少的像素对应一个世界单位（或 UI 单位），图片显示得就越清晰，反之越越模糊。
+
+这个属性在很多地方都出现，从 Texture 的 import 属性，到 CanvasScaler，到 Image 组件的属性，最终的 PixelsPerUnit 取决于所有这些属性的比例。
+
+这个属性对 Sliced Sprite 尤其重要，因为作为 border 的 sprite 部分是固定的，它因此映射的 世界单位（UI 单位）也是固定的，PixelsPerUnit 确定着 border 在 world/UI 上显示的大小。
+
+例如下面是一个 sliced sprite texture：
+
+![SpriteSliceBorder](SpriteSliceBorder.png)
+
+当 PixelsPerUnit 设置为 50 时，border 非常宽：
+
+![PixelsPerUnit_50](PixelsPerUnit_50.png)
+
+当 PixelsPerUnit 设置为 150 时，border 比较细：
+
+![PixelsPerUnit_150](PixelsPerUnit_150.png)
 
 
 
