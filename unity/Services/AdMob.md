@@ -8,13 +8,13 @@ Windows Unity 的 JDK 位于 "C:\Program Files\Unity\Hub\Editor\2022.3.17f1c1\Ed
 
 设置环境变量 JAVA_HOME="C:\Program Files\Unity\Hub\Editor\2022.3.17f1c1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK"。还要设置好 Path，添加 %JAVA_HOME%\bin 到 PATH 中，因为 Resolve 时还要调用 java 命令。
 
-在 GoogleMobileAdsSettings 中填写 AdMob App ID。这一步非常重要。如果没有填写（甚至前后包含空格）应用程序安装后都无法启动，直接退出。测试中经常反复安装 ads plugin 过程中就往往忘记天下 App ID。务必要记住填写 App ID。
+在 GoogleMobileAdsSettings 中填写 AdMob App ID。这一步非常重要。如果没有填写（甚至前后包含空格）应用程序安装后都无法启动，直接退出。测试中经常反复安装 ads plugin 过程中就往往忘记填写 App ID。务必要记住填写 App ID。
 
 在 publishing setting 中勾选 Custom Main Gradle Template，Custom Gradle Properties Template 和 Custom Proguard File。
 
 ![AdMob_Gradle_Setting](images/AdMob_Gradle_Setting.png)
 
-安装官方文档，只需要勾选前两个，但是实际测试发现只勾选前两个，安装到设备时会出现 class not found 的问题，应该是 java 代码被剪裁了。因此还需要勾选 Custom Proguard File。网络上给出的 Custom Proguard File 模板是：
+按照官方文档，只需要勾选前两个即可，但是实际测试发现只勾选前两个，安装到设备时会出现 class not found 的问题，应该是 java 代码被剪裁了。因此还需要勾选 Custom Proguard File 防止代码被剪裁。网络上给出的 Custom Proguard File 模板是：
 
 ```
 -keep class com.google.** { public *; }
