@@ -127,3 +127,27 @@ BILLING_UNAVAILABLE（错误代码 3）:
 - Google Play 无法通过用户的付款方式扣款。例如，用户的信用卡可能已过期。
 
 Google Play 发布应用时需要选择应用可见的国家或地区，但是测试时没有这个限制，即使不在选择可见的国家或地区的测试者，也可以参与测试。
+
+尽管不需要登录，但是支付需要调用应用平台商店才能完成，而应用商店必须登录才可以支付，因此即使调用支付的游戏没有用户认证，仍然可以调用应用商店来确认用户是否进行过相关购买行为（因为应用商店必须是登录了的），然后进行 restore purchase（即如果用户购买过产品后，即使卸载游戏重装，或者在另一个设备上安装这个游戏，都不需要再次购买而直接使用）。Google Play 支持自动进行 restore purchase，App Store 要求必须有一个明确的按钮来让用户显式地 restore purchase。IAP 提供了查询是否进行过购买产品的接口。
+
+JAVA_HOME
+C:\Program Files\Unity\Hub\Editor\2022.3.17f1c1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK
+PATH
+%JAVA_HOME/bin%
+
+激励广告只有用户点击才会开始播放，插页式激励广告则不同，它会自动展示，同时为用户提供跳过选项，不想观看广告换取奖励的用户可以选择跳过
+
+side-load 是指将软件或应用程序通过非官方渠道安装到设备上，在这里就是指用 Unity 打包一个 apk 安装包，然后直接安装在设备上。对于测试与 Google Play 无关的功能，这是完全没问题的。但是要测试 Google Play 相关的功能（例如支付），必须包装 side-load 安装包的 version code, app signing 和 package name 与 test track 中的 bundle 的一致。
+
+安装 side-load 之前先卸载从 google play store 上下载的测试版本，没办法用 side load 安装包更新通过 store 安装的程序。
+
+Google Play 相关的功能涉及到要使用的 Google Play 账号，注意以下几点：
+
+- 测试账号必须在测试设备上（通过 google 应用管理设备账号）
+- 如果设备有超过一个账号，purchase 通过下载这个 app 的账号完成
+- 如果应用程序不是经过任何账号下载的（例如 side load 程序），purchase 使用第一个账号完成
+
+对于从 Opt-In link 中下载的应用，可以指定要使用的 google 账号。但是对于 side load 的安装包，没办法指定用哪个账号，属于第三种情况，即使用第一个账号进行支付。此时就要注意第一个账号是否有支付能力，如果没有，则商店初始化不能成功，无法测试支付。另外似乎中国区账号没法使用其他地区的信用卡（不知其他地区是否亦如此）。还要注意，设备上账号的顺序问题。如果第一个账号没有支付方法，即使第二个账号有，也无法使用它。Google 账号似乎是按照添加的顺序来排序的，第一个添加的账户就是第一个 google 账号，不知道如何在设备上管理 google 账号的顺序，现在唯一可行的方法就是删除前面账号，让后面的账户移动到前面，然后再重新添加刚刚删除的账号（排在最后）。通过此方法，将有支付方法的账户移动到第一个，side load 的程序就可以成功测试支付了。
+
+Unity Documents 上面关于如何进行 IAP 测试的链接： https://docs.unity3d.com/Manual/UnityIAPGoogleConfiguration.html
+
