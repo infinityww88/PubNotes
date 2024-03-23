@@ -56,3 +56,5 @@ Unity 物理引擎通常在每一帧更新后进行碰撞检测。因此，如�
 
 因为 UniTask 的生命周期是与 GameObject 甚至 Scene 独立的，因此务必要注意 Task 的管理，尤其是 Task 何时以及怎样清理，否则很容易产生资源泄露。UniTask 为 MonoBehaviour 组件提供了 GetCancellationTokenOnDestroy() 方法，它产生一个 token，在组件被销毁时，会对 token 进行 cancel 请求。将这个 token 传递给所有需要随着这个组件进行清理的 Task，就可以实现 Coroutine 那种将异步代码和 GameObject 进行绑定的效果。
 
+可以使用 UniTask Tracker 查看当前正在进行调度的 UniTask，包括它的状态，stack trace，以确定是否存在资源泄露。
+
