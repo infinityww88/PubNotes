@@ -54,3 +54,5 @@ async code 可以很方便的实现状态机逻辑。
 
 Unity 物理引擎通常在每一帧更新后进行碰撞检测。因此，如果在当前帧中添加了一个碰撞体/Trigger到场景中，并希望在同一帧内进行碰撞查询，需要等待到下一帧才能正确地检测到该碰撞体。测试中，在 Start 中创建碰撞体/触发器并进行检查，如果用 SceneManagement.LoadScene() 重新加载场景，甚至需要等待 2 帧才能正确检测到 Start 中添加的碰撞体。总之，Unity 物理检测不能期望添加的碰撞体立即能检测。如果想直接检测，可以使用 AssetStore 上的 Intersection Helper。
 
+因为 UniTask 的生命周期是与 GameObject 甚至 Scene 独立的，因此务必要注意 Task 的管理，尤其是 Task 何时以及怎样清理，否则很容易产生资源泄露。UniTask 为 MonoBehaviour 组件提供了 GetCancellationTokenOnDestroy() 方法，它产生一个 token，在组件被销毁时，会对 token 进行 cancel 请求。将这个 token 传递给所有需要随着这个组件进行清理的 Task，就可以实现 Coroutine 那种将异步代码和 GameObject 进行绑定的效果。
+
