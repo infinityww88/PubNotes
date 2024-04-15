@@ -60,7 +60,15 @@ PixelsPerUnit 用于确定一个 texture 的多少个像素应该对应一个世
 ![PixelsPerUnit_150](PixelsPerUnit_150.png)
 
 
+## Screen position to anchoredPosition
 
+UGUI 最古怪的一个特性就是，一个 RectTransform 的位置 anchoredPosition 不是基于父坐标系的，而是基于自己的 anchor rect 和 pivot 的。对于传统的 GUI 系统，例如 UIToolkit，子元素的位置就是在父元素的坐标系中决定的。
 
+RectTransform 的 anchoredPosition 是它 pivot 的位置，所参考的坐标系是 anchor rect。四个 Anchor 在 parent 的 rect 中划分出一个矩形作为子元素的 anchor rect，然后按照 pivot 的相对单位矩形的位置，在 anchor rect 中找到相应的位置，这个位置就是参考坐标系的原点，当 anchoredPosition = 0 时，pivot 就位于这个位置。坐标系（UGUI）是 x 轴向右，y 轴向上。
 
+因此，即使在位于同一个父元素下，子元素之间的 anchoredPosition 相互之间也没有参考意义，因为它们都是相对自己 anchor rect 定义的。将 Screen Position 映射为任意元素的 anchoredPosition 更是没有便捷的计算方法。最简单的方式是通过 Canvas 转换。先获取屏幕坐标（例如通过相机将 world position 转换为 screen position，或者使用鼠标坐标），调用 RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, position, camera, out pos) 将屏幕坐标转换为 rectTransform 的局部坐标。这个局部坐标就是 rectTransform 自己的 anchor rect 坐标系，以 rectTransform 的 pivot 为原点，x 轴向右，y 轴向上系。这里 RectTransform 使用 canvas。然后将元素先设置为 canvas 的子元素，将它的 anchoredPosition 设置为 RectTransformUtility.ScreenPointToLocalPointInRectangle 返回的坐标，再将元素设置回原来的父元素下面。
+
+RectTransformUtility.ScreenPointToLocalPointInRectangle 返回一个屏幕位置在 RectTransform anchor rect 中的位置。同时还返回这个位置在 RectTransform 矩形之外还是之内（这可以用来判断鼠标是否在元素矩形内，实现控价交互）。返回的坐标是相对于 RectTransform pivot 的，如果坐标=0，就位于 pivot 的位置。
+
+anchor 布局中元素改变 Hierarchy 关系（更换父元素）时，在屏幕的位置总是保持不变，其他 RectTransform 参数，尤其是 anchoredPosition，相应进行改变，而且是瞬时改变，因为它们都是通过公式彼此关联的，在改变 hierarchy 后，立即更新，不像自动布局，改变元素的布局属性，至少要等到一帧的末尾 canvas 刷新布局后才生效。这是因为自动布局需要遍历整个 hierarchy 进行两遍自顶向下的计算，这些计算非常复杂繁重，为了避免每次改变自动布局都进行一次这样的计算，UGUI 只在一帧的结尾为当前帧进行的所有自动布局改变执行一次计算，以进行优化。如果需要立即更新，可以强制触发自动布局计算。
 
