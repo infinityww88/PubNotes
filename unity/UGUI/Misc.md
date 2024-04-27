@@ -72,3 +72,17 @@ RectTransformUtility.ScreenPointToLocalPointInRectangle 返回一个屏幕位置
 
 anchor 布局中元素改变 Hierarchy 关系（更换父元素）时，在屏幕的位置总是保持不变，其他 RectTransform 参数，尤其是 anchoredPosition，相应进行改变，而且是瞬时改变，因为它们都是通过公式彼此关联的，在改变 hierarchy 后，立即更新，不像自动布局，改变元素的布局属性，至少要等到一帧的末尾 canvas 刷新布局后才生效。这是因为自动布局需要遍历整个 hierarchy 进行两遍自顶向下的计算，这些计算非常复杂繁重，为了避免每次改变自动布局都进行一次这样的计算，UGUI 只在一帧的结尾为当前帧进行的所有自动布局改变执行一次计算，以进行优化。如果需要立即更新，可以强制触发自动布局计算。
 
+设计满足适配任何分辨率的 UI 时，尤其要使用 Canvas Scalar 的 Scale With Screen Size 的 UI Scale Mode。它定义一个虚拟的设计时 UI 参考的分辨率，然后在运行时保持 aspect ratio 缩放 Canvas 来匹配屏幕。在 Canvas 内部，总是使用设计时虚拟分辨率的单位，不需要考虑真是屏幕的分辨率，Canvas Scalar 在运行时会根据实际的屏幕分辨率来定义一个虚拟分辨率像素单位对应多少真是的物理屏幕像素，这是一个自动计算过程。这样可以在设计时完全不需要考虑担心真实的屏幕分辨率，而只需要使用虚拟参考分辨率即可。这样可以保证，无论设计 UI 的时候使用 anchor 布局，还是自动布局，无论 anchor 布局使用何种 anchor，pivot，和 anchorPosition，都能保证做见即所得，可以使用任何布局方法，只要能拼出想要的 UI 即可，完全不需要担心在不同分辨率的真实屏幕上 UI 效果不同甚至混乱的问题。而且还可以对 UI 元素安全地使用绝对像素坐标，因为 Canvas 中的绝对像素坐标也是虚拟分辨率的虚拟像素，Canvas Scalar 缩放 Canvas 时会将一个虚拟像素映射为一定数量的真实像素。能使用绝对坐标设计 UI 就太方便了，不需要像 web css 中必须使用百分比才能得到响应式 UI 这样的方法了。总之，使用 Scale With Screen Size 后，可以使用任何方法设计 UI，总能做见即所得，设计的是什么样，运行时显示的就是什么样。
+
+这个方法太好用，UI Toolkit 的 UIDocument 的 PanelSetting 也包含了这个功能。因此在 UI Toolkit 中可以安全地使用绝对像素单位，不需要百分比单位。
+
+这个所见即所得指的是相对于虚拟分辨率空间的，如果虚拟分辨率超过了 Canvas 有显示在屏幕之外的部分，有可能有部分 UI 显式在屏幕之外。因此通常使用 Expand 缩放模式。
+
+虚拟的参考分辨率和运行时的真是屏幕分辨率的 aspect 很可能不匹配，可能更宽或更窄。如何缩放 Canvas（一个虚拟分辨率像素对应多少真实物理像素）通过 Screen Match Mode 决定。注意这里 Expand/Shrink 指的是 Canvas 相对于虚拟参考分辨率进行 Expand/Shrink:
+
+- Expand: 按照 Screen 分辨率，扩展 Canvas，使得虚拟分辨率空间总是包含在 Canvas 中，没有 UI 显式在屏幕之外
+- Shrink：按照 Screen 分辨率，收缩 Canvas，使得 Canvas 总是包含在虚拟分辨中空间中，可能有部分 UI 显式在屏幕之外，因为 Canvas 总是完全匹配 Screen，可能有部分虚拟分辨率空间在 Canvas 外面
+- Match Width Or Height：= 0 时，等价于 Expand，= 1 时，等价于 Shrink
+
+这里 Expand 和 Shrink 是使 Canvas 的 aspect 完全等于 Screen 的 aspect，水平垂直像素比总是 1:1，Canvas 大小总是完全匹配真实屏幕，但是不必匹配虚拟分辨率的 aspect，只是根据 Expand/Shrink 可以保证虚拟分辨率总是包裹在 Canvas 中或者反之 Canvas 总是包裹在虚拟分辨率中。
+
