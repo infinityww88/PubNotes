@@ -45,40 +45,85 @@ NuGet 安装的包存储在项目中，而不是一个中心位置。这允许�
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
+using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.Lambda;
+using Amazon.Lambda.Model;
 using Sirenix.OdinInspector;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using System.IO;
+using System.Linq;
 
 public class AWSTest : MonoBehaviour
 {
-	private IAmazonS3 s3Client;
-	
-    // Start is called before the first frame update
-    void Start()
-    {
-	    AmazonS3Config s3Config = new	AmazonS3Config();
-	    s3Config.RegionEndpoint = Amazon.RegionEndpoint.USWest2;
-	    s3Client = new AmazonS3Client("access_key", "secret_key", s3Config);
-    }
+	private const string ACCESS_KEY = "******";
+	private const string SECRET_KEY = "******";
+	private const string BUCKET = "******";
 
 	[Button]
-	async UniTaskVoid Test() {
-		ListObjectsResponse resp = await s3Client.ListObjectsAsync("bucket_name", CancellationToken.None).AsUniTask();
+	async UniTaskVoid TestS3() {
+		AmazonS3Config s3Config = new	AmazonS3Config();
+		s3Config.RegionEndpoint = Amazon.RegionEndpoint.USWest2;
+		IAmazonS3 s3Client = new AmazonS3Client(ACCESS_KEY,
+			SECRET_KEY,
+			s3Config);
+		ListObjectsResponse resp = await s3Client.ListObjectsAsync(BUCKET, CancellationToken.None).AsUniTask();
 		foreach (var s3Obj in resp.S3Objects) {
-			var stream = s3Client.GetObject("bucket_name", s3Obj.Key).ResponseStream;
+			var stream = s3Client.GetObject(BUCKET, s3Obj.Key).ResponseStream;
 			TextReader tr = new StreamReader(stream);
 			var content = await tr.ReadToEndAsync().AsUniTask();
 			Debug.Log($"-- {s3Obj.Key} --");
 			Debug.Log(content);
 		}
 	}
+	
+	[Button]
+	async UniTaskVoid TestLambda() {
+		AmazonLambdaConfig lambdaConfig = new	AmazonLambdaConfig();
+		lambdaConfig.RegionEndpoint = Amazon.RegionEndpoint.USWest1;
+		IAmazonLambda lambdaClient = new AmazonLambdaClient(ACCESS_KEY,
+			SECRET_KEY,
+			lambdaConfig);
+		InvokeRequest req = new InvokeRequest();
+		req.FunctionName = "MyUnityFunc";
+		req.Payload = "{\"value\":321}";
+		req.InvocationType = InvocationType.RequestResponse;
+		InvokeResponse resp = await lambdaClient.InvokeAsync(req).AsUniTask();
+		TextReader tr = new StreamReader(resp.Payload);
+		var content = await tr.ReadToEndAsync().AsUniTask();
+		Debug.Log($"http_status_code {resp.HttpStatusCode}, status_code {resp.StatusCode}, payload {content}");
+	}
+	
+	[Button]
+	async UniTaskVoid TestDynamodb() {
+		AmazonDynamoDBConfig ddbConfig = new	AmazonDynamoDBConfig();
+		ddbConfig.RegionEndpoint = Amazon.RegionEndpoint.USWest2;
+		IAmazonDynamoDB ddbClient = new AmazonDynamoDBClient(ACCESS_KEY,
+			SECRET_KEY,
+			ddbConfig);
+		Table table = Table.LoadTable(ddbClient, "UserInfo");
+		Document doc = await table.GetItemAsync("infinity", CancellationToken.None).AsUniTask();
+		foreach (var attr in doc.GetAttributeNames()) {
+			string strValue = null;
+			var value = doc[attr];
+			if (value is Primitive) {
+				strValue = value.AsPrimitive().Value.ToString();
+				Debug.Log($"{attr} -> {strValue}");
+			}
+			else {
+				Debug.Log($"{attr} -> {string.Join(",", value.AsListOfString())}");
+			}
+		}
+	}
 }
 ```
 
 AWSSDK 中的 async 接口返回的是 C# 版本的 Task，要在 UniTask 中使用，可以通过 AsUniTask() 将其转换为 UniTask。
+
 
 ```
 可以进行如下转换
@@ -88,5 +133,11 @@ UniTask -> UniTask<AsyncUnit>: 使用 AsAsyncUnitUniTask
 UniTask<T> -> UniTask: 使用 AsUniTask，这两者的转换是无消耗的
 
 如果想将异步转换为协程，你可以使用.ToCoroutine()，如果只想允许使用协程系统，这很有用。
+```
+
+测试 AWS API 的时候如果抛出异常，查看日志可以找到详细的问题描述来定位问题，通常是权限问题或配置（region）问题。
+
+```
+Rethrow as AmazonDynamoDBException: User: arn:aws:iam::330725368797:user/Unity is not authorized to perform: dynamodb:DescribeTable on resource: arn:aws:dynamodb:us-west-2:330725368797:table/UserInfo because no identity-based policy allows the dynamodb:DescribeTable action
 ```
 
