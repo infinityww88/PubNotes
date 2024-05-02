@@ -121,6 +121,7 @@ public class AWSTest : MonoBehaviour
 		}
 	}
 }
+```
 
 AWSSDK 中的 async 接口返回的是 C# 版本的 Task，要在 UniTask 中使用，可以通过 AsUniTask() 将其转换为 UniTask。
 
@@ -153,7 +154,14 @@ Why do both exist?
 
 尽管 .Net Core 已经实现了跨平台，但是还有其他 .Net 实现。为了在这些 .Net 平台之间共享 libraries，定义了一个最小的 API 集合，这个 API 集合的实现就是 .Net Standard。它存在的目的是实现各种 .Net 平台之间可移植性
 
-构建 AWS SDK dll，如果不是 target .Net Standard，在移动设备上会抛出 NotSupportedException: System.Configuration.ConfigurationManager::get_AppSettings 异常。这是因为 IL2CPP 不支持 System.Configuration.ConfigurationManager，如果 AWS SDK 代码使用了它，就无法运行。不支持的原因是要在 IL2CPP 中支持 System.Configuration.ConfigurationManager 需要大量的代码改动，而且 Unity 认为这个功能很少会被使用，因此目前没有计划支持这个功能。要避免这个异常，可以切换到 Mono Scripting Backend，但是这样就无法使用 HybridCLR。
+构建 AWS SDK dll，如果不是 target .Net Standard，在移动设备上会抛出异常 
 
-要在 IL2CPP 中支持 AWS SDK，需要编译或下载 target 为 .Net Standard 的 dll。注意 .Net Standard 版本的 AWS SDK 引用了 Microsoft.Bcl.AsyncInterfaces，需要导入额外的 Microsoft.Bcl.AsyncInterfaces.dll，它在 AWS 官网提供的 SDK 压缩包里已经被编译好了，与 AWSSDK.Core.dll 一起被导入到 Unity 中即可。但是其他版本的 sdk，例如 aws-sdk-net45.zip，不包含 Microsoft.Bcl.AsyncInterfaces.dll，直接导入 Core.dll 和 service 的 dll 即可运行。原因可能是 .Net Standard 实现中缺少 AWS SDK 需要的异步编程特性，因此需要额外的 Microsoft.Bcl.AsyncInterfaces 支持，而更高级的 .Net 实现包含了异步编程特性，不再需要 Microsoft.Bcl.AsyncInterfaces 了。但是后者无法在移动设备上运行，只能使用 .Net Standard 版本的 SDK，因此要么下载编译好的 Microsoft.Bcl.AsyncInterfaces.dll，要么手动编译这个 dll。
+```
+NotSupportedException: System.Configuration.ConfigurationManager::get_AppSettings
+```
 
+这是因为 IL2CPP 不支持 System.Configuration.ConfigurationManager，如果 AWS SDK 代码使用了它，就无法运行。不支持的原因是要在 IL2CPP 中支持 System.Configuration.ConfigurationManager 需要大量的代码改动，而 Unity 认为这个功能很少会被使用，因此目前没有计划支持这个功能。要避免这个异常，可以切换到 Mono Scripting Backend，但是这样就无法使用 HybridCLR。
+
+要在 IL2CPP 中支持 AWS SDK，需要编译或下载 target 为 .Net Standard 的 SDK dll。
+
+注意 .Net Standard 版本的 AWS SDK 引用了 Microsoft.Bcl.AsyncInterfaces，需要导入额外的 Microsoft.Bcl.AsyncInterfaces.dll，它在 AWS 官网提供的 SDK 压缩包里已经被编译好了，与 AWSSDK.Core.dll 一起导入到 Unity 中即可。但是其他版本的 sdk，例如 aws-sdk-net45.zip，不包含 Microsoft.Bcl.AsyncInterfaces.dll，直接导入 Core.dll 和 service dll 即可运行。原因可能是 .Net Standard 实现中缺少 AWS SDK 需要的异步编程特性，因此需要额外的 Microsoft.Bcl.AsyncInterfaces 支持，而更高级的 .Net 实现包含了异步编程特性，不再需要 Microsoft.Bcl.AsyncInterfaces 了。但是后者无法在移动设备上运行，只能使用 .Net Standard 版本的 SDK，因此要么下载编译好的 Microsoft.Bcl.AsyncInterfaces.dll，要么手动编译这个 dll。
