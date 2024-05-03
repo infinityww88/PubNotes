@@ -93,3 +93,9 @@ Transform 的 position，rotation，scale 分别具有 world 版本和 local 版
 
 当想要创建一个分别沿着两个坐标轴（假设 x y）万向旋转的效果，例如智能导弹发射平台或大炮沿着两个轴旋转，皆可以为两个轴的旋转分别创建一个 GameObject 作为 parents，每个 GameObject 控制一个坐标轴的旋转，也可以只使用一个 GameObject，然后为两个轴的旋转分别创建 Quaternion，然后左乘在一起，作为 GameObject 的 localRotation。这相当于创建了两个虚拟的 GameObject。
 
+## Unity 版本
+
+尽量使用 LTS 版本，不要追求最新版本甚至 beta alpha 版本。不仅仅因为最新版本本身可能存在的问题，还因为很多必须的依赖插件不一定跟着 Unity 最新版本更新。
+
+例如现在 Unity 2023 版本中，已知 UModeler，Shape2D 都存在问题，HybridCLR 在 2023 版本中更是不可用。而当前最新 LTS 版本中，这些插件都可以运行。每个软件自身的维护更新尚且耗时耗力，多个软件一起协同工作不出问题更是不可奢求。
+
