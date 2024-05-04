@@ -98,5 +98,7 @@ Auto Layout 也是一样，不需要考虑真实屏幕的分辨率，只需要�
 
 无论是 AutoLayout 还是 AnchorLayout，调整 UI 的位置和大小是为了在设计时得到想要的效果，而不是为了在真实屏幕上根据实际分辨率动态调整 UI 来适配屏幕，屏幕适配是通过 CanvasScaler 完成的。因此设计时只需要考虑参考分辨率，可以以任意方法使用 AutoLayout 或 AnchorLayout，只要能在参考分辨率中得到满意的 UI 就可以。只是在设计的时候，为了 UI refine 的方便，要设计好 Anchor/Pivot 或 Layout 属性，使得在精细调整 UI 控件时，只需要调整 Parent 的 RectTransform，而不必再去调整其子组件的位置和大小。
 
+只考虑设计时为了方便调整大小的缩放，而不用考虑运行时针对真实屏幕的缩放。
+
 UIDocument 也是一样。
 
