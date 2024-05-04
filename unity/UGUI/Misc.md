@@ -86,3 +86,7 @@ anchor 布局中元素改变 Hierarchy 关系（更换父元素）时，在屏�
 
 这里 Expand 和 Shrink 是使 Canvas 的 aspect 完全等于 Screen 的 aspect，水平垂直像素比总是 1:1，Canvas 大小总是完全匹配真实屏幕，但是不必匹配虚拟分辨率的 aspect，只是根据 Expand/Shrink 可以保证虚拟分辨率总是包裹在 Canvas 中或者反之 Canvas 总是包裹在虚拟分辨率中。
 
+## Anchor Layout
+
+Anchor Layout 尽管也可以用于不同分辨率屏幕上的适配，例如控制某个控件距离屏幕边缘（Canvas）多远，但是分辨率适配主要是通过 CanvasScaler 完成（整体缩放 UI，保证所见即所得）。Anchor Layout 的主要用途是实现自定义控件，控制控件子组件相对于控件的定位，使得任意缩放自定义控件时，其外观能尽量保证合理，因为自定义控件通常会作为 Prefab，并用在很多地方，分配给它的空间可能不尽相同。Anchor Layout 使得控件在被拖放到不同地方不同空间的时候，能保持大致合理，**而无需每次都再去手动调整**，这才是 Anchor Layout 的主要用途。然后 UI 通过 CanvasScaler 整体缩放来适应屏幕，UI 中的所有控件（无论是 AutoLayout 还是 AnchorLayout）都会保持它们原来（设计时）的样子，这样设计 UI 的时候（无论是使用 AutoLayout 还是 AnchorLayout）就无需担心各种不同分辨率的屏幕了。
+
