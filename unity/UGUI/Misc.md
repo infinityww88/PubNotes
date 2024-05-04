@@ -94,3 +94,9 @@ Anchor Layout 尽管也可以用于不同分辨率屏幕上的适配，例如控
 
 Anchor Layout 是为了 UI refine 精细调整用的（通过调整组件自身的 RectTransform 大小即能调整所有子组件的布局，子组件更具 Parent Rect 的变化自动调整），不是为了分辨率适配。一旦设计好所有 UI 组件的布局，CanvasScaler 会将 UI 整体缩放来适应真实的屏幕，整体 UI 外观会所见即所得的保持它们设计时的样子，Canvas 内部使用逻辑虚拟的坐标单位，无论是 AutoLayout 还是 AnchorLayout 都不用担心真实的设备屏幕分辨率，设计时值参考设定的虚拟分辨率设计就可以了。
 
+Auto Layout 也是一样，不需要考虑真实屏幕的分辨率，只需要参考设定的虚拟分辨率设计，只要在虚拟参考分辨率中达到想要的效果。
+
+无论是 AutoLayout 还是 AnchorLayout，调整 UI 的位置和大小是为了在设计时得到想要的效果，而不是为了在真实屏幕上根据实际分辨率动态调整 UI 来适配屏幕，屏幕适配是通过 CanvasScaler 完成的。因此设计时只需要考虑参考分辨率，可以以任意方法使用 AutoLayout 或 AnchorLayout，只要能在参考分辨率中得到满意的 UI 就可以。只是在设计的时候，为了 UI refine 的方便，要设计好 Anchor/Pivot 或 Layout 属性，使得在精细调整 UI 控件时，只需要调整 Parent 的 RectTransform，而不必再去调整其子组件的位置和大小。
+
+UIDocument 也是一样。
+
