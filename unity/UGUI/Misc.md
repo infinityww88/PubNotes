@@ -90,3 +90,7 @@ anchor 布局中元素改变 Hierarchy 关系（更换父元素）时，在屏�
 
 Anchor Layout 尽管也可以用于不同分辨率屏幕上的适配，例如控制某个控件距离屏幕边缘（Canvas）多远，但是分辨率适配主要是通过 CanvasScaler 完成（整体缩放 UI，保证所见即所得）。Anchor Layout 的主要用途是实现自定义控件，控制控件子组件相对于控件的定位，使得任意缩放自定义控件时，其外观能尽量保证合理，因为自定义控件通常会作为 Prefab，并用在很多地方，分配给它的空间可能不尽相同。Anchor Layout 使得控件在被拖放到不同地方不同空间的时候，能保持大致合理，**而无需每次都再去手动调整**，这才是 Anchor Layout 的主要用途。然后 UI 通过 CanvasScaler 整体缩放来适应屏幕，UI 中的所有控件（无论是 AutoLayout 还是 AnchorLayout）都会保持它们原来（设计时）的样子，这样设计 UI 的时候（无论是使用 AutoLayout 还是 AnchorLayout）就无需担心各种不同分辨率的屏幕了。
 
+因此设计某个自定义控件的时候通常应该要使用各种 Anchor/Pivot 组合，来相对 Parent 锚定 Child，使得任意改变 Parent 的大小，子控件都能保持合理布局。这主要是为了更方便地调整控件大小，而不是为了屏幕分辨率适配。因为 UI refine 的时候需要调整各种控件的大小来得到满意的效果。通过合理设置子组件的 Anchor 和 Pivot，在精细微调 Parent 控件的时候，只需要简单轻微调整 Parent RectTransform 的 size 就可以了，子控件会按照定义好的 Anchor/Pivot 布局随着 Parent Rect 自动定位。如果只是简单地使用 Middle Center 不考虑任何 Anchor/Pivot 布局，那么每当需要调整 Parent Rect（以得到想要的效果）时，都可能需要调整子组件的位置来适应新的 Parent Rect 大小，这使得 UI Refine 几乎不可行。
+
+Anchor Layout 是为了 UI refine 精细调整用的（通过调整组件自身的 RectTransform 大小即能调整所有子组件的布局，子组件更具 Parent Rect 的变化自动调整），不是为了分辨率适配。一旦设计好所有 UI 组件的布局，CanvasScaler 会将 UI 整体缩放来适应真实的屏幕，整体 UI 外观会所见即所得的保持它们设计时的样子，Canvas 内部使用逻辑虚拟的坐标单位，无论是 AutoLayout 还是 AnchorLayout 都不用担心真实的设备屏幕分辨率，设计时值参考设定的虚拟分辨率设计就可以了。
+
