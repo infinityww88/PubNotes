@@ -89,13 +89,13 @@ sizeDelta 是 self Rect 与 AnchorRect 之间的 delta 大小（Vector2），大
 
 The placement of their content is based on 7 RectTransform variables (anchoredPosition, anchorMax, anchorMin, offsetMax, offsetMin, pivot, sizeDelta), it’s actually only 5 variables.
 
-rt.sizeDelta <==> rt.offsetMax - rt.offsetMin;
+rt.sizeDelta = rt.offsetMax - rt.offsetMin;
 
-rt.offsetMin <==> -Vector2.Scale(rt.pivot, rt.sizeDelta) + rt.anchoredPosition;
-rt.offsetMax <==> Vector2.Scale(Vector.one - rt.pivot, rt.sizeDelta) + rt.anchoredPosition
+rt.offsetMin = -Vector2.Scale(rt.pivot, rt.sizeDelta) + rt.anchoredPosition;
+rt.offsetMax = Vector2.Scale(Vector.one - rt.pivot, rt.sizeDelta) + rt.anchoredPosition
 
-rt.anchoredPosition.x <==> Mathf.lerp(rt.offsetMin.x, rt.offsetMax.x, rt.pivot.x);
-rt.anchoredPosition.y <==> Mathf.lerp(rt.offsetMin.y, rt.offsetMax.y, rt.pivot.y);
+rt.anchoredPosition.x = Mathf.lerp(rt.offsetMin.x, rt.offsetMax. x, rt.pivot.x);
+rt.anchoredPosition.y = Mathf.lerp(rt.offsetMin.y, rt.offsetMax.y, rt.pivot.y);
 
 What about calculating the Transform‘s localPosition and world Position? It’s tricky because the localPosition and the RectTransform‘s rectangle is based off the pivot, anchors, and anchoredPosition. Not only that, but it also depends on the parent RectTransform and those issues also apply to the parent’s content and position – and the parent’s parent, and the parent’s parent’s parent, and… While there may be a simple formula, I can’t think of a generic one, and some non-trivial linear algebra and hierarchy traversal will probably be involved.
 
@@ -111,6 +111,79 @@ If you just need to do collision tests with pixels, the RectTransformUtility cla
 
 总是使用 Scale With Screen Size，它能指定一个参考 Screen 分辨率，然后在运行时根据实际设备对 Canvas 进行缩放，而设计 uGUI 时，只需要使用相对于参考分辨率的逻辑 UI 单位就可以了，与实际设备屏幕隔离，不用收到它的干扰，可以无所顾虑的使用任何 anchor 方法来定位、缩放元素，而无需担心在实际屏幕上变成乱糟糟的一团。UI Toolkit 也在 PanelSetting 中提供了相同的功能。
 
+RectTransform 有两个坐标系空间：anchorPosition = 0 的参考 anchor 左边空间（anchorPosition 的位置在这个坐标空间中定义），和以 anchorPosition 为原点的自身 local 坐标空间（RectTransformUtility.ScreenPointToLocalPointInRectangle 在将 screen point 转换到这个坐标空间）。
+
+## RectTransformUtility
+
+- bool ScreenPointToLocalPointInRectange(RectTransform rect, Vector2 screenPoint, Camera cam, out Vector2 localPoint)
+
+  将屏幕上的一个位置转换为 RectTransform 的 local space 坐标系中的位置。如果 Canvas 是 Screen Space - Overlay 模式，Camera 参数应该为 Null，如果是 Screen Space - Camera，应该是其使用的 Camera。
+
+  如果在一个 event handler 内使用 ScreenPointToLocalInRectangle，它提供的 PointerEventData 中可以得到正确的 Camera 参数，可以直接传入到这个函数中（自动根据 Canvas 的模式设置为使用的 Camera 或者 Null）。
+
+  返回值 bool 指出 Screen Point 是否位于 RectTransform 所在的平面内，而不管 point 是否在 RectTransform 的内部。
+
+  这个值对于 Screen Space Overlay/Camera 没有意义，因为它们的平面与 Camera 平行，Screen Point 总能落在这个平面上。这个返回值应该是用于 World 模式的 Canvas，3D UI 中 RectTransform 的平面可以是任意的，如果垂直于 Camera，Screen Point 没法落在 Rect 的平面上，也就没办法转换。因此这个值就是用来判断 3D UI 中，Screen Point 是否落在 Rect 的平面上（此时转换才有意义）。
+
+  RectTransform 局部坐标系不是 RectTransform anchorPosition = 0 时初始位置（reference anchor point）开始的坐标系，而是 RectTransform 进行了任何位移、旋转、缩放后的，以当前 anchorPosition（不一定为 0）为原点的坐标系。
+
+  ![RectTransformLocalSpace](RectTransformLocalSpace.png)
+
+  RectTransform.rect 是在 RectTransform 的局部坐标系定义的，从 anchorPosition = 0 的参考 Anchor Point 平移到 anchorPosition 为原点，坐标轴向右向上，然后旋转、缩放的坐标系。rect 的 x 和 y 是 rect 左下角在局部坐标系的位置，width 和 height 是 RectTransform 的宽高。因此转换后的点可以用 rect.Contains 来判断其是否落在 RectTransform 的矩形内（即使矩形已经进行了旋转和缩放）。
+
+- ScreenPointToWorldPointInRectange 
+
+  类似 Camera.ScreenPointToWorldPoint，都是从 Screen 上的一点在 3D world 中发射一条射线，找到 3d world 中的一个位置。但是 Camera.ScreenPointToWorldPoint 只是简单地从 ray 的 origin 偏移一定 distance 来得到相应的位置，而这个函数是得到射线和 Rect 在 3d world 中的平面的交点。Transform 只能在 3D 空间中确定一个位置，而 RectTransform 因为具有 rect，它可以在 3D 空间中定义一个平面，UI rect 可以在 3d 空间中旋转的，它所在的平面也会相应的旋转。这个函数就是得到 screen ray 与这个平面的交点，无论交点是否在 Rect 内部。
 
 
+## Misc
+
+Canvas RectTransform 系统是建立在 Transform（3D world）系统上，它直接用 Transform(position, rotation, scale) 来存储 UI 的位置、旋转、缩放信息，只是基于此添加了 Rect 相关的信息。因此直接访问 RectTransform 的 Transform.position/rotation/scale 就可以获取 UI 的底层数据。
+
+所有 UI 元素都是真正 3D world 中的 GameObjects，但是不一定都被 Camera.main 渲染。Camera 只渲染指定的 layer mask 的 GameObject。UI 元素都被标记为 UI Layer Mask，因此它们不会被 3D world 中的 Camera 渲染，而是被一个只渲染 UI layer 的 Camera 渲染。
+
+对于 Screen Space - Overlay，不需要 Camera 渲染，直接覆盖在屏幕上，但是它的底层数据仍然是使用 Transform 数据存储的，因此仍然可以认为是 3D world 中的 GameObjects，只是不被 Camera.main 渲染.
+
+对于 Screen Space - Camera 和 World 模式，UI 是 3D GameObjects 的概念就更明显。它们的位置、旋转、缩放就直接是 Transform 的 Position，Rotation，Scale。
+
+无论 Canvas 是哪种模式，其内部使用一个独立的虚拟坐标系，这让它与 Transform 坐标系分开，只相对参考分辨率定义。这可以让它方便地进行整体缩放来适配真正的屏幕。Transform 数据只有位置的概念，没有 width 和 height 的概念。RectTransform 在 Transform 基础上添加了 width 和 height 的概念。但是 width/height 的单位是虚拟坐标系中的单位。所有 RectTransform 中 UI 坐标相关的属性，anchorPosition，sizeDelta，offMin，offMax 都是在虚拟空间中定义的，使用虚拟坐标空间的单位。
+
+Transform 只有定义一个位置，没有大小（size/width/height）的概念，RectTransform 添加了大小的概念。
+
+但是无论如何 Canvas（进而所有 UI 元素）还是要具有 3D 空间中的大小和真是物理屏幕上的大小。因此 Canvas（所有 UI 元素）具有 3 种 size：
+
+- 虚拟坐标空间的大小
+
+  由 Canvas Scaler 定义虚拟坐标空间中 Canvas 的 size（分辨率 width/height），进而定义了真实物理屏幕单位和虚拟坐标空间单位的比例，Canvas.scalerFactor。
+
+- 3D world 空间中的大小
+
+  - Screen Space - Overlay：因为虚拟空间坐标数据直接使用 Transform 存储，因此虚拟坐标数据的大小就是 3D world 中 Canvas 的大小。
+  - Screen Space - Camera：Canvas 位于 Camera 视椎体的一个横截面，它的 3D world 大小就是横截面的大小。
+  - World：Canvas（所有 UI 元素）完全变成 3D 空间中的 GameObjects，Canvas 也不必完全填充屏幕，可以是任意大小。虚拟空间坐标单位等于 3D world 单位。
+
+- 真实物理屏幕的大小
+
+  Screen Space Overlay/Camera 模式中 Canvas 总是完全填满整个物理屏幕。World 模式下 Canvas 是完全的 3D GameObject，可以是任意大小，不必覆盖整个屏幕。
+
+
+虚拟坐标空间有 3 中定义方式（定义 Canvas 的 width x height，就是 CanvasScaler 的 UI Scale Mode）：
+
+- Constant Pixel Size：使用真实物理屏幕的分辨率，再经过 CanvasScaler 的 scaleFactor 一致缩放后的结果，作为 Canvas 虚拟空间的大小（分辨率）
+- Scale With Screen Size：手动明确指定一个参考分辨率，然后再按照 Match Mode 缩放，缩放后的结果作为 Canvas 虚拟空间的大小 
+- Constant Physical Size：和 Constant Pixel Size 类似，只不过 Constant Pixel Size 是手动指定一个任意的 scaleFactor 来缩放真实物理屏幕的分辨率来作为 Canvas 的虚拟分辨率。而 Constant Physical Size 则 DPI PPU，自动缩放物理分辨率为真实的物理长度单位（点，毫米，厘米），这样真实物理屏幕的 size 将变成真实物理长度的 size（例如 5.4cm x 10.8 cm），然后这个物理长度 size 成为 Canvas 的 size，这样所有 UI 元素的单位都变成了真实的物理单位，即可以按照真实物理单位来设计 UI 大小。
+
+可见，无论是哪种 UI Scale Mode，核心都是确定一个 scaleFactor，将真实物理屏幕分辨率进行缩放，缩放后的结果作为 Canvas 的虚拟空间 size。那么将 Canvas 虚拟空间 size 反向缩放就可以得到真实物理屏幕分辨率。无论使用哪种方法，最终的 scaleFactor 都可以通过 Canvas.scaleFactor 属性得到，因此：
+
+- Canvas.width = Screen.width * Canvas.scalerFactor
+- Canvas.height = Screen.height * Canvas.scalerFactor
+
+## Unity 坐标系方向
+
+Unity 中所有坐标系都是 x 轴向右的，不同是 y 轴方向
+
+- 只有 UIToolkit 是 y 轴向下的，与 web css 中的坐标系一致
+- 其他所有的坐标空间都是 y 轴向上的，包括 3D world（Transform），UGUI（Canvas/RectTransform），Screen 空间 和 ViewPort 空间。
+
+不同的 y 轴方向也决定了原点的位置，y 轴向下的原点在上角，y 轴向上的原点在下角。x 轴上原点总在左角。除了 UGUI RectTransform 的原点在 anchorPosition 处，而不是在 Rect 的左下角。
 
