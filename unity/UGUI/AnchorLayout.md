@@ -87,8 +87,9 @@ sizeDelta 是 self Rect 与 AnchorRect 之间的 delta 大小（Vector2），大
 
 因为每个 RectTransform 的坐标系都是不同的，因此在不同元素之间的坐标系之间进行换算非常困难。换算的基础有一个共同的标准（共识）。uGUI 提供了 GetLocalCorners 和 GetWorldCorners 用来将元素矩形在 World 和 Local 进行转换，这样就可以通过 world 位置在不同元素的坐标系之间进行转换了。此外，GetWorldCorners 还可以用来确定 3D canvas 的元素在 world 的位置和大小，来和 world GameObject 进行交互。
 
-The placement of their content is based on 7 RectTransform variables (anchoredPosition, anchorMax, anchorMin, offsetMax, offsetMin, pivot, sizeDelta), it’s actually only 5 variables.
+The placement of their content is based on 7 RectTransform variables (anchoredPosition, anchorMax, anchorMin, offsetMax, offsetMin, pivot, sizeDelta), it’s actually only 5 variables(anchorMax, anchorMin, pivot, offMax + offMin or anchorPosition + sizeDelta).
 
+```
 rt.sizeDelta = rt.offsetMax - rt.offsetMin;
 
 rt.offsetMin = -Vector2.Scale(rt.pivot, rt.sizeDelta) + rt.anchoredPosition;
@@ -96,6 +97,7 @@ rt.offsetMax = Vector2.Scale(Vector.one - rt.pivot, rt.sizeDelta) + rt.anchoredP
 
 rt.anchoredPosition.x = Mathf.lerp(rt.offsetMin.x, rt.offsetMax. x, rt.pivot.x);
 rt.anchoredPosition.y = Mathf.lerp(rt.offsetMin.y, rt.offsetMax.y, rt.pivot.y);
+```
 
 What about calculating the Transform‘s localPosition and world Position? It’s tricky because the localPosition and the RectTransform‘s rectangle is based off the pivot, anchors, and anchoredPosition. Not only that, but it also depends on the parent RectTransform and those issues also apply to the parent’s content and position – and the parent’s parent, and the parent’s parent’s parent, and… While there may be a simple formula, I can’t think of a generic one, and some non-trivial linear algebra and hierarchy traversal will probably be involved.
 
