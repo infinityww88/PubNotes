@@ -108,10 +108,156 @@ If you want the results of GetLocalCorners() but don’t care about ordered 3D p
 
 If you just need to do collision tests with pixels, the RectTransformUtility class has some helpful functions.
 
-
 总是使用 Scale With Screen Size，它能指定一个参考 Screen 分辨率，然后在运行时根据实际设备对 Canvas 进行缩放，而设计 uGUI 时，只需要使用相对于参考分辨率的逻辑 UI 单位就可以了，与实际设备屏幕隔离，不用收到它的干扰，可以无所顾虑的使用任何 anchor 方法来定位、缩放元素，而无需担心在实际屏幕上变成乱糟糟的一团。UI Toolkit 也在 PanelSetting 中提供了相同的功能。
 
 RectTransform 有两个坐标系空间：anchorPosition = 0 的参考 anchor 左边空间（anchorPosition 的位置在这个坐标空间中定义），和以 anchorPosition 为原点的自身 local 坐标空间（RectTransformUtility.ScreenPointToLocalPointInRectangle 在将 screen point 转换到这个坐标空间）。
+
+## RectTransform
+
+RectTransform 在 Transform 基础上增加了锚定 UI 的相关属性，这些属性决定了 UI 的位置和大小。AutoLayout 更是基于 AnchorLayout 构建。
+
+- anchoredPosition
+- anchoredPosition3D
+- anchorMax
+- anchorMin
+- offsetMax
+- offsetMin
+- pivot
+- rect
+- sizeDelta
+
+```
+rt.sizeDelta = rt.offsetMax - rt.offsetMin;
+
+rt.offsetMin = -Vector2.Scale(rt.pivot, rt.sizeDelta) + rt.anchoredPosition;
+rt.offsetMax = Vector2.Scale(Vector.one - rt.pivot, rt.sizeDelta) + rt.anchoredPosition
+
+rt.anchoredPosition.x = Mathf.lerp(rt.offsetMin.x, rt.offsetMax. x, rt.pivot.x);
+rt.anchoredPosition.y = Mathf.lerp(rt.offsetMin.y, rt.offsetMax.y, rt.pivot.y);
+```
+
+这些公式在 x 轴和 y 轴方向是一样的，因此只需讨论在 x 轴方向上的情况。
+
+后 4 个公式本质是一个公式。
+
+### UI 大小和位置的确定
+
+![RectTransformAttributes](RectTransformAttributes.png)
+
+- 外部的蓝色区域为 Parent Rect
+- 红色区域为 Anchor Rect
+- 蓝色边框为 RectTransform Rect
+- 点 O 为 Reference Anchor Point
+
+1. 先根据 AnchorMin AnchorMax 在 Parent Rect 中锚定出 Anchor Rect，后面所有的所有讨论都是在 Anchor Rect 中进行。
+
+   AnchorMin/AnchorMax 和 pivot 一样是在 0-1 之间标准化的，左下角=(0, 0)，右上角=(1, 1)，但是它们不限制在 0-1 之间。
+
+   此后当 Parent Rect 大小变化时，Anchor Rect 也会按照 AnchorMin/AnchorMin 的比例随之缩放。但是 Rect 和 Anchor Rect 之间是固定的 OffMin/OffMax 的 delta 距离，它们会以相同的变化量随着 AnchorRect 进行变化。
+
+2. 已知 Parent Rect 的大小，就知道了 AnchorRect 的大小。
+
+3. 根据 pivot 在 Anchor Rect 确定一个点 O，它就是 Reference Anchor Point。它定义了一个坐标空间，Rect 在这个坐标空间中平移、旋转、缩放。它可以视为 Rect 的 Parent 坐标空间。当 Rect 的 Pivot 位于点 O 时，anchorPosition = 0.
+
+4. 通过 Parent->AnchorMin/AnchorMax->AnchorRect->Pivot 得到 Rect 所在的坐标系空间，剩下的就是确定 Rect 在这个坐标空间中的位置和大小了。有两种方法确定 Rect 的位置和大小：
+
+  4.1 指定 Rect 的位置和大小：设定 anchorPosition 和 sizeDelta
+    
+    确定 anchorPosition 之后，根据 AnchorRect 大小和 sizeDelta 得出 Rect 的大小，sizeDelta 的定义就是 Rect 和 AnchorRect 的差。在 anchorPosition 周围划出一个矩形区域，使得 anchorPosition 在这个区域中的标准位置（0-1）等于 pivot，这个矩形区域就是 Rect。这样就得到了 Rect 的大小和位置。
+
+    知道 Rect 之后，Rect 的左下角与 AnchorRect 左下角的差就是 OffMin，Rect 的右上角与 AnchorRect 的差就是 OffMax。
+
+  4.2 指定 Rect 在 parent 坐标空间中的四个边：设定 OffMin 和 OffMax
+
+    从 AnchorMin 和 AnchorMax 分别偏移 OffMin 和 OffMax，确定一个矩形，这个矩形就是 Rect。Rect 与 Anchor Rect 的差就是 sizeDelta，等于 OffMax - OffMin。确定了 sizeDelta 后，anchorPosition 的位置在这个矩形内 pivot 处，这个点在 Reference Anchor Point（点 O）坐标系中的位置，就是 anchorPosition 的值。
+
+  这两种方法是等价的，指定一种可以计算出另一种，这就是为什么说上面后 4 个公式是等价的。
+
+  OffMin/OffMax 和 SizeDelta 不是标准化的比例，而是固定的绝对数量差值。当 Parent Rect 带动 AnchorRect 变化时，OffMin/OffMax 就像钢铁支柱拉动 Rect 一起变化。Anchor Rect 随 Parent Rect 的变化是按照 AnchorMin/AnchorMax 的比例的，但是 Rect 随 Anchor Rect 的变化则是绝对量的变化。
+
+  Rect 的两个重要方面是位置和大小。位置使用 anchorPosition 记录，但是大小却没有用 width/height 记录，而是用的 sizeDelta（与 OffMin/OffMax 等价）。这是因为 UGUI 的设计理念是 Rect 的大小可以随着 Parent 一起缩放，Rect 的大小需要由 Parent Rect 派生出来，其大小不是固定的。而使用 sizeDelta（或 OffMin/OffMax）来记录 Rect 与 Parent Rect 的差则是固定的。因此记录的是这个固定的数据，而不是动态的 width/height。
+
+  RectTransform.rect 记录了 Rect 的数据。它是只读的，在 RectTransform local 坐标空间中定义。RectTransform 局部坐标系原点位于 anchorPosition，x 轴向右，y 轴向上，然后经过 rotation 和 scale 的旋转和缩放。注意 anchorPosition 不一定位于图中的点 O 的位置。那个是 Rect 所在的坐标空间（parent 空间，它本身可能随着 Parent Rect 旋转缩放而旋转缩放），而不是 Rect 自身的 Local 坐标空间。
+
+AnchorPosition + ScaleDelta 是两个独立的分量，互不影响，它们一起确定 Rect 的位置和大小。OffMin/OffMax 与 (AnchorPosition + ScaleDelta) 等价，可以相互推出。
+
+简而言之，确定一个 RectTransform 的 Rect 的过程是，已知 Parent Rect，根据 AnchorMin/AnchorMax 得到 Anchor Rect。根据 Pivot 在 Anchor Rect 中确定 Reference Anchor Point，Rect 的 AnchorPosition 相对它定义。最后通过 AnchorPosition + ScaleDelta 或 OffMin/OffMax 确定 Rect。
+
+以下公式只考察 x 分量，y 分量与 x 分量一样。
+
+```
+OffMax = Rect.RightTop - AnchorMax
+OffMin = Rect.LeftBottom - AnchorMin
+
+sizeDelta = offsetMax - offsetMin
+```
+
+如果 Rect 位于 Anchor Rect 内部，则 OffMin > 0， OffMax < 0. 因此通常 sizeDelta < 0. 这是满足定义的，因为 sizeDelta 的定义就是 Rect.size - AnchorRect.size。如果 Rect 比 AnchorRect 小，sizeDelta 就是负的。从图中可见，sizeDelta 的绝对值就是 offMin 和 offMax 的绝对值之和，即 Rect 外部到 AnchorRect 的空间。
+
+Vector.Scale 是将两个 Vector 的对应分量分别相乘，即 (x0 * x1, y0 * y1)。
+
+假设
+
+- offMin = OffMin.x
+- p = pivot.x
+- anchorPosition = anchorPosition.x,
+- sizeDelta = sizeDelta.x
+
+```
+offMin = -p * sizeDelta + anchoredPosition
+offMax = (1 - p) * sizeDelta + anchoredPosition
+```
+
+在 Rect 大小不变的情况下，sizeDelta 总是不变恒定的，此时 anchorPosition 和 offMin/offMax 同等变化，即 AnchorPosition 偏移多少距离，offMin/offMax 相应偏移多少距离。
+
+-sizeDelta * p 的含义就是当 anchorPosition = 0（恰好位于 Anchor Point 处）时 offMin 的值（初始 OffMin 的值）即图中的 offMin(init)。也就是 -sizeDelta * p 记录了 anchorPosition = 0 时的 offMin 的值，-sizeDelta = offMin(init)。则有
+
+```
+anchoredPosition(current) = offMin(current) - (-p * sizeDelta)
+```
+
+-p * sizeDelta 是个恒定值。当 anchoredPosition = 0 时，offMin(current) = offMin(init)，等式成立。此后 anchoredPosition 从 0 变化多少，offMin(current) 也相应变化多少来保持等式成立（几何意义是移动矩形同时保持大小不变）。这就是这个公式的含义。
+
+![AnchorOffMinMove](AnchorOffMinMove.png)
+
+offMax 的等式含义与 offMin 一样，(1-p) * sizeDelta 记录了初始 offMax(init) 的值。
+
+```
+anchoredPosition = Mathf.lerp(offMin, offMax, p);
+```
+
+因为 lerp(a, b, t) = a + (b-a) * t，因此有
+
+```
+anchoredPosition = offMin + (offMax - offMin) * p
+```
+因为 offMax - offMin = sizeDelta，因此有
+
+```
+anchoredPosition = offMin + sizeDelta * p
+```
+
+可见与上面的公式是一样的，这就是上面后 4 个公式等价的原因，公式的几何意义如上所述。上面 5 个公式核心展示的是如何已知 anchorPosition 和 sizeDelta 推出 offMin/offMax，以及反之。
+
+- 已知 anchoredPosition + sizeDelta
+
+  - offMin = -p * sizeDelta + anchoredPosition
+  - offMax = (1 - p) * sizeDelta + anchoredPosition
+
+- 已知 offMin/offMax
+
+  - sizeDelta= offMax - offMin
+  - anchoredPosition = lerp(offMin, offMax, pivot)
+
+以上计算都是基于 Anchor Rect 和 Pivot 的，而 Anchor Rect 是基于 Parent Rect 和 AnchorMin/AnchorMax 的。
+
+- 改变 anchorPosition 或 sizeDelta 会改变 offMin/offMax
+- 改变 offMin/offMax 会改变 anchorPostion 和 sizeDelta
+- anchorPostion 与 sizeDelta 相互独立，改变一个不会影响另一个。
+
+在 RectTransform Inspector 中，Left、Right、Top、Bottom 就是调整 offMin、offMax 的。当 Anchor 的 x 或 y 合并时，这个方向上 Rect 的大小不再随着 Parent Rect 变化了，此时这个方向将变成 PosX + Width 或 PosY + Height。
+
+还要注意，RectTransform Inspector 中 Right Top 显示的是 OffMax 的相反值。当 OffMax 为负时，Right Top 显示为正。这是为了在编辑器中更直观的展示 offset 的含义，即 Right 或 Top 分别距离 Anchor Rect 的 Right Top 有多少。
 
 ## RectTransformUtility
 
@@ -134,7 +280,6 @@ RectTransform 有两个坐标系空间：anchorPosition = 0 的参考 anchor 左
 - ScreenPointToWorldPointInRectange 
 
   类似 Camera.ScreenPointToWorldPoint，都是从 Screen 上的一点在 3D world 中发射一条射线，找到 3d world 中的一个位置。但是 Camera.ScreenPointToWorldPoint 只是简单地从 ray 的 origin 偏移一定 distance 来得到相应的位置，而这个函数是得到射线和 Rect 在 3d world 中的平面的交点。Transform 只能在 3D 空间中确定一个位置，而 RectTransform 因为具有 rect，它可以在 3D 空间中定义一个平面，UI rect 可以在 3d 空间中旋转的，它所在的平面也会相应的旋转。这个函数就是得到 screen ray 与这个平面的交点，无论交点是否在 Rect 内部。
-
 
 ## Misc
 
@@ -177,6 +322,8 @@ Transform 只有定义一个位置，没有大小（size/width/height）的概�
 
 - Canvas.width = Screen.width * Canvas.scalerFactor
 - Canvas.height = Screen.height * Canvas.scalerFactor
+
+这只对 Screen Space UI 有效，因为它需要在真实物理屏幕和虚拟空间之间缩放。对于 World UI，Canvas 的大小是自由任意的，跟真实物理屏幕分辨率无关，其单位也直接是 3D world 单位，不需要缩放。
 
 ## Unity 坐标系方向
 
