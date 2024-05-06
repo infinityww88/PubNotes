@@ -163,23 +163,23 @@ rt.anchoredPosition.y = Mathf.lerp(rt.offsetMin.y, rt.offsetMax.y, rt.pivot.y);
 
 4. 通过 Parent->AnchorMin/AnchorMax->AnchorRect->Pivot 得到 Rect 所在的坐标系空间，剩下的就是确定 Rect 在这个坐标空间中的位置和大小了。有两种方法确定 Rect 的位置和大小：
 
-  4.1 指定 Rect 的位置和大小：设定 anchorPosition 和 sizeDelta
+   - 指定 Rect 的位置和大小：设定 anchorPosition 和 sizeDelta
+     
+     确定 anchorPosition 之后，根据 AnchorRect 大小和 sizeDelta 得出 Rect 的大小，sizeDelta 的定义就是 Rect 和 AnchorRect 的差。在 anchorPosition 周围划出一个矩形区域，使得 anchorPosition 在这个区域中的标准位置（0-1）等于 pivot，这个矩形区域就是 Rect。这样就得到了 Rect 的大小和位置。
     
-    确定 anchorPosition 之后，根据 AnchorRect 大小和 sizeDelta 得出 Rect 的大小，sizeDelta 的定义就是 Rect 和 AnchorRect 的差。在 anchorPosition 周围划出一个矩形区域，使得 anchorPosition 在这个区域中的标准位置（0-1）等于 pivot，这个矩形区域就是 Rect。这样就得到了 Rect 的大小和位置。
+     知道 Rect 之后，Rect 的左下角与 AnchorRect 左下角的差就是 OffMin，Rect 的右上角与 AnchorRect 的差就是 OffMax。
 
-    知道 Rect 之后，Rect 的左下角与 AnchorRect 左下角的差就是 OffMin，Rect 的右上角与 AnchorRect 的差就是 OffMax。
+   - 指定 Rect 在 parent 坐标空间中的四个边：设定 OffMin 和 OffMax
 
-  4.2 指定 Rect 在 parent 坐标空间中的四个边：设定 OffMin 和 OffMax
+     从 AnchorMin 和 AnchorMax 分别偏移 OffMin 和 OffMax，确定一个矩形，这个矩形就是 Rect。Rect 与 Anchor Rect 的差就是 sizeDelta，等于 OffMax - OffMin。确定了 sizeDelta 后，anchorPosition 的位置在这个矩形内 pivot 处，这个点在 Reference Anchor Point（点 O）坐标系中的位置，就是 anchorPosition 的值。
 
-    从 AnchorMin 和 AnchorMax 分别偏移 OffMin 和 OffMax，确定一个矩形，这个矩形就是 Rect。Rect 与 Anchor Rect 的差就是 sizeDelta，等于 OffMax - OffMin。确定了 sizeDelta 后，anchorPosition 的位置在这个矩形内 pivot 处，这个点在 Reference Anchor Point（点 O）坐标系中的位置，就是 anchorPosition 的值。
+   这两种方法是等价的，指定一种可以计算出另一种。
 
-  这两种方法是等价的，指定一种可以计算出另一种，这就是为什么说上面后 4 个公式是等价的。
+OffMin/OffMax 和 SizeDelta 不是标准化的比例，而是固定的绝对数量差值。当 Parent Rect 带动 AnchorRect 变化时，OffMin/OffMax 就像钢铁支柱拉动 Rect 一起变化。Anchor Rect 随 Parent Rect 的变化是按照 AnchorMin/AnchorMax 的比例的，但是 Rect 随 Anchor Rect 的变化则是绝对量的变化。
 
-  OffMin/OffMax 和 SizeDelta 不是标准化的比例，而是固定的绝对数量差值。当 Parent Rect 带动 AnchorRect 变化时，OffMin/OffMax 就像钢铁支柱拉动 Rect 一起变化。Anchor Rect 随 Parent Rect 的变化是按照 AnchorMin/AnchorMax 的比例的，但是 Rect 随 Anchor Rect 的变化则是绝对量的变化。
+Rect 的两个重要方面是位置和大小。位置使用 anchorPosition 记录，但是大小却没有用 width/height 记录，而是用的 sizeDelta（与 OffMin/OffMax 等价）。这是因为 UGUI 的设计理念是 Rect 的大小可以随着 Parent 一起缩放，Rect 的大小需要由 Parent Rect 派生出来，其大小不是固定的。而使用 sizeDelta（或 OffMin/OffMax）来记录 Rect 与 Parent Rect 的差则是固定的。因此记录的是这个固定的数据，而不是动态的 width/height。
 
-  Rect 的两个重要方面是位置和大小。位置使用 anchorPosition 记录，但是大小却没有用 width/height 记录，而是用的 sizeDelta（与 OffMin/OffMax 等价）。这是因为 UGUI 的设计理念是 Rect 的大小可以随着 Parent 一起缩放，Rect 的大小需要由 Parent Rect 派生出来，其大小不是固定的。而使用 sizeDelta（或 OffMin/OffMax）来记录 Rect 与 Parent Rect 的差则是固定的。因此记录的是这个固定的数据，而不是动态的 width/height。
-
-  RectTransform.rect 记录了 Rect 的数据。它是只读的，在 RectTransform local 坐标空间中定义。RectTransform 局部坐标系原点位于 anchorPosition，x 轴向右，y 轴向上，然后经过 rotation 和 scale 的旋转和缩放。注意 anchorPosition 不一定位于图中的点 O 的位置。那个是 Rect 所在的坐标空间（parent 空间，它本身可能随着 Parent Rect 旋转缩放而旋转缩放），而不是 Rect 自身的 Local 坐标空间。
+RectTransform.rect 记录了 Rect 的数据。它是只读的，在 RectTransform local 坐标空间中定义。RectTransform 局部坐标系原点位于 anchorPosition，x 轴向右，y 轴向上，然后经过 rotation 和 scale 的旋转和缩放。注意 anchorPosition 不一定位于图中的点 O 的位置。那个是 Rect 所在的坐标空间（parent 空间，它本身可能随着 Parent Rect 旋转缩放而旋转缩放），而不是 Rect 自身的 Local 坐标空间。
 
 AnchorPosition + ScaleDelta 是两个独立的分量，互不影响，它们一起确定 Rect 的位置和大小。OffMin/OffMax 与 (AnchorPosition + ScaleDelta) 等价，可以相互推出。
 
