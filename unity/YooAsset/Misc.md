@@ -80,3 +80,9 @@ group 是 package 内部的逻辑组织单元，没有物理实体，为一组�
 
 一个 Package 中的 assets 是自包含的，它们彼此依赖，但是不依赖外部资源。包含的 assets 结构依赖 Group Collector 的设置，与 assets 在 Editor 中的目录位置无关。
 
+YooAsset Build 是以 package 为单位的，每个 package 具有一个目录。每次 build 可以指定构建的 bundles 是作为 remote 资源还是作为 StreamingAssets 资源随 app 一起分发。
+
+Unity Asset 之间的依赖是通过引用连接，例如 Scene 对 Prefab GameObject 的引用，Prefab 对 Material 的引用。Scene 本身不会将 Prefab 或 Material 打包到自身内部，被依赖的资源本身仍然是独立的 asset。
+
+热更新资源的依赖资源也会被构建为 bundles，无论是显式指定了 DependAssetCollector/StaticAssetCollector 规则的，还是没指定任何 Collector 的，它们有更新时也会被热更新，只是它们不能通过 address 加载。
+

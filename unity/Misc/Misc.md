@@ -111,5 +111,3 @@ Transform 的 position，rotation，scale 分别具有 world 版本和 local 版
 
 对 request.downloadHandler 使用一个 new DownloadHandlerFile(filePath) 可以将文件自动保存在指定路径，而不必手动写入。
 
-UnityWebRequest 没有缓存，AWS CloudFront 也会很快同步新上传或更新的文件，如果 UnityWebRequest 直接访问到 CloudFront 通常会获取到最新的文件。但是如果 PC 上开启了代理（VPN、shadowsocks），它可能会缓存文件，而且只是简单缓存，不会检查文件时效性。此时在 Unity Editor 或 App 中使用 UnityWebRequest 经过代理访问 CloudFront 时，可能会总是得到旧的文件，访问不到新的文件。而使用不用代理的 curl 就可以获取到新的文件。
-

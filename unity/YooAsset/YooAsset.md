@@ -365,9 +365,10 @@ downloader1.Combine(downloader2);
 downloader1.BeginDownload();
 ```
 
-#### 源代码解析：
+#### 源代码解析
 
 Package.UpdatePackageManifestAsync()方法解析。
 
 联机运行模式中，通过传入的清单版本，优先比对当前激活清单的版本，如果相同就直接返回成功。如果有差异就从缓存里去查找匹配的清单，如果缓存里不存在，就去远端下载并保存到沙盒里。最后加载沙盒内匹配的清单文件。
 
+## 
