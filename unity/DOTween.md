@@ -9,8 +9,6 @@ Kill(bool complete) complete 指示是否立即完成动画：
 
 Complete() 立即完成动画，并调用 OnComplete 回调函数。
 
-创建的每个 Tween 都要注意 SetTarget，使 Tween 跟 target GameObject 一起销毁，必要时可以在 OnDestroy 时主动 Kill(target)。DOTween 会创建一个“全局” not destroy on load 的 gameobject 来保存所有 Tween。如果不及时销毁 Tween，它们将会跨 Scene 执行，而产生各种意外的 bug。尤其是任何设计静态全局的变量（例如 UnityEngine.cursor.visible）都必须考虑 Scene 切换的问题。
-
 Sequence 中包含的 Tweener 必须在 Sequence 开始运行之前添加好，Sequence 开始之后就不能再添加新的 Tweener 了。
 
 被添加到 Sequence 的 Tweener 被 Sequence 完全控制，对它进行 Kill 等 Control 操作都没有任何效果，就好像它们在 Sequence 外面不存在，只存在于 Sequence 内部一样。每个 Tweener 在 Sequence 中有意义的东西都正常运行，例如自身的回调、循环等。
@@ -37,6 +35,12 @@ Tween 回调
 Nested tweens 的 callbacks 仍然可以按照正确的顺序工作。
 
 Tween 有两个属性：Id 和 Target。Id 只是简单地为 Tween 赋予一个 identifier，通过 id 可以找到 Tween。而 Target 还使得 Tween 和 Target 关联在一起，尤其是 shortcut 动画自动将操作的组件设为动画的 Target。这是因为通常这些动画需要操作 target 的属性，当 target 被其他 code 销毁时，动画也需要随之销毁，否则动画继续运行就会访问已经被销毁的 target。这就是为什么有了 Id 还提供 Target 的原因。一个 Tweener 只能有一个 Target，如果 Tweener 操作多个 Target 的属性，可以使用 SetLink 为 Tweener 添加更多的关联 Target。
+
+但是只 SetTarget 并不会让 tween 随着 target 一起被销毁，还要开启 DOTween 配置 useSafeMode。开启了 useSafeMode 之后，tweens 运行得回稍微慢一些，因为每次动画属性时都会检查 targets 是否被销毁。当设置为 false 时，还是需要手动 kill tween。
+
+DOTween 会创建一个“全局” not destroy on load 的 gameobject 来保存所有 Tween。如果不及时销毁 Tween，它们将会跨 Scene 执行，而产生各种意外的 bug。尤其是任何设计静态全局的变量（例如 UnityEngine.cursor.visible）都必须考虑 Scene 切换的问题。因此要注意 kill tweens。
+
+autoKill = true 使得 tween 在 complete 时自动销毁，而 autoKill = false 使得 tween 在 complete 时仍然保留在内存中，之后可以重新 restart/rewind。
 
 Tween Control Methods:
 
