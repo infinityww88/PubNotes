@@ -103,3 +103,9 @@ ParticleSystem 的一般通用属性：
 
   使用 unscaled 还是 scaled 的 deltaTime 来模拟 PS。
 
+## Play
+
+ParticleSystem 的 Play/Pause/Stop 是控制 Emission 模块的，它按照 Emission 模块定义的发射方法随时间或距离 Emit 粒子。注意，如果 Emission 不是 loop 的，Play 之后，即使 Emission 已经完成，Emission 模块仍然处于运行状态，要调用 Play 进行重复播放是无效的，Emission 模块仍然处于 Post Running 状态。要重复播放 ParticleSystem，必须先调用 Stop 停止 Emission 模块，然后再调用 Play。
+
+ParticleSystem 的 Emit 方法是绕过 Emission 模块，直接 Emit 粒子，因此它不受 Play/Pause/Stop 方法的限制，可以实现自定义的发射方法。无论是 Emission 模块发射的粒子，还是 Emit 手动发射的粒子，都被 ParticleSystem 控制。
+

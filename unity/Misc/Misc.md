@@ -111,3 +111,7 @@ Transform 的 position，rotation，scale 分别具有 world 版本和 local 版
 
 对 request.downloadHandler 使用一个 new DownloadHandlerFile(filePath) 可以将文件自动保存在指定路径，而不必手动写入。
 
+## 静态类与单例模式
+
+其他语言中，使用静态类，静态方法和单例模式没有太大区别。但是在 Unity 中，尽量使用 MonoBehaviour 的单例模式，而不是静态类/属性/方法。因为很多 Code Less 依赖 MonoBehaviour 的序列化和 Inspector。一旦使用静态类就没有办法使用大量 Unity 工具了，静态类没办法引用各种 asset，并且不能利用 Inspector。
+
