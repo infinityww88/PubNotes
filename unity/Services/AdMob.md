@@ -8,7 +8,9 @@ Windows Unity 的 JDK 位于 "C:\Program Files\Unity\Hub\Editor\2022.3.17f1c1\Ed
 
 设置环境变量 JAVA_HOME="C:\Program Files\Unity\Hub\Editor\2022.3.17f1c1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK"。还要设置好 Path，添加 %JAVA_HOME%\bin 到 PATH 中，因为 Resolve 时还要调用 java 命令。
 
-在 GoogleMobileAdsSettings 中填写 AdMob App ID。这一步非常重要。如果没有填写（甚至前后包含空格）应用程序安装后都无法启动，直接退出。测试中经常反复安装 ads plugin 过程中就往往忘记填写 App ID。务必要记住填写 App ID。
+在 GoogleMobileAdsSettings 中填写 AdMob App ID。这一步非常重要。如果没有填写（甚至前后包含空格）应用程序安装后都无法启动，直接退出。测试中经常反复安装 ads plugin 过程中就往往忘记填写 App ID。务必要记住填写 App ID，而且注意不要填写成 AD Unit ID，App ID 是全局设置，整个 APP 一个 ID，AD Unit ID 用在 code 中。App ID 限制尤其严格，填错了或忘记填，在构建时并不报错，但是在安装后，启动 APP 直接退出。
+
+Admob 账号长期没有广告进入，google 会将账号 deactive。Reactive 账户需要验证码重新验证，并且通过 google 的 review。香港账号必须使用香港地区的电话号码。使用 https://sms-activate.org/（用香港 google 账户登录），充值使用，选择 Google 相关应用，地区选择香港。
 
 在 publishing setting 中勾选 Custom Main Gradle Template，Custom Gradle Properties Template 和 Custom Proguard File。
 
