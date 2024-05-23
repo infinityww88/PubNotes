@@ -34,6 +34,23 @@ Unity 中（无论是 UGS IAP，还是 CPEK BillingSettings），需要设置 Go
 
 ![PublishingKey](images/PublishingKey.png)
 
+它在 Billing Settings 中的 Public Key 设置:
+
+![PublicKey](images/PublicKey.png)
+
+App Store Id's 设置为 package name:
+
+![AppStoreId](images/AppStoreId.png)
+
+这可以在 Building Setting 中找到:
+
+![PackageName](images/PackageName.png)
+
+但似乎不设置这个值，测试也没问题。根据官方文档，这个值应设置为：
+
+- iOS: Set the "Apple Id" value from Appstore Connect -> Select your App -> General  -> App Information -> General information (check below screenshot ). This is a numeric value. Ex: 1210072186
+- Android: Android : Set the package name of app. Ex: com.voxelbusters.essentialkit
+
 ## Google Play Settings
 
 Google Play 发布应用有一系列的流程（pipeline），从前到后将 pipeline 走完，应用才会发布到 Store。
