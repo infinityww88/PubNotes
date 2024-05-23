@@ -30,6 +30,8 @@ Unity UGS IAP 的 Catalog 对话框，可以创建 Product 信息，然后导出
 
 ![CrossPlatformEssentialKit_BillingSetting](images/CrossPlatformEssentialKit_BillingSetting.png)
 
+Products 中的 Id 是 code 中引用商品的标识符（BillingServices.BuyProduct）。PlatformId 则是商店平台上的商品的通用 id。Id 和 PlatformId 必须都正确设置。Id 可以自由设置，PlatformId 则必须与商店平台的商品 ID 相同。通常 PlatformId 没有特别限制，可以自由设置，因此绝大部分商店平台都可以使用相同 Platform Id。但是某些平台可能具有特殊要求，无法与其他商店平台共用相同的 Platform Id。
+
 Unity 中（无论是 UGS IAP，还是 CPEK BillingSettings），需要设置 Google Play 上产品的 License Key，这可以在 Developer Console 上的 Monetization setup 中看到。
 
 ![PublishingKey](images/PublishingKey.png)
@@ -119,7 +121,7 @@ Google Play 发布应用有一系列的流程（pipeline），从前到后将 pi
 
 ![GooglePlayDownload](images/GooglePlayDownload.jpg)
 
-注意查看详细信息中的 version，确保最新 version 的 bundle 已经在 Google Play 上可见，否则就等待并刷新，直到看到最新的版本号。
+注意查看详细信息中的 version，确保最新 version 的 bundle 已经在 Google Play 上可见，否则就等待并刷新，直到看到最新的版本号。否则只会下载到就版本。
 
 ![GooglePlayTestVersionNumber](images/GooglePlayTestVersionNumber.jpg)
 
@@ -132,6 +134,20 @@ Google Play 发布应用有一系列的流程（pipeline），从前到后将 pi
 支付后，可以在 Google Play 的 Payments & subscriptions 页面中看到交易记录。注意是测试者的 Google Play 页面，不是开发者的 Developer Console。
 
 ![GooglePlayBillingTestResult](images/GooglePlayBillingTestResult.png)
+
+建议使用 License Testing，它可以免于真实支付，并且可以测试支付延迟、支付失败的情况。
+
+要设置 License Testing，在 Google Play Console 中 Setting -> License Testing 勾选一个 Email List，这个 List 下面的所有 gmail 的 Google Play Account 都变成 License Tester。
+
+![LicenseTesting](images/LicenseTesting.png)
+
+一旦设置了 License Testing，在 App 中进行 IAP 时，会显示测试卡
+
+![IAPTest](images/IAPTest.jpg)
+
+点开测试卡，可以选择不同的支付方法
+
+![IAPTestMethod](images/IAPTestMethod.jpg)
 
 ## Misc
 
