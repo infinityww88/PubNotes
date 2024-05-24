@@ -184,3 +184,5 @@ Google Play 相关的功能涉及到要使用的 Google Play 账号，注意以�
 
 Unity Documents 上面关于如何进行 IAP 测试的链接： https://docs.unity3d.com/Manual/UnityIAPGoogleConfiguration.html
 
+Cross Platform Essential Kit 的 Billing Service 拉取的商品只能 Setting 中设置好（与商店平台对应），而 Unity IAP 则可以在 code 中（运行时）构建要拉取的商品。对于需要热更新商品的需求，前一种方法就很受限制，因为没有办法动态更新本地商品信息，Unity IAP 则更灵活。但是热更新商品可能是比较少的情况，如果需要，一是通过 App 大版本更新（而不是热更新），而是提前在 Billing Service 设置和商店平台上设置多个冗余商品，用于后续可能的商品扩展。设置的商品不一定显示，显示哪些商品则可以动态热更新，而且商品价格可以在商店平台上修改。
+
