@@ -15,4 +15,4 @@ Amplify shader editor
 Curvy
 SimpleSQL
 YooAsset
-XLua
+HybridCLR
