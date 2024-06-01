@@ -102,3 +102,56 @@ Auto Layout 也是一样，不需要考虑真实屏幕的分辨率，只需要�
 
 UIDocument 也是一样。
 
+## 自适应、带背景图和 margin 的 TextMeshUGUI
+
+实现一个根据 text 内容自适应的，带背景图和 margin 的组件。
+
+TextMeshUGUI 上面不能再添加 Image 组件，它们都是基本组件，每个实现 Graphic 接口。
+
+- 首先为 text 组件添加 ContentSizeFitter 组件。注意 ContentSizeFitter 是根据 Layout 参数控制自身 RectTransform，而不是控制 Children
+- 创建一个 HorizontalLayoutGroup 或 VerticalLayoutGroup 作为 text 的容器，将 text 作为它的 child。在它上面添加 Image 组件，作为背景
+- 在 HorizontalLayoutGroup 和 VerticalLayoutGroup 上添加 ContentSizeFitter 组件
+- 设置 Margin 有两种方法
+
+  - 使用 HorizontalLayoutGroup/VerticalLayoutGroup 的 padding
+  - 使用 TextMeshUGUI ExtraSetting 中的 margin
+
+- 在 text 组件上添加 LayoutElement 设置最小宽度和高度
+
+TextMeshUGUI 之所以要加上 ContentSizeFitter 组件，是因为它自身和普通 UI 组件一样，不具有根据自身内容调整自身大小的功能，需要显式设置 Width 和 Height。如果 text 不能适应 rect 会直接 overflow。但是 TextMeshUGUI 可以向上报告自身需要的空间。ContentSizeFitter 的作用就是根据组件自身报告（Layout 的第一阶段）的大小需求，设置自身 RectTransform 的 size（Layout 第二阶段）。
+
+因为 TextMeshUGUI 是基本 Graphic 组件，它不能再添加 Image 组件，因此需要外面再用一个 LayoutGroup 容器附加 Image 组件，作为 Text 背景，而且 LayoutGroup 也必须随着 Text 适应而适应。这需要：
+
+- 先接收 Child（text）的大小报告，这是 LayoutGroup 本身的作用
+- 根据这个包括，设置 LayoutGroup 的自身大小，这是 LayoutGroup 上附加的 ContentSizeFitter 的作用
+
+即 LayoutGroup 用于接收 Child 的大小报告，ContentSizeFitter 作用在 LayoutGroup 之上设置 LayoutGroup 的大小。
+
+TextMeshUGUI 的 margin 被算到它自身的 size 上。
+
+在 TextMeshUGUI 上添加一个 LayoutElement，可以设置它的最小 size，ContentSizeFitter 捕获的 size 报告会被 clamp 到 Minimum Width/Height 大小。
+
+但是这样设置后，在运行时发现 LayoutGroup 不能及时随着 Text 的内容变化而变化，几乎是每 2 次改变 text，才会重新布局，适应 text 的大小，除非手动显式改变某个布局属性。在编辑器中，LayoutGroup 可以随着 Text Inspector 改变 text 而自动适应新大小，但这也是有延迟的，而且与运行时结果不一致，猜测是 Editor 中会定时重新强制布局。
+
+这个问题的原因可能是 LayoutGroup 和自身上的 ContentSizeFitter 配合使用的结果。尽管 ContentSizeFitter 目的是作用在 LayoutGroup 之上，但是运行时，有可能 ContentSizeFitter 先发挥作用，然后 LayoutGroup 才去适应 Text 的大小，但是 ContentSizeFitter 已经不能再次调整 LayoutGroup 的大小了，而且 LayoutController 都标记为 NoDirty，因此后续帧也不会在重新布局了，除非显式改变某个布局属性强制重新布局。
+
+要强制布局这个 LayoutGroup，必须使用
+
+```
+LayoutRebuilder.ForceRebuildLayoutImmediate(RectTransform)
+```
+
+在改变 text 后，调用这个方法可以强制 Layout 重新计算，可以使得 LayoutGroup 适应新 text 大小。
+
+调用 MarkLayoutForRebuild 也是没有作用的
+
+```
+LayoutRebuilder.MarkLayoutForRebuild(RectTransform)
+```
+
+另一个办法是编写一个脚本放在 LayoutGroup 上，自动适应 Text 的大小。
+
+总之 UGUI 最适合用于简单布局，不适合 Hierarchy 很复杂的嵌套布局。如果需要很复杂的嵌套布局，最好使用 UIToolkit。UIToolkit 可以和 UGUI 一起使用。上面的例子在 UIDocument 中可以非常容易的实现，而且 Text 组件本身就可以使用 Image 作为 Background。
+
+使用 UIToolkit 可以参考 YouTube 上 CSS 特效相关 channel 来实现各种很酷的组件。
+
