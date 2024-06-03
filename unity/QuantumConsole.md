@@ -311,7 +311,9 @@ public class LambdaMethodCommandExample : MonoBehaviour
 
 Quantum Console 包含一个上下文自动补全系统，这会在你输入命令的同时提供建议。默认 Quantum Console 可以建议命令和它们的参数，同时对一些参数类型，例如 enums 和 GameObjects，Quantum Console 还支持可能的 values。
 
-Suggestions 可以通过点击建议条目，或者使用 keyboard 箭头或 tag/shift+tab 循环。
+Suggestions 可以通过点击选择建议条目，或者使用 tag/shift+tab 循环。
+
+上下箭头可以在历史命令中循环，就像 shell 一样。
 
 ### Suggestor Tags
 
