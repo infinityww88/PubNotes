@@ -12,65 +12,7 @@ Deform Mesh 的 Stretch To End 选项可以让生成的 mesh 序列收尾都位�
 
 要只沿着曲线 deform 一个 mesh，需要明确指定只用一个 spot（因为一个 spot 创建一个 mesh）。删除模板创建的 Input Mesh Spots，添加 InputTransformSpots，在场景中创建一个 empty gameobject 作为 spot 添加到 Input Transform Spots 中。为了使 mesh 两端完全位于曲线的两端，将 spot gameobject 添加到第一个 CP 作为 child，并设置 localPosition = zero，这样 mesh 起始端就会在曲线的起始点（因为 mesh 在 spot 的位置创建。严格来说，mesh 只能在曲线上的位置创建，如果 spot 不再曲线上，会调用 spline 的方法获得距离 spot 最近的曲线上的位置，作为 mesh 的起始点）。然后设置 Deform Mesh 的 Stretch To End，将 mesh 的末尾和曲线的末尾对齐。这样，mesh 就可以完全随着曲线拉伸变形了。
 
-要控制 mesh 在曲线上的伸缩范围，可以设置 BuildRasterizedPath 的 From/To 属性。但是当前版本的 Curvy Spline 有一些问题：
-
-- From 和 To 不能相等，To 必须完全大于 From，否则生成的 CGPath 是 null，会导致 Deform Mesh 模块总是抛出 ArgumentNullException
-- To 使用 Mathf.Max(From, value) 确保总是大于等于 From，但是 From 没有这样的检查。因此在设置范围的时候，必须先设置 From，再设置 To，才能确保 To 总是大于等于 From
-- From/To 使用 Repeat 将 value clamp 在 0-1 之间，但是为了使 value=1 时仍然 clamp 为 1，CurvySpline 提供了一个特定的 DTMath.Repeat，它与 Mathf.Repeat 类似，但是 DTMath.Repeat(1，1) 返回1 而不是 0。然而，From 中使用了这个定制的 Repeat，To 中使用的还是 Mathf.Repeat，这应该是作者的疏漏。这导致当设置 To = 1 的时候，实际 value = 0，导致 From 不可能完全小于 To，因此 CGPath = null，Deform Mesh 抛出 ArgumentNullException。当前可以手动修改 BuildRasterizedPath.cs，将 To 的 Maths.Repeat 替换为 DTMath.Repeat。
-
-
-```C#
-public float From
-{
-    get => m_Range.From;
-    set
-    {
-        float v = DTMath.Repeat(
-            value,
-            1
-        );
-        if (m_Range.From != v)
-        {
-            m_Range.From = v;
-            Dirty = true;
-        }
-    }
-}
-
-public float To
-{
-    get => m_Range.To;
-    set
-    {
-        float v = Mathf.Max(
-            From,
-            value
-        );
-        if (ClampPath)
-            v = Mathf.Repeat(
-                value,
-                1
-            );
-        if (m_Range.To != v)
-        {
-            m_Range.To = v;
-            Dirty = true;
-        }
-    }
-}
-```
-
-```C#
-/// <summary>
-/// Much like Mathf.Repeat(), but DTMath.Repeat(v,v) returns v instead of 0
-/// </summary>
-public static float Repeat(float t, float length)
-    => (t == length) ? t : t - Mathf.Floor(t / length) * length;
-```
-
-最后，要保证 From 和 To 之间至少保持一定的距离，避免抛出 ArgumentNullException。
-
-## Spline deform vs SkinedMesh
+要控制 mesh 在曲线上的伸缩范围，可以设置 BuildRasterizedPath 的 From/To 属性。
 
 让 mesh 沿着 spline deform 有两种方法，一种是用 Curvy Generator Deform Mesh 模块，一种是给 mesh 绑定骨骼成为 SkinedMesh，然后将骨骼绑定在曲线上，让曲线操作骨骼，骨骼变形 mesh。
 
@@ -84,5 +26,7 @@ public static float Repeat(float t, float length)
 
 另外 CG Deform Mesh 也可以认为是让曲线变成骨骼，Mesh 沿着这个虚拟骨骼链变形，而这个虚拟骨骼链的骨骼数量几乎是非常密集的，每个顶点都绑定在曲线上的不同位置处，因此每个 vertex 都需要在曲线上采样相应的位置并应用那个位置的 transform。而 SkinedMesh 是一组 Vertex 只需要共享一个 Bone 的 Transform。这也是前者性能低于后者的原因。
 
-尽管 CG Deform Mesh 可以产生无限平滑的 deform mesh，但是出于性能的原因，还是 skined mesh 更合算。而且只要 skined mesh 的骨骼数量够多（至多几十个）就可以产生与前者视觉难以分辨的平滑效果，而性能几乎没有影响.
+尽管 CG Deform Mesh 可以产生无限平滑的 deform mesh，但是出于性能的原因，还是 skined mesh 更合算。而且只要 skined mesh 的骨骼数量够多（至多几十个）就可以产生与前者视觉难以分辨的平滑效果，而性能几乎没有影响. 
+
+但凡是在 CPU 中对 Mesh 进行变形动画的功能都是低效的，每一帧都要重新生成或更新整个 mesh，不论是使用什么方法。对于 CG Deform Mesh，无论使用 BuildRasterizedPath 的 Range(From/To) 还是直接动画 spline 的 Control Point。CG Deform Mesh 只适合用来做静态模型变形（level design），不适合动态变形，除非是非常简单的 mesh。运行时 mesh 变形动画，只有 SkinedMesh 适合。
 

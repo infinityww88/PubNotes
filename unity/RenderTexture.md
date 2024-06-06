@@ -102,7 +102,6 @@ public class ExampleClass : MonoBehaviour
 
 将 RenderTexture 想象为一个虚拟屏幕设备。当将一个 RenderTexture 指定为 Camera.targetTexture 时，可以等价想象为这个 camera 渲染到这个 RenderTexture 的屏幕上。因此 RenderTexture 的分辨率就变成了 "Screen" 的分辨率。例如假设 RenderTexture 的分辨率为 512x512，则渲染的图像等价于在一个 512x512 窗口的程序中渲染这个相机的内容。相机在 RenderTexture 宽高比的矩形中计算视椎体。
 
-
 可以直接用主相机渲染当前游戏内容为 png 图片，必须创建一个 RenderTexture，并设置为 Camera.targetTexture。不能使用直接渲染，否则会得到一个空图像。RenderTexture 的分辨率就变成了 Camera 的虚拟屏幕的图像，渲染的世界内容就是这个分辨率屏幕显示的内容。
 
 ```C#
@@ -119,4 +118,11 @@ Camera.main.targetTexture = null;
 RenderTexture.active = t;
 ```
 
+使用 Camera + RenderTexture 渲染 3d 模型为 Texture，不会有额外的性能浪费，跟在 world 中渲染一个 3d 模型一样。因为每个 mesh 都是单独渲染的，都要经过一次渲染管线的渲染过程，只不过换了一个 camera 而已。而 camera 是游戏引擎设计的高级抽象概念，渲染管线底层 camera 就是一个 view matrix 而已，也就是说只是换了一个 matrix。另外 RenderTexture 会在 GPU 中开辟一块空间保存渲染结果，将模型渲染到 Texture 中直接在 GPU 中完成（RenderTexture 在 GPU 的内存空间直接作为 render color buffer）。后续如果需要使用渲染结果，例如将 Texture 结果作为 material texture，或者作为 UGUI 的 Image，都无需将 Texture 内容送入 GPU 中，因为 Texture 内容本身已经在 GPU 中了。相反当需要在 CPU 中访问 Texture 时需要额外的步骤将 Texture 读取到 CPU 中（例如保存到文件）。
+
+在 URP 中用 Camera + RenderTexture 渲染 3d 模型到 Texture 时：
+
+- Camera 必须是 Base，不能是 Overlay
+- 要得到透明的背景，Camera 的 Post Processing 必须关闭，否则背景图总是黑的
+- Camera Culling Mask 选择可以渲染的 Layer，只要指定的 Layers 的 GameObject 被这个 Camera 渲染
 
