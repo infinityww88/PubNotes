@@ -30,3 +30,5 @@ Deform Mesh 的 Stretch To End 选项可以让生成的 mesh 序列收尾都位�
 
 但凡是在 CPU 中对 Mesh 进行变形动画的功能都是低效的，每一帧都要重新生成或更新整个 mesh，不论是使用什么方法。对于 CG Deform Mesh，无论使用 BuildRasterizedPath 的 Range(From/To) 还是直接动画 spline 的 Control Point。CG Deform Mesh 只适合用来做静态模型变形（level design），不适合动态变形，除非是非常简单的 mesh。运行时 mesh 变形动画，只有 SkinedMesh 适合。
 
+通过改变 Transform 动画整体模型，并不是在 CPU 中更新的 Mesh，而是将 Mesh 和 Transform 都发送到 GPU 中，在 GPU 中用并行专用的向量计算硬件完成的。在 GPU 中变形 Mesh 才是能够实时动画方法。
+
