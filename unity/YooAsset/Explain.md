@@ -148,6 +148,12 @@ IBuildinQueryServices 查询一个资源是否是内置资源（即首包资源�
 
 如果程序两次运行，第一次 IBuildingQueryServices 报告资源不是首包资源，导致资源本更新，第二次报告是首包资源，这样不会触发错误，因为资源在第一次已经被下载，第二次根本不会触发下载过程，而本地 Manifest 已经更新为新版本，资源新 bundle 也已经下载到本地，因此一起都可以正常运行。
 
+一个 Package 可以一部分 builtin 到 app 内随 app 一起分发（StreamingAssets，首包资源），一部分放在服务器上运行时远程分发。HostPlay 搭配一个 Cache 使用，Offline 只使用 StreamingAssets。可以认为 HostPlay 模式下，Init 先用 StreamingAssets 目录初始化 Cache。首包资源可以认为是远程分发资源的预下载部分。因此即使一个资源是首包资源，没有在服务器上，一样可以使用这个 package 的 HostPlay 模式使用相同的接口加载，并热更新。
+
+HostPlay 模式下，Init 之后，可以先不 Update，而是直接加载资源，这可以加载到首包资源（或之前更新后的版本），然后再连接服务器更新最新的资源。但是这种方法并不主流，更新资源时，YooAsset 会发出警告，建议先 ForceUnloadAllAssets，而且构建 app 时，YooAsset 在 Editor 中的残留 cache 会保留到 app 中，导致更新时总是请求过时的资源版本。因此最好使用标准的方法使用 YooAsset（先 Init Package，然后 Update，然后 Load 资源）。
+
+如果 app 的 loading 界面也需要定期更新，最好的方法是先用一个 logo scene 加载 loading scene 需要的资源（如果连接不上网络，可以使用本地 cache 中的资源版本），这些资源比较少，可以很快下载。然后进入 loading scene，开始进行大量资源的更新，最后进入 play scene。
+
 ## Code
 
 ```C#
