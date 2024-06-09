@@ -17,16 +17,12 @@ Refactor, don't design
 
 UnityEvent 或 UltEvent 这些解耦工具只适合于只向外提供服务的自包含插件或模块，向外提供 event slot，例如 VisualTweenSequence。不适合用于组装应用程序逻辑，因为它们不是自包含的，而且经常改动，触及程序各个地方，在 Inspector 中不断跳转查找程序逻辑违法了上面归纳整理的原则（不能很快找到需要的东西）。对于应用程序逻辑，UnityEvent 和 UltEvent 应该尽量不包含逻辑相关的东西，比如和程序有关的参数，应该尽量使用 UnityEvent 的 void 版本。只将它作为胶水层，为应用程序创建入口，将应用程序逻辑与各种事件源或插件串联起来。它只是电路板的导线，只负责将不同的模块连接起来，不应该包含任何程序逻辑。所有程序逻辑必须在 code 中追溯。
 
-UnityEvent 可以做为 MessageBus 使用。所有 MessageBus 的用法都是：
+UnityEvent 不适合用作 MsgBus。因为它使得事件发起者引用了事件接受者，这违反了事件系统用于解耦系统的本意，使得发起事件的 GameObject 不能单独的使用。而 MsgBus 的本质是让事件发起者不感知接收者而单独使用，让接收者自己按需订阅和取消事件。
 
-1. 定义一个 message
-2. 接受者在 onEnable 和 OnDisable 分别注册和注销 Listener
-3. 事件发起者 Invoke 事件
+无论使用哪种 MsgBus 系统，Event System - Dispatcher，C# event/delegate，或者 ScriptableObjectArchitecture GameEvent，都必须经历三个步骤，哪个都省略不了：
 
-UnityEvent 和各种序列化事件系统本质都是将前两步自动化，免去手动定义事件和注册、注销 listener 的麻烦而已。一个 asset 就是一个事件，并且自动注册反注册。Event System - Dispatcher 或者 C# event/delegate 则需要显式定义事件+手动注册注销。
-
-UnityEvent 可以作为 MsgBus 使用，与正统的事件系统的区别是，后者每个接收者在自身内部注册 listener，而 UnityEvent 需要在定义它的地方（组件的 Inspector）中注册事件。这其实是差不多的，正统事件系统中接收者想要注册注销事件，必须要引用事件 asset 才可以。UnityEvent 中接收者虽然不需要引用事件 asset，但是将它注册到 UnityEvent 时需要找到 UnityEvent 的定义，这个过程相当于引用了 Event asset。
-
-但是 UnityEvent 作 MsgBus 使用的缺点是 MsgBus 依附于 GameObject/Component。当 GameObject/Component 在 Scene 中时，这没有什么问题。但是如果 GameObject/Component 保存为 Prefab，在运行时 Instantiate，就导致 MsgBus 的可用性不可依赖。因此 MsgBus 还是应该使用正统的实现（全局 delegate，ScriptableObject event，或者 Event System - Dispatcher）。UnityEvent 应该作为 GameObject 自己向外发出的事件（毕竟它与 GameObject 的生命周期一样）。
+- 声明事件（Message，Event，Delegate）
+- 事件接收者订阅和取消事件（OnEnable/OnDisable AddListener/RemoveListener）
+- 事件源发出事件（SendMessage/Raise）
 
 由于游戏作为实时计算应用程序的本质，游戏中的很多系统的更新都不是立即的，通常都带有某种缓存系统，接受新的计算请求后，会随着时间（帧数）慢慢更新，将计算量分配到多个帧中，而不是全部堆积在一帧中计算，这样对导致 frame drop。这是游戏编程的一般原则。因此不应该习惯在请求后期望立即得到结果（这通常是想要同步得到结果，进行后续计算），这不是游戏编程的范式，而是通过一些信号，进行显示同步（在异步编程中同步前后依赖的操作）。UGUI 的 Layout 更新，Physics 的 Collider 更新，Curvy 改变 ControlPoints 后 Curve 的更新无不如此。强制同一帧同步得到结果不仅违反游戏编程的一般原则，而且很多时候无法实现，例如 Physics 和 Curvy 都没有提供强制重新结算最新状态的接口。因此要习惯和遵守延迟计算，在异步中同步的原则。通常情况下，延迟 1 帧或 2 帧就足够了。这也是为什么越来越多的系统都开始提供异步编程接口 Async Task 的原因。并且在游戏设计中也要将其考虑进去，游戏机制要能与异步计算协调，在计算没完成时，不会对 player 产生影响。因为这个过程一般非常短，因此只需要保证在异步计算没完成时，屏蔽掉 player 的交互即可，或保证 player 的交互不会对计算产生任何影响，player 通常是感知不到的。例如对于触屏，正常两次 touch 之间的间隔也要超过 200ms。或者使用影子追随的模式，让游戏系统永远追随 player 的最新操作。
