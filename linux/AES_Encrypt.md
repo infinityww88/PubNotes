@@ -57,10 +57,6 @@ with open("data.bytes", "wb") as f:
 
 AES 在 .NET Library System.Security.Cryptography 中。
 
-AesManaged.GenerateIV/GenerateKey 可以自动生成 key 和 iv。key 和 iv 既可以自动生成，也可以手动指定，只要加密解密两边一样即可。
-
-使用 CBC 模式，需要显示指定 AesManaged.Mode = CipherMode.CBC。AES 是区块加密，两边必须使用一样的区块。但是 python 端使用的是 byte 单位（16），而 C# 端使用的是 bit 单位（128）。另外 C# 端还要指定 padding（PaddingMode.Zeros）。
-
 ```C#
 using System.Security.Cryptography;
 
@@ -78,9 +74,6 @@ public class AesTest {
 		MemoryStream input = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(text));
 		MemoryStream output = new MemoryStream();
 		using (AesManaged myAes = new AesManaged()) {
-			myAes.Mode = CipherMode.CBC;
-			myAes.BlockSize = 128;
-			myAes.Padding = PaddingMode.Zeros;
 			myAes.Key = key;
 			myAes.IV = iv;
 			ICryptoTransform encryptor = myAes.CreateEncryptor();
@@ -95,9 +88,6 @@ public class AesTest {
 		MemoryStream input = new MemoryStream(data);
 		MemoryStream output = new MemoryStream();
 		using (AesManaged myAes = new AesManaged()) {
-			myAes.Mode = CipherMode.CBC;
-			myAes.BlockSize = 128;
-			myAes.Padding = PaddingMode.Zeros;
 			myAes.Key = key;
 			myAes.IV = iv;
 			ICryptoTransform decryptor = myAes.CreateDecryptor();
@@ -109,3 +99,16 @@ public class AesTest {
 	}
 }
 ```
+
+AesManaged.GenerateIV/GenerateKey 可以自动生成 key 和 iv。key 和 iv 既可以自动生成，也可以手动指定，只要加密解密两边一样即可。
+
+使用 CBC 模式，需要显示指定 AesManaged.Mode = CipherMode.CBC。AES 是区块加密，两边必须使用一样的区块。但是 python 端使用的是 byte 单位（16），而 C# 端使用的是 bit 单位（128）。另外 C# 端还要指定 padding（PaddingMode.Zeros）。
+
+如果在同时在 C# 端做加密和解码，Encrypt 和 Decrypt 都不指定以下选项。相反如果指定，解密的数据结尾会包含一些不可见字符，导致解密的数据与加密不一致，而且对于字符串不能 Trim 掉，因为它们不是空白。
+
+```C#
+myAes.Mode = CipherMode.CBC;
+myAes.BlockSize = 128;
+myAes.Padding = PaddingMode.Zeros;
+```
+
