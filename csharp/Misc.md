@@ -20,5 +20,7 @@ NuGet C# 的包管理工具，就像 pip 之于 python，go get 之于 golang �
 
 Python 只适合编写简短的一次性脚本，但凡规模稍微大一点的程序，代码提示、代码补全和严格的类型约束都是必须的，否则只能一边查找文档一边编写，而且随着规模变大却无法约束类型而逐渐陷入混乱。PyCharm 或 VSCode 作为 IDE 尽管可以提供代码提示的功能，但是即使最简单的脚本，它们也要占用的 800M~900M 左右的内存，并不轻量。
 
-而 C# 的语法、标准库已经非常遍历，并不比 Python 逊色，而且 Visual Studio 作为专业且强大的 IDE，简单项目只占用 400M~500M 的内存，只有 PyCharm 或 VSCode 的一半。而且它不仅能提供简单的类型、函数签名的提示，甚至能智能提供整段的 code snippet 补全，开启 copilot 后强大的无与伦比。因此使用 Visual Studio + C# 开发，要远比 VSCode + Python 开发更高效更强大。
+而 C# 的语法、标准库已经非常遍历，并不比 Python 逊色，而且 Visual Studio 作为专业且强大的 IDE，简单项目只占用 400M~500M 的内存，只有 PyCharm 或 VSCode 的一半。而且它不仅能提供简单的类型、函数签名的提示，甚至能智能提供整段的 code snippet 补全，开启 github copilot 后强大的无与伦比。因此使用 Visual Studio + C# 开发，要远比 VSCode + Python 开发更高效更强大。Visual Studio 还提供 github code example 的功能，直接就可以查看一个类或函数怎么使用。
+
+总之，除非是几十行的小程序，否则 Visual Studio 作为专业的 IDE 提供的强大能力远不是 Python 能比的。对大一点的程序，Visual Studio + C# 开发效率远比 Python 更高。
 
