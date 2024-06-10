@@ -22,5 +22,7 @@ Python 只适合编写简短的一次性脚本，但凡规模稍微大一点的�
 
 而 C# 的语法、标准库已经非常遍历，并不比 Python 逊色，而且 Visual Studio 作为专业且强大的 IDE，简单项目只占用 400M~500M 的内存，只有 PyCharm 或 VSCode 的一半。而且它不仅能提供简单的类型、函数签名的提示，甚至能智能提供整段的 code snippet 补全，开启 github copilot 后强大的无与伦比。因此使用 Visual Studio + C# 开发，要远比 VSCode + Python 开发更高效更强大。Visual Studio 还提供 github code example 的功能，直接就可以查看一个类或函数怎么使用。
 
+Python 的动态类型系统要求在大脑中记住各种库的接口和用法，而 C# 的强静态类型检查让 IDE 提供各种强大的辅助编程特性，大大降低了心智负担。对于大型程序，约束才是自由。
+
 总之，除非是几十行的小程序，否则 Visual Studio 作为专业的 IDE 提供的强大能力远不是 Python 能比的。对大一点的程序，Visual Studio + C# 开发效率远比 Python 更高。
 
