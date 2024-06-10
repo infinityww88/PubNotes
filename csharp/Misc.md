@@ -17,3 +17,8 @@
 NuGet C# 的包管理工具，就像 pip 之于 python，go get 之于 golang 一样，它搜索、下载第三方 package，并且将它添加到工程中，使之可以被使用。而且它是一个 GUI 管理工具，比之更加方便。它搜索 C# package 官方仓库，几乎可以找到所有 package。还可以在命令行中使用 dotnet 添加 package，这就和 pip、go get 一样了。
 
 因为 Visual Studio Code 的角色是多用途的轻量 Editor，启动后它里面可能加载大量插件，而 Visual Studio 则是 C# 专用的 IDE，因此在开发 C# 项目时，Visual Studio 占用的内存反而比 VSCode 小得多。而且对于 Unity Project，Visual Studio 几乎不能正确管理，只有 Visaul Studio 可以正确管理。
+
+Python 只适合编写简短的一次性脚本，但凡规模稍微大一点的程序，代码提示、代码补全和严格的类型约束都是必须的，否则只能一边查找文档一边编写，而且随着规模变大却无法约束类型而逐渐陷入混乱。PyCharm 或 VSCode 作为 IDE 尽管可以提供代码提示的功能，但是即使最简单的脚本，它们也要占用的 800M~900M 左右的内存，并不轻量。
+
+而 C# 的语法、标准库已经非常遍历，并不比 Python 逊色，而且 Visual Studio 作为专业且强大的 IDE，简单项目只占用 400M~500M 的内存，只有 PyCharm 或 VSCode 的一半。而且它不仅能提供简单的类型、函数签名的提示，甚至能智能提供整段的 code snippet 补全，开启 copilot 后强大的无与伦比。因此使用 Visual Studio + C# 开发，要远比 VSCode + Python 开发更高效更强大。
+
