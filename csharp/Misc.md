@@ -26,3 +26,5 @@ Python 的动态类型系统要求在大脑中记住各种库的接口和用法�
 
 总之，除非是几十行的小程序，否则 Visual Studio 作为专业的 IDE 提供的强大能力远不是 Python 能比的。对大一点的程序，Visual Studio + C# 开发效率远比 Python 更高。
 
+只是 Visual Studio + C# 编写程序需要先创建一个工程，而且构建后的程序位于 bin/Debug/net8.0 下面，而且依赖 dll 和 runtimeconfig.json，对于小的一次性程序调用不够方便。而 Python 脚本可以自包含，只需要一个脚本，并且可以直接运行。但是即使对于小程序，还是需要 IDE 辅助，人脑无法记录它庞大的标准库以及第三方库。对于简短 python 程序，可以尝试轻量的 Python IDE：Wing Personal。也可以使用 VSCode，只是编写完之后将它关掉以节约内存VSCode。尽管 VSCode 占用的内存很大，但是打开和关闭还是很快的。
+
