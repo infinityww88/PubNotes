@@ -63,7 +63,7 @@ using System.Security.Cryptography;
 public class AesTest {
 
     public static System.ValueTuple<byte[], byte[]> GenerateAesKeyIV() {
-		using (AesManaged myAes = new AesManaged()) {
+		using (Aes myAes = Aes.Create()) {
 			myAes.GenerateIV();
 			myAes.GenerateKey();
 			return System.ValueTuple.Create(myAes.Key, myAes.IV);
@@ -73,7 +73,7 @@ public class AesTest {
 	public static byte[] Encrypt(string text, byte[] key, byte[] iv) {
 		MemoryStream input = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(text));
 		MemoryStream output = new MemoryStream();
-		using (AesManaged myAes = new AesManaged()) {
+		using (Aes myAes = Aes.Create()) {
 			myAes.Key = key;
 			myAes.IV = iv;
 			ICryptoTransform encryptor = myAes.CreateEncryptor();
@@ -102,13 +102,75 @@ public class AesTest {
 
 AesManaged.GenerateIV/GenerateKey 可以自动生成 key 和 iv。key 和 iv 既可以自动生成，也可以手动指定，只要加密解密两边一样即可。
 
-使用 CBC 模式，需要显示指定 AesManaged.Mode = CipherMode.CBC。AES 是区块加密，两边必须使用一样的区块。但是 python 端使用的是 byte 单位（16），而 C# 端使用的是 bit 单位（128）。另外 C# 端还要指定 padding（PaddingMode.Zeros）。
+使用 CBC 模式，需要显示指定 AesManaged.Mode = CipherMode.CBC。AES 是区块加密，两边必须使用一样的区块。但是 python 端使用的是 byte 单位（16），而 C# 端使用的是 bit 单位（128）。
 
-如果在同时在 C# 端做加密和解码，Encrypt 和 Decrypt 都不指定以下选项。相反如果指定，解密的数据结尾会包含一些不可见字符，导致解密的数据与加密不一致，而且对于字符串不能 Trim 掉，因为它们不是空白。
+根据 ChatGPT，AES 算法支持 3 种不同的密钥长度：
 
-```C#
-myAes.Mode = CipherMode.CBC;
-myAes.BlockSize = 128;
-myAes.Padding = PaddingMode.Zeros;
+- AES-128：16 字节，128 位
+- AES-192：24 字节，192 位
+- AES-256：32 字节，256 位
+
+IV（初始化向量）
+
+AES的IV长度取决于使用的加密模式，但对于常见的块密码模式如CBC（Cipher Block Chaining）和CFB（Cipher Feedback），IV长度通常是一个块的长度，即 16字节（128位）
+
+IV的长度与AES的块大小一致，而AES的块大小固定为128位（16字节），不论使用的密钥长度如何。
+
+AES（Advanced Encryption Standard）的块大小是固定的，为128位（16字节）。不论使用的密钥长度（128位、192位或256位）如何，AES的块大小始终保持128位。这是AES算法的一个基本特性。
+
+AES是一种分组加密算法，它对固定长度的块（128位，即16字节）进行加密。为了确保每个要加密的数据块都具有正确的长度，如果明文数据的长度不是块大小的整数倍，就需要进行填充。以下是填充的原因和常见的填充方式：
+
+- 固定块大小：AES只能处理固定大小的数据块（16字节）。如果数据块的长度不是16字节，就无法直接进行加密操作。
+- 保证数据完整性：填充确保加密后的数据可以正确解密，并能还原到原始的明文数据。如果不进行填充，解密后的数据可能会缺失，导致数据不完整。
+
+填充模式：
+
+- PKCS#7 填充：在数据的末尾添加若干个字节，每个字节的值等于添加的字节数
+- ANSI X.923 填充：在数据的末尾添加若干个字节，填充值为0，最后一个字节表示填充的字节数
+- ISO 10126 填充：在数据的末尾添加若干个随机字节，最后一个字节表示填充的字节数
+- Zero Padding（零填充）：在数据的末尾添加若干个0字节
+
+0 填充方法在数据长度刚好是块大小整数倍时需要特殊处理，因为无法区分填充的0和原始数据中的0。它现简单，但通常不推荐用于加密算法，除非数据长度固定或有特殊处理。
+
 ```
+AES-128
+安全性：AES-128被认为是相当安全的，广泛用于各种应用和标准（如TLS/SSL、VPN等）。
+破解难度：假设使用最先进的技术进行暴力破解（即尝试所有可能的密钥组合），需要尝试的组合数为 2^128。即使使用当前最强的超级计算机，暴力破解AES-128也是不现实的，可能需要数十亿年。
+
+AES-192
+安全性：AES-192提供更高的安全性，比AES-128更难破解。
+破解难度：需要尝试的组合数为 2^192。这比AES-128多了很多个数量级，理论上破解它需要的时间比AES-128要长得多。
+
+AES-256
+安全性：AES-256提供最高级别的安全性，通常用于需要极高安全性的环境中（如政府和军用）。
+破解难度：需要尝试的组合数为 2^256。破解AES-256需要的时间比AES-192还要长很多个数量级，几乎不可能在可预见的未来内完成。
+
+具体破解时间估算
+实际破解AES加密的时间依赖于很多因素，包括可用计算能力、算法改进以及潜在的物理攻击（如量子计算）。目前的一些估计如下：
+
+传统计算机：使用目前最先进的传统计算机，对AES-128进行暴力破解的时间可能需要数十亿年甚至更久。
+量子计算机：量子计算机使用Grover算法可以将密钥空间的搜索复杂度从 2^n 减少到 2^(n/2)
+ 。因此，对于AES-128，量子计算机的破解复杂度变为 2^64，对于AES-256，复杂度变为 2^128。尽管如此，目前的量子计算技术还远未达到能够实际破解AES-128或更高级别密钥的能力。
+
+总结
+AES-128：非常安全，破解难度极高，但理论上可能在远未来的某些量子计算机上被破解。
+AES-192：比AES-128更安全，破解难度更高。
+AES-256：目前提供最高级别的安全性，几乎无法在可预见的未来内破解。
+在实际应用中，选择密钥长度通常取决于具体的安全需求和性能考虑。对于大多数应用，AES-128已经足够安全。对于需要更高安全性的环境，可以选择AES-256。
+```
+
+C# 生成 key 默认是 32 字节（256 位）的，即最高安全级别。如果使用其他长度的 key，可以手动生成。C# 中的 0 填充解密时不会自动移除结尾的 0 字节，必须手动移除。因为填充是在加密前的初始数据上进行的，它本身就可能包括字节 0。解密后，没有明确的信息知道哪些 0 是填充的，哪些是初始数据的，因此交给应用程序自己处理，算法不会移除它们。
+
+要自动移除，使用其他的填充模式。其他的填充模式之所以可以知道移除哪些字节，是因为它们的最后一个字节都指示了填充数据的长度。最常用的是 PKCS7. 但是注意，当初始数据正好是 block 的整数倍的时候，必须填充一个完整的 block，因为必须存在最后一个字节来指示填充数据的长度。
+
+Python 中没有提供 Padding 方法，需要自己实现。下面是 PKCS7 的实现：
+
+```py
+BS = AES.block_size # 16
+pad = lambda s: s + (BS - len(s) % BS) * bytes([BS - len(s) % BS])
+```
+
+注意 BS - len(s) % BS 保证了即使数据是 block 的整数倍，也会填充一个新的 block。
+
+
 
