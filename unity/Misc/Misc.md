@@ -113,3 +113,31 @@ Transform 的 position，rotation，scale 分别具有 world 版本和 local 版
 
 其他语言中，使用静态类，静态方法和单例模式没有太大区别。但是在 Unity 中，尽量使用 MonoBehaviour 的单例模式，而不是静态类/属性/方法。因为很多 Code Less 依赖 MonoBehaviour 的序列化和 Inspector。一旦使用静态类就没有办法使用大量 Unity 工具了，静态类没办法引用各种 asset，并且不能利用 Inspector。
 
+## SkinnedMeshRenderer SkinWeight
+
+SkinnedMesh 的 SkinWeight 控制动画随骨骼变形的平滑度。它表示在变形时每个 vertex 最多被多少个 bones 控制。每个模型可以在 import setting 中 Rig > Skin Weights 设置。此外 QualitySettings.skinWeights 还控制整个项目范围内 meshes 的 SkinWeight。
+
+SkinWeight 可以是 OneBone，TwoBone，FourBone，或者 unlimited。通常标准是 4 个骨骼。Bones 越多变形越平滑，但是也需要更多的性能开销，尤其是超过 4 bones。
+
+这个设置不会改变底层 mesh data。它只影响 Unity 使用的 bones 的数量。例如 Mesh 中一个 vertex 包含在 4 个 Vertex Group（每个 bone 一个 Vertex Group）并具有不同的 weight。但是 Unity 可以按照设置只使用两个 bone 来编写。即根据设置一个 mesh 可以有未使用的 weight data。
+
+QualitySettings.skinWeights 可以在运行时修改，并立即生效。可以使用 SkinnedMeshRenderer.quality 为一个特定的 SkinnedMeshRenderer 单独设置 SkinWeight。
+
+在 import setting 中 ModelImporter.maxBonesPerVertex 可以在 Imported 时直接丢弃未使用的 weight 数据。
+
+但是当前 Unity 版本中，Android Build 似乎忽略了 QualitySettings.skinWeights 设置，构建后的应用中 SkinWeight 默认是 TwoBone，即使 QualitySettings.skinWeights 设置为 FourBone。要使用 FourBone，需要在脚本中显式设置 QualitySettings.skinWeights = FourBone
+
+下面显示不同 SkinWeight 设置对应的不同效果：
+
+OneBone
+
+![OneBone](OneBone.jpg)
+
+TwoBone
+
+![TwoBone](TwoBone.jpg)
+
+FourBone
+
+![FourBone](FourBone.jpg)
+
