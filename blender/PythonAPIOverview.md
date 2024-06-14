@@ -23,7 +23,7 @@ bpy.data.objects["Cube"].data.vertices[0].co.x += 1.0
 
 理解直接运行一个脚本和将脚本加载为模块的不同是很重要的。
 
-通过直接执行脚本来扩展 Blender 意味着 script 定义的 classes 在 script 执行结束后在 Blender 中仍然可用。以这个方法使用脚本使得后续对它们的 classes 的访问相比于将 scripts import 为模块来说更困难。如果 script 被 import 为一个模块，它的 class 将保留在 module 内部，并且在之后通过重新 import 这个模块来访问。
+通过直接执行脚本来扩展 Blender 意味着 script 定义的 classes 在 script 执行结束后仍然保留在 Blender 中。以这个方法使用脚本使得后续对它们的 classes 的访问相比于将 scripts import 为模块来说更困难，例如清理这些 classes，因为它们已经弥漫到全局名字空间中了。如果 script 被 import 为一个模块，它的 class 将保留在 module 内部，并且在之后通过重新 import 这个模块来访问，这些 classes 不会进入全局名字空间，而是保留在这个模块下面。
 
 出于这个原因，最后避免直接执行 scripts 并注册 classes 来扩 Blender。
 
