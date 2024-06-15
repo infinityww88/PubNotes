@@ -52,3 +52,7 @@ Assembly-CSharp 也是被 Unity 特殊处理的程序集，所有没有指定程
 
 某些集成到 Assets 中的插件没有使用自定义的程序集，这些插件的代码就会被归于 Assembly-CSharp 中，而 Assembly-CSharp 是只被 Assembly-CSharp-Editor 引用的，热更程序集就不能引用插件代码了。这会导致热更程序集中所有依赖了该插件的代码报错，解决办法是自行为其创建一个asmdef文件。
 
+## 代码剥离
+
+Unity 会对所有程序集（无论是 Unity 标准库，C# 标准库，还是自定义或第三方插件的程序集）进行代码剥离。如果要进行热更新，即使是自定义的程序集，也要在 link.xml 标记为 preserve，否则会在 Build 中被剥离。
+

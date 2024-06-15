@@ -6,7 +6,7 @@
 - Arguments：传递给可执行文件的命令行参数。要执行命令行命令，需要传递 /c 参数，它只是将后面的命令传递给 cmd.exe 来执行
 - CreateNoWindow：子进程不产生新窗口，完全在后台运行
 - RedirectStandardOutput/RedirectStandardError：将子进程（命令行命令）的文本输出重定向到 StandardOutput Stream 和 StandardError Stream。这样可以在父进程中通过这两个 Stream 读取子进程的输出
-- UseShellExecute：这个 shell 不是 Linux 系统 shell，对于 Windows，shell 是 Explorer 中打开任意文件的那个 shell
+- UseShellExecute：启动操作系统 shell 来执行这个子进程
 - process.StandardOutput.ReadToEnd() 读取完整的输出文本
 - process.WaitForExit() 同步子进程的结束，在父进程阻塞等待子进程的完结
 
@@ -37,6 +37,43 @@ if (process.ExitCode != 0) {
 }
 ```
 
+## ProcessStartInfo
+
+ProcessStartInfo 与 Process 一起使用。用 Process 启动子进程时，可以访问子进程信息。
+
+ProcessStartInfo 可以更好地控制启动的进程。要启动子进程，至少要设置 FileName 属性，或者手动设置，或者通过构造函数设置。文件名是任何应用程序，或者文档（图片、音乐、视频、word，excel 等等），这里的文档定义为有与之关联的打开程序（例如 .blend 文件可以通过 Blender 程序打开）或者具有默认操作的任何文件类型。可以使用文件夹选项对话框查看为一个文件类型注册的关联应用程序。“高级”按钮会打开一个对话框，改对话框显示是否有特定文件类型关联的打开操作。
+
+此外，还可以设置其他属性来定义对一个文件执行的操作。Verb 属性可以指定特定于 FileName 文件类型的操作。例如可以为文档类型指定 "print“选项。此外可以用 Arguments 属性值指定为传递给文件打开过程中的命令行参数。例如，如果在 FileName 属性中指定文本编辑器应用程序，就可以用 Arguments 属性指定编辑器要打开的文本文件。
+
+标准输入通常是键盘，标准输出和标准错误通常是屏幕。但是可以使用 RedirectStandardInput、RedirectStandardOutput 和 RedirectStandardError 属性使进程从文件或其他设备获取输入或将输出返回到文件或其他设备。如果在 Process 上使用 StandardInput、StandardOutput 或 StandardError 属性，则必须先在 ProcessStartInfo 属性上设置相应的值（stream）。否则，当读取和写入 stream 时，系统会引发异常。
+
+设置 UseShellExecute 属性指定是否使用操作系统 shell 启动进程。如果将 UseShellExecute 设置为 false，则新进程将继承调用进程的标准输入、标准输出和标准错误流，除非分别将 RedirectStandardInput、RedirectStandardOutput 或 RedirectStandardError 属性设置为 true。
+
+您可以在进程启动之前更改任何 ProcessStartInfo 属性的值。启动进程后，更改这些值将不起作用。
+
+### 属性
+
+- ArgumentList：启动子进程时的命令行参数列表，用这种方法传递的命令行参数不需要转义
+- Arguments：用字符串传递的命令行参数，需要处理好特殊字符转义
+- CreateNoWindow：是否在一个新的窗口启动子进程（启动一个新的命令行窗口）
+- Environment：环境变量字典
+- FileName：自动子进程的应用程序文件或具有打开程序的文档
+- RedirectStandardError：error output 是否写入到 StandardError stream
+- RedirectStandardInput
+- RedirectStandardOutput
+- StandardErrorEncoding：error output 的 encoding
+- StandardInputEncoding
+- StandardOutputEncoding
+- UserShellExecute：是否使用操作系统 shell 启动这个进程
+- Verb：设置打开 FileName 属性指定的应用程序或文档时使用的 Verb，例如 "print"
+- Verbs：获取或设置 FileName 属性指定的文件类型关联的 verbs
+- WindowStyle：子进程启动时 window 的 state，包括 Hidden, Maximized，Minimized，Normal。注意 Hidden 不是不创建窗口，而是被隐藏
+- WorkingDirectory：当 UseShellExecute 设置为 false，设置或获取进程要启动的 working directory。当 UseShellExecute 设置为 true，设置包含要启动进程的 directory
+
+  UseShellExecute = true，目录的绝对路径包含要启动的 process 的目录。
+
+  UseShellExecute = false，要启动的进程的 working directory。
+
 ## RedirectStandardOutput Property
 
 子进程的文本输出是否写入 StandardOutput stream。
@@ -60,4 +97,5 @@ if (process.ExitCode != 0) {
 因此必须先 ReadToEnd，从 redirect stream 将数据读取走，防止阻塞 child 向 redirect stream 写入数据。最后 WaitForExit。
 
 从同时从 Standard Output 和 Standard Error streams 读取时，也会有类似的问题。因为同时同步读取 output 和 error 必然要先读取一个后读取一个。如果父进程同步等待读取一个 stream（例如 output），而子进程却等等写入另一个 stream，两个条件都不满足，相互等等，产生死锁。可以通过在 StandardError stream 上执行异步读取，在 StandardOutput stream 上执行同步读取来避免死锁；或者创建两个线程分别同步读取两个 stream。
+
 
