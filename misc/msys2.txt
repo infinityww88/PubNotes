@@ -1,0 +1,11 @@
+bash is probably getting started as a login shell, in which case it doesn't read .bashrc automatically. Instead, it reads .bash_profile. From the Bash manual:
+
+So, typically, your `~/.bash_profile' contains the line
+
+if [ -f ~/.bashrc ]; then . ~/.bashrc; fi
+
+after (or before) any login-specific initializations.
+
+So in summary, create a .bash_profile file in your homedir, and add the line quoted above.
+
+If your bash is actually getting invoked as sh, then you'll need to use .profile instead of .bash_profile (see the "Invoked with name sh" section of the Bash manual link above).
