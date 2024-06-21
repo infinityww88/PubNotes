@@ -91,9 +91,11 @@ Textual 会自动处理 keyboard focus。但是可以通过调用 widget.focus()
 
 ## Bindings
 
-Keys 可以为给定的 widget 关联 actions。这称为 key binding。
+Keys 可以关联 actions。这称为 key binding。
 
-要创建 bindings，为 App 或 widget 添加一个 BINDING 类变量。它是一个 (string, string, string) 的 tuple 的 list。Tuple 的第一个值是 key，第二个是 action，第三个是简短的可读描述。
+要创建 bindings，为 App 添加一个 BINDING 类变量。它是一个 (string, string, string) 的 tuple 的 list。Tuple 的第一个值是 key，第二个是 action，第三个是简短的可读描述。
+
+Key bindings 只用于 App，对 Widget 无效（尽管官方文档说如此，实际上 App 类具有 active_bingings，但是 widget 类并没有）。
 
 ```py
 class BindingApp(App):

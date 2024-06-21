@@ -1,0 +1,37 @@
+# Widget gallery
+
+- Button：具有不同语义风格的简单按钮
+- Checkbox
+- ClassicFooter：最初版本的 Footer widget，在 bottom 显示 key bindings
+- Collapsible：通过点击 title 展开、收回 Content
+- ContentSwitch：一个容器，可以包含和切换多个 child widgets 的显示。每次只显示一个 child widget 的内容
+- DataTable：一个强大的数据表格，以及可配置的 cursors
+- Digits：以 tall characters 显示数字
+- DirectoryTree：一个目录的 files 和 folders 的 tree view
+- Footer：最新版本的 Footer widget，显示 key bindings
+- Header：显示 app 的 title 和 subtitle
+- Input：文本输入框
+- Label：简单的文本 label
+- ListView：显示一个 items 列表（items 可以是任何 widgets）
+- LoadingIndicator：在 data 加载时，显示一个动画
+- Log：显示和更新 text lines
+- MarkdownViewer：显示和交互一个 markdown document
+- Markdown：显示一个 markdown document
+- OptionList：显示垂直的 options 列表（options 可以是 Rich renderables）
+- Placeholder：当设计一个 UI 时显示的 placehoder 内容
+- Pretty：显示一个 pretty-formatted Rich renderable
+- ProgressBar：可配置的 progress bar，显示 ETA 和完成百分比
+- RadioButton：简单的 radio 按钮
+- RadioSet：radio buttons 的集合，强制单一选择
+- RichLog：在一个 scrolling panel 显示和更新 text，每个 rich renderable 一行
+- Rule：分割 content 的 rule widget，类似 HTML tag \<hr\>
+- Select：下拉菜单，从一组选项中选择一个
+- SelectionList：从一个 options 列表选择多个值
+- Sparkline：柱形图显示 data 数组
+- Static：简单的 static content，缓存 renderable content。通常用于自定义 widget 的基类
+- Switch：on/off 控件，toggle button
+- Tabs：一行 tab 标签，可以用鼠标或键盘选择。注意它只提供 tab 标签，内容需要自己实现，可以使用 ContentSwitcher
+- TabbedContent：Tabs 和 ContentSwitcher 的组合，导航静态内容
+- TextArea：多行 text area，支持各种语言的 syntax 高亮
+- Tree：带有可扩展 nodes 的 tree 控件
+

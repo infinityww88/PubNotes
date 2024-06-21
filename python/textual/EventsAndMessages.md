@@ -104,7 +104,7 @@ on_{namespace}_{classname}
 
 ### On decorator
 
-除了使用上面的命名约定，还可以使用 on 描述符来定义一个消息的 handler。
+除了使用上面的命名约定，还可以使用 on 装饰器来定义一个消息的 handler。
 
 ```py
 @on(Button.Pressed)
@@ -115,14 +115,14 @@ def on_button_pressed(self):
     ...
 ```
 
-使用 on 描述符的优势：
+使用 on 装饰器的优势：
 
 - handler 方法可以是任何名字
 - 可以指定想要为哪些 widget 处理消息
 
 这通常发生在 container widget 上。如果一个 container 的多个 child widget 会发送相同的消息，container 必须想办法区分消息的发送者，这通常通过 event.widget.id 来实现的。
 
-但是 on 描述符可以传递一个 css 选择器，这可以让 container 指定一个 handler 只为这些 widgets 处理某个类型的消息：
+但是 on 装饰器可以传递一个 css 选择器，这可以让 container 指定一个 handler 只为这些 widgets 处理某个类型的消息：
 
 ```py
 from textual import on
