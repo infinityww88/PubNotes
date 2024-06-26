@@ -27,7 +27,7 @@ Flex UI 支持 edit mode 的 Live Updates。
 
 要查看 FlexLayout 支持的属性，可以查看 [yoga 的文档](https://yogalayout.dev)。
 
-注意所有 FlexLayout UI 元素的 position 和 size 都被 layout engine 控制。RectTransform 的 position、size 属性都变成 driven 的（不能在 Inspector 中编辑），除了 Root FlexLayout，它的 position、size 被显式设置，因为它为一个独立的 layout context 设置 viewport。尤其是即使 FlexLayout.PositionType = Absolute，元素的位置也不能用 RectTransform 的 position 设置，而是应该用 Position Left/Right/Right/Bottom 控制（即使元素的位置在 SceneView 中用 Gizmos Handle 改变，在 FlexLayout 更新时就会被重置）。
+注意所有 FlexLayout UI 元素的 position 和 size 都被 layout engine 控制。RectTransform 的 position、size 属性都变成 driven 的（不能在 Inspector 中编辑），除了 Root FlexLayout，它的 position、size 被显式设置，因为它为一个独立的 layout context 设置 viewport。尤其是即使 FlexLayout.PositionType = Absolute，元素的位置也不能用 RectTransform 的 position 设置，而是应该用 Position Left/Right/Right/Bottom 控制（即使元素的位置在 SceneView 中用 Gizmos Handle 改变，在 FlexLayout 更新时就会被重置）。Size 属性也一样，只能通过 FlexLayout 的 Size 属性控制元素大小（Width/Height 和它们的 Min/Max 版本，以及一个 Aspect Ratio）。
 
 当需要 Unity 的工具时，先在 Github 查看是否有可用的仓库。
 
