@@ -58,3 +58,7 @@ Unity 物理引擎通常在每一帧更新后进行碰撞检测。因此，如�
 
 可以使用 UniTask Tracker 查看当前正在进行调度的 UniTask，包括它的状态，stack trace，以确定是否存在资源泄露。
 
+## UniTask vs UniRx
+
+UniTask V2 对任何 Unity 项目都是必须的。UniRx 基本已经被 UniTask 替换，并且不再更新。
+
