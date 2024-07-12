@@ -43,3 +43,7 @@ path 是相对于任何 Resources 目录的。因为可以有多个 Resources，
 
 如果不同类型的 asset 具有相同的名字，因为不能指定扩展名，load 返回的 asset 是不确定的。要加载指定类型的 asset，使用 Resources.Load\<T\>(path)。
 
+Resources 文件夹下打包的资源会将依赖资源一起打包，就像 Unity Build 的 Scene 一样。只需将 Prefab 放在 Resources 文件夹中即可，不需要关心依赖资源。
+
+Resources.Load 的资源只存在于内存中，不是在 Scene 中。如果是 Material、Texture，需要 Scene 中的 GameObject 引用它才能出现在 Scene 中。如果加载的资源是 Prefab/GameObject，必须 GameObject.Instantiate 才会出现复制一个 GameObject 到 Scene 中。
+
