@@ -15,6 +15,11 @@ Physics.SyncTransforms() 将 Transform 的改变立即应用到 Physics 引擎�
 
 游戏开发要大量使用影子跟随技术，GameObject 属性要在多个帧之间逐渐追上目标值，达成最终一致，异步追随，将计算随时间分散到多个帧中。这是游戏编程经常用到的技术。越是复杂的系统越高度依赖这种技术，例如物理系统，UI 布局，Curvy Spline 等等。正是因为很多重要的系统都是如此，正常编程中不仅要应用这个技术，还要时刻注意那些系统的状态都不是立即能得到最新版本的，必须遵循最终一致的原则来使用它们。
 
+因为正式一点的系统几乎总是要使用影子追随技术，因此在实际编程中应尽可能使用它，无论功能复杂还是简单，以熟悉熟练这种技术。只需要两个子系统：
+
+- 计算和设置 target value
+- 属性追随 target value
+
 例如物理系统的 collider.bounds 在 transform 变换后，不能立即更新，而是在 4~5 个帧之后才更新反映 collider 的 AABB 包围框。假设使用 collider.bounds 进行 Physics.BoxCast 投射，然后根据 HitPoint 移动 transform，如果根据 diff vector 进行 Translate，就会出现问题。因为 Collider.bounds 只会在几个 frame 之后更新，再此期间 bounds 保持不变，因此会导致这些帧中每一帧中都能得到 diff vector，如果将它直接累加到 transform，就会导致 transform 会移动多个 diff vector。要解决此问题，有两个方法：
 
 - 移动 transform 后，调用 Physics.SyncTransforms() 立即将 Transform 同步到 Collider
