@@ -70,3 +70,9 @@ SetId/SetTarget 是两个可互换的等价方法。id 或 target 是 object 类
 - SetLink(GameObject target, LinkBehaviour linkBehaviour = LinkBehaviour.KillOnDestroy) 将 Tween 和 GameObject 连接在一起
 - 开启 safeMode，这是个全局属性，开启后，DOTween 会自动检测 tween 的 target 是否被销毁
 
+PlayBackwards() 反向播放动画。Tweener 内部会记录动画创建时的 start 和 end。如果反向播放，PlayBackwards 会将属性的当前值作为 start，将创建 tweener 时的 start 作为最终值。因此动画必须播放之后，plackbackwards 才有效果，即先 Play/PlayForwards 一段时间，然后再 PlayBackwards。但是注意，默认情况下如果 Tweener 播放完毕，会被自动 kill，此时即使 PlayBackwards 也不会有任何效果。要想动画在播放之后还可以 PlayBackwards，必须调用 SetAutoKill(false)，让动画播放完毕后，仍然保留内存对象，所有数据都在，只是播放状态变成 completed，此时 PlayBackwards 就没有问题了。
+
+另一个翻转动画播放的调用是 SetInverted()。它将 tweener 创建时的 end 和 start 翻转，从 end 向 begin 播放。但是它必须在 tweener 创建之前就设置好。如果已经开始播放，调用这个没有效果。此外嵌套在 Sequence 也没有效果。
+
+Tweener 状态：Pause、Play、Complete、Killed。
+
