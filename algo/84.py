@@ -10,7 +10,30 @@ from typing import List
 在数组两边各插入一个 0，并不影响问题的解，但是可以简化程序的判断。左边的 0 使每个数组元素以相同的方式被处理，右边的 0 保证数组中所有元素都被弹出，最后只剩下两个 0.
 '''
 
+class Solution:
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        heights.insert(0, 0)
+        heights.append(0)
+        maxRect = 0
+        stk = [0]
+        for i in range(1, len(heights)):
+            h = heights[i]
+            while h < heights[stk[-1]]:
+                t = heights[stk[-1]]
+                stk.pop()
+                rect = (i - stk[-1] - 1) * t
+                maxRect = max(maxRect, rect)
+            stk.append(i)
+        return maxRect
+        
+s = Solution()
+heights = [2,1,5,6,2,3]
+ret = s.largestRectangleArea(heights)
+print(ret)
+
+
 # 单调栈精简
+'''
 class Solution:
     def largestRectangleArea(self, heights: List[int]) -> int:
         heights.insert(0, 0)
@@ -27,10 +50,7 @@ class Solution:
                     result = max(area, result)
             stack.append(i)
         return result
+'''
 
 
-s = Solution()
-heights = [2,1,5,6,2,3]
-ret = s.largestRectangleArea(heights)
-print(ret)
 
