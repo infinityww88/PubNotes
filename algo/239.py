@@ -3,6 +3,20 @@ from collections import deque
 
 class Solution:
     def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
+        dq = deque()
+        ret: List[int] = []
+        for i in range(len(nums)):
+            if dq and dq[0] < i - k + 1:
+                dq.popleft()
+            while dq and nums[dq[-1]] < nums[i]:
+                dq.pop()
+            dq.append(i)
+            if i - k + 1 >= 0:
+                ret.append(nums[dq[0]])
+        return ret
+
+class Solution1:
+    def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
         if not nums or k == 0:
             return []
     
@@ -28,7 +42,7 @@ class Solution:
         return result
 
 s = Solution()
-nums = [6, 7, 8, 9, 5, 4, 3, 2, 1]
-k = 4
+nums = [1,3,-1,-3,5,3,6,7]
+k = 3
 ret = s.maxSlidingWindow(nums, k)
 print(ret)
