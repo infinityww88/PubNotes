@@ -1,6 +1,38 @@
 from typing import List
 
 class Solution:
+    def trap(self, height: list[int]) -> int:
+        ret = 0
+        stk = []
+        for i in range(len(height)):
+            lastH = 0
+            while stk:
+                end = stk[-1]
+                w = i - end - 1
+                h = min(height[end], height[i])
+                area = w * (h - lastH)
+                lastH = h
+                ret += area
+                if height[end] > height[i]:
+                    break
+                stk.pop()
+            stk.append(i)
+        return ret
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Solution1:
     def trap(self, height: List[int]) -> int:
         stk = []
         stk.append(0)
@@ -20,7 +52,7 @@ class Solution:
             stk.append(i)
         return ret
 
-height = [1, 2, 2]
+height = [0,1,0,2,1,0,1,3,2,1,2,1]
 s = Solution()
 ret = s.trap(height)
 print(ret)
