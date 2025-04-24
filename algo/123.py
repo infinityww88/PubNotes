@@ -1,7 +1,5 @@
-from typing import List
-
 class Solution:
-    def maxProfit(self, prices: List[int]) -> int:
+    def maxProfit(self, prices: list[int]) -> int:
         if len(prices) <= 1:
             return 0
         record = [0] * len(prices)
