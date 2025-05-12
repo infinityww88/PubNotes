@@ -1,0 +1,4 @@
+GOPATH=%USERPROFILE%\go=C:\Users\13687\go
+GOPROXY=https://goproxy.cn,direct
+HTTP=localhost:1080
+HTTPS=localhost:1080
