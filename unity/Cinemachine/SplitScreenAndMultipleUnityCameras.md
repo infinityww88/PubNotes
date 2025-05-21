@@ -1,0 +1,3 @@
+按照设计，CinemachineCameras 不直接和 CinemachineBrains 链接。相反，active CinemachineCamera 被 Brain 动态发现，允许它们通过 prefab instantiation 或 scene loading 呈现。默认，如果多个 CinemachineBrains 存在于场景中，它们都会找到相同的 CinemachineCameras 并且因此展示相同的画面。要为特定 Brain 指定一个特定的 CinemachineCamera，使用 Cinemachine Channels。这和 Unity Layers 的工作方式相同。
+
+首先在 CinemachineCamera 设置 Output Channel 到想要的 channel。然后添加那个 channel 到 CinemachineBrain 的 Channel Mask。Mask 中可以同时出现多个 channels。CinemachineBrain 只会使用那些 output channels 设置到 masks 的 CinemachineCameras，其他的都被忽略。

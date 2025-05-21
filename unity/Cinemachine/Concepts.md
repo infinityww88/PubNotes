@@ -90,7 +90,7 @@ Blend 时，两个 Cinemachine Cameras 同时控制 Unity Camera，在预定义�
 - Parent 到其他 GameObject 来移动和选择它
 - 通过脚本操作来移动和旋转它，以及控制它们的 lens
 
-但是，对于更复杂的结果，可以添加过程化行为和扩展到任何 Cinemachine Camera，使它动态移动、震动、跟踪目标、组合它的 shots，来响应用户输入，沿着预定义 path 移动，响应外部突然的信号，产生 post-processing 效果，以及更多。
+但是，对于更复杂的结果，可以添加过程化行为和扩展到任何 Cinemachine Camera，使它动态移动、震动、跟踪目标、组合它的 shots，来响应用户输入，沿着预定义 path 移动，响应外部冲量信号 Impulse（模拟突然的爆炸效果），产生 post-processing 效果，以及更多。
 
 ### Procedural Behaviors and extensions
 
