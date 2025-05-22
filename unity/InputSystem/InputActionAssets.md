@@ -88,3 +88,20 @@ public class MyPlayerScript : MonoBehaviour, IGameplayActions
 在运行时修改输入动作资源（Input Action Asset）有多种方式。但需要注意的是，在播放模式（Play mode）期间对输入动作资源所做的任何修改，在退出播放模式后都不会被保存。这意味着你可以在编辑器中以一种真实的方式测试你的应用程序，而无需担心意外修改了原始资源文件。
 
 ## The Default Actions Asset
+
+输入系统包（Input System Package）中附带了一个名为 `DefaultInputActions.inputactions` 的资源文件，其中包含一组预设的动作（Actions）配置。你可以像使用其他 Unity 资源一样，在项目中直接引用这个资源文件。
+
+此外，该资源还以代码形式通过 `DefaultInputActions` 类提供，使你能够在脚本中更方便地访问和使用这些默认动作。
+
+```C#
+void Start()
+{
+    // Create an instance of the default actions.
+    var actions = new DefaultInputActions();
+    actions.Player.Look.performed += OnLook;
+    actions.Player.Move.performed += OnMove;
+    actions.Enable();
+}
+```
+
+这个默认动作资源比项目范围（project-wide）的默认动作更早存在，且与后者完全无关。它是一个遗留资源（legacy asset），为了向后兼容而保留在包中。
