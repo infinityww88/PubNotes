@@ -62,4 +62,4 @@ Lowpoly 模型要生动看起来“抛光过”而不是粗糙粗制的，关键
 
 Lowpoly + Pixel Art 风格不需要 PBR 之类的技术，而是直接通过纹理手工绘制高亮、环境闭塞区域。因此可以在模型不同区域的边界绘制显著“分界线”，例如 AO 暗影区域，或者磨损的边缘。另外就是添加细节，不要让模型看起来太单调。但是细节不是随便加的，而是要突出模型的特征。
 
-Lowpoly + Pixel Art 是非常有趣的艺术风格，能创造非常有趣的世界，而且需要投入非常大的精力来精通。因此不要再怀疑，三心二意，专心学习，没事就描摹 Blockbench 上的 showcase，看看那些 showcase 能达到什么令人惊叹的效果，甚至可以看看 MagicaVoxel 只用 cube 能做出什么样的精彩的作品。做精通 Lowpoly + Pixel Art 艺术风格的专家。
+Lowpoly + Pixel Art 是非常有趣的艺术风格，能创造非常有趣的世界，而且需要投入非常大的精力来精通。因此不要再怀疑，三心二意，专心学习，没事就描摹 Blockbench 上的 showcase，看看那些 showcase 能达到什么令人惊叹的效果，甚至可以看看 MagicaVoxel 只用 cube 能做出什么样的精彩的作品。做精通 Lowpoly + Pixel Art 艺术风格的专家，精通 Blockbench 的专家。
