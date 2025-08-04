@@ -312,9 +312,9 @@ InstanceFinder.ServerManager.Despawn(gameObject); //通过 ServerManager
 base.Despawn(DespawnType.Pool)； // Pool 这个 object，而不是销毁它
 ```
 
-您可以通过检查 NetworkBehaviour 或 NetworkObject 中的 IsSpawned 属性，随时判断一个对象是否处于已生成状态。
+您可以通过检查 NetworkBehaviour 或 NetworkObject 中的 IsSpawned 属性，判断一个对象是否处于已生成状态。
 
-场景对象（Scene Objects）的生成与销毁机制与普通实例化对象类似，不同之处在于：需要传入已实例化/已放置的场景对象引用。当场景对象被销毁时，系统会将其禁用（Disabled）而非彻底销毁（Destroyed）。
+场景对象（Scene Objects）的 spawned 和 despawned 与 instantiated 类似，不同之处在于：需要传入已实例化/已放置的场景对象引用。当场景对象被销毁时，系统会将其禁用（Disabled）而非彻底销毁（Destroyed）。
 
 ### Spawn Payloads
 

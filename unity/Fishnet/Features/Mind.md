@@ -12,7 +12,7 @@
 
 ### 对标 Unity SceneManager
 
-## 对象标识
+## 网络对象
 
 ### NetworkObject
 
@@ -51,6 +51,37 @@
       1. 先实例化对象 Insstantiate
       2. 调用 Spawn 方法将其生成，在 client 上生成对象
       3. 提供了多种 Spawn 方法可供选择
+  - Spawn 不分配 ownership：owner=null 或不传递 owner 参数
+  - Spawn 分配 ownership：owner 指定 connection
+  - Despawn 和 spawn 类似访问，通过 NetworkBehaivour, NetworkObject, NetworkManager
+  - Despawn 时可以 pool NetworkObject，而不是销毁
+  - 通过 NetworkObject/NetworkBehaviour IsSpawned 检查对象是否是生成的
+  - Scene object despawn 时 disable 而不是 destroy
+- Spawn Payloads
+  - Spawn NetworkObject 时附带传输额外信息
+  - NetworkBehaviour 提供 WritePayload/ReadPayload 方法，每个 NetworkBehaviour 都可以读写自己的额外数据
+  - 读写的顺序和数量必须完全一致
+  - Server Spawn NetworkObject 可以写入一些动态信息，一起发给 client，用于 object 的初始化
+- 预测生成
+  - 类似预测运动，客户端预先执行，服务器后续确认
+  - 客户端根据输入预先生成对象，同时向服务器发送输入
+  - 有预测生成，隐含包括预测销毁（客户端预先销毁）
+  - 全局设置
+    - ServerManager 上设置，若场景中没有 ServerManager，则在 NetworkManager 上添加之
+    - 勾选 Allow predicted spawning
+    - 调整 Reserver Object Ids
+  - Object 设置
+    - 仍需每个 Object 设置预测生成
+    - 为要预测生成的 Scene Object 或 Prefab 添加 PredictedSpawn 组件
+    - 可以继承 PredictedSpawn 组件，自定义预测生成行为
+  - 设置了全局设置、Object 之后，客户端就可以向服务器一样预测生成和销毁
+- Object Pooling
+  - Fishnet 内置了对象池功能
+  - 同时用于客户端和服务器
+  - 对象池可以预热，prewarm，预先放入一组对象以供使用
+  - Scene 中的 NetworkObjects 不会添加到对象池中，despawn 时只禁用而非销毁
+  - 启用了对象池后，仍然需要修改 NetworkObject 的默认回收行为或手动显示回收
+  - Spawn 对象时，从 Pool 中取出可用对象
 
 ### 对标 Unity GameObject
 
@@ -149,3 +180,27 @@
 - \[Server\]：方法仅在服务器执行
 
 ### 监听客户端、服务器专属事件
+
+## 网络状态事件
+
+- 全局网络事件，而非 NetworkBehaviour level 事件
+- server 端事件，ServerManager
+  - OnAuthenticationResult
+  - OnServerConnectionState
+  - OnRemoteConnectionState
+- client 端事件，ClientManager
+  - OnAuthenticated
+  - OnClientConnectionState
+  - OnRemoteConnectionState
+- server 和 client 共享事件，TimeManager
+  - OnPreTick
+  - OnTick
+  - OnPostTick
+
+## 网络通信
+
+### Remote Procedure Calls
+
+### SyncTypes
+
+### Boradcasts
