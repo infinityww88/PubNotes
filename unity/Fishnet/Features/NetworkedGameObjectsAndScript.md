@@ -32,7 +32,7 @@ Fishnet 允许在 scene 和 prefabs 中嵌入 NetworkObjects。
 
 你可以在 Scene 或 Prefab 中有 deactivated 的 Nested NetworkObjects，稍后再 spawn 它们。
 
-当 Nested NetworkObject 再 root 被 spawned 之后 spawned，owner 信息不会自动假设为 root 的 owner。你必须再调用 Spawn 时指示 client 是否应该获得 ownership。
+当 Nested NetworkObject 在 root 被 spawned 之后 spawned，owner 信息不会自动假设为 root 的 owner。你必须再调用 Spawn 时指示 client 是否应该获得 ownership。
 
 在 Instantiating Prefab 和 Spawning Root Network Object 之间（这是两个步骤，第一个步骤先实例化 Prefab，然后调用 Server.Spawn 在网络上 Spawn 它），你可以改变 Nested NetworkObjects。这包括 SyncTypes，甚至 object 的 active 状态。这些修改在 root spawned 时自动同步。
 
@@ -65,7 +65,7 @@ NetworkBehaviours 是 networking 的一个基础部分，它允许你很容易�
 
 当从 NetworkBehaviours 继承时，你就是在指示你的脚本会以某种方式利用网络。一旦 NetworkBehaviour 脚本添加到 object，NetworkObject 组件会自动 attached。
 
-NetworkBehaviours 时 RPC，Sync 的基础，并且访问关键的网络信息。
+NetworkBehaviours 是 RPC，Sync 的基础，并且访问关键的网络信息。
 
 ### Properties
 
@@ -73,8 +73,8 @@ NetworkBehaviour 有一些 public 属性，其中很多你会经常使用。绝�
 
 - 如果作为 client，并且 network 已经被初始化，IsClientInitialized 为 true
 - 如果作为 server 并且 network 已经被初始化，IsServerInitialized 为 true
-- 如果作为 client 和 object 的 owner，IsOwner 为 true
-- 如果作为 owner，或者作为 server 并且没有 owner，HasAuthority 为 true
+- 如果 instance 是 client，并且 client 是 object 的 owner，IsOwner 为 true
+- 如果 instance 是 client 且为 owner，或者作为 server 并且 object 没有 owner，HasAuthority 为 true
 
 ### Callbacks
 
@@ -121,7 +121,7 @@ Unity Awake 和 OnEnable callbacks 总是在任何 network 活动（callback）�
 
 - OnStartNetwork
 
-  一些 instances 中，你需要为 server 和 client 进行初始化。你可以通过 OnStartNetwork 而不是 OnStart 来为 Client 和 Server 节省一些 code 和时间。
+  在某些情况下，你需要同时为服务器和客户端进行初始化。通过使用 OnStartNetwork 而不是分别为客户端和服务器使用 OnStart，你可以节省一些代码和时间。需要注意的是，即使您是客户端主机（clientHost），OnStartNetwork 也只会调用一次。
 
   OnStartNetwork 只会调用一次，即使是 clientHost。
 
