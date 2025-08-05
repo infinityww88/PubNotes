@@ -377,3 +377,32 @@
   - 共享 ID 默认处于启用状态，且不会向客户端泄露任何敏感信息
   - 共享的 ID 就是 NetworkConnection，NetworkConnection 可以序列化并在网络上传递
   - 在 Server 上用 Sync 容器可以向所有客户端同步共享所有客户端的 NetConnection，<br/>Server 可以用 SyncDictionary 保存各个客户端的其他信息，这样 client 就能知道其他客户端的相关信息了
+
+## Area of Interest(Observer System)
+
+- 兴趣区域实现网络上的可见区域，用于精准控制哪个客户端能接收哪些对象的信息
+- 某个对象的观察者 Observer 是指能够查看此对象，并能与之交互的客户端
+- 可以通过 NetworkObserver/ObserverManager 组件来配置哪些客户端有权观察此对象，<br/>在 NetworkObject 上添加 NetworkObserver，其中配置观察条件，用来让 server 确定哪些 clients 是这个对象的观察者
+- 如果客户端未被认为是一个对象的观察者，则该对象对其处以非激活状态
+  - 客户端不会受到该对象的网络信息
+  - 不会触发相关回调函数
+  - 对于 Scene NetworkObject，它始终处于 disable 状态，直到这个客户端获得观察权限
+  - 动态 spawn 的对象，客户端在获得观察权之前根本不会加载该对象
+- 观察者系统（兴趣区域）专门为新手开发者提供了开箱即用的基础功能
+- 系统还提供了高度灵活的扩展能力，可以自定义观察者规则
+- NetworkManager 预制体已包含新项目开发所需的推荐基础组件，<br/>其中内置的 ObserverManager 组件配置了 Scene Condition。
+- NetworkManager 中的 PlayerSpawner 会将 player 添加到当前场景，<br/>使得本客户端成为该场景内对象的观察者，但前提是玩家对象必须提前 Spawn
+- 如果自行创建 NetworkManager（而不是使用预制体），或使用预制体并移除 PlayerSpawner，<br/>则需要手动将客户端加载到目标观察场景中
+- 如果移除 PlayerSpawner 组件或未使用 SceneManager.AddOwnerToDefaultScene 方法，<br/>则必须通过 SceneManager 显式加载客户端场景。只有通过 Fishnet.SceneManager 加载的场景，<br/>其中的对象才会被认定为网络同步场景。客户端可通过全局场景加载或针对特定连接（客户端）的场景加载成为场景成员
+- 修改条件
+  - 运行时可以修改观察条件
+  - 必须通过 NetworkObserver 组件访问条件<br/>```base.NetworkObserver.GetObserverCondition<DistanceCondition>().MaximumDistance = 10f;```
+  - 所有条件都可以启用或禁用。禁用条件可以临时忽略条件<br/>```ObserverCondition.SetIsEnabled(false);```
+- 自定义条件
+  - 条件是 ScriptableObject，创建为资源
+  - 继承 ObserverCondition
+  - 重写 ```bool ConditionMet(NetworkConnection connection, bool currentlyAdded, out bool notProcessed)```
+    - connection 是当前被检查的客户端，判断它是否是观察者
+    - currentlyAdded 指示 connection 当前是否对 object 可见
+    - notProcessed 是输出参数，返回 true 表示本次检查不被处理，<br/>仍然使用上一次条件检查的结果
+  - 如果检查需要其他参数，例如 NetworkObject 甚至更多参数，<br/>可以作为 ScriptableObject 脚本的参数，并在运行时指定

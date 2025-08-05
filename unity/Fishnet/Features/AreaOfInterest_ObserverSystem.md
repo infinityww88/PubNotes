@@ -1,4 +1,4 @@
-Fish-Networking 搭载了一套先进的网络兴趣区域 Area of interest 管理系统，用于精准控制每个户端接收哪些对象的相关信息。
+Fish-Networking 搭载了一套先进的网络兴趣区域 Area of interest 管理系统，用于精准控制每个客户端接收哪些对象的相关信息。
 
 观察者（Observer）是指能够查看对象并与之交互的客户端。您可以通过 NetworkObserver 和/或 ObserverManager 组件来配置哪些客户端有权观察特定对象。
 
