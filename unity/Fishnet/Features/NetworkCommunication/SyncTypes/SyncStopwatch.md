@@ -79,3 +79,12 @@ private void _timePassed_OnChange(SyncStopwatchOperation op, float prev, bool as
      * _timePassed.Elapsed */
 }
 ```
+
+## 与 SyncTimer 的区别（AI）
+
+在Unity FishNet中，SyncTimer和SyncStopwatch都是用于时间同步的工具，但它们的用途和工作方式有所不同。
+
+SyncTimer通常用于​​基于tick的时间同步系统​​，它与FishNet的TimeManager配合，处理网络计时、服务器与客户端之间的时间同步，以及对客户端预测计时的支持等功能，主要用于维护整个网络的时间基准，确保不同客户端和服务器的时间一致性，常用于需要严格时间同步的网络操作，如同步游戏中的关键事件、状态更新等。
+
+SyncStopwatch则更侧重于​​测量特定代码段或操作的运行时间​​，例如在处理网络消息、执行同步逻辑或进行性能优化时，用于测量某段代码的执行时长，帮助开发者了解代码的性能瓶颈，以便进行优化，它更关注于局部的时间测量和分析。
+

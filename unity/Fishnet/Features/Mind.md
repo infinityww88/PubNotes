@@ -193,14 +193,187 @@
   - OnClientConnectionState
   - OnRemoteConnectionState
 - server 和 client 共享事件，TimeManager
-  - OnPreTick
-  - OnTick
-  - OnPostTick
+  - OnPreTick：network tick 之前
+  - OnTick：network tick，可以设置网络一定频率同步数据
+  - OnPostTick：network tick 之后
 
 ## 网络通信
 
 ### Remote Procedure Calls
 
+- 需求：
+  - 必须在继承自NetworkBehaviour的脚本中调用。
+  - Fish-Net框架会自动为类型生成序列化器（支持数组、列表）<br/>若无法生成则需手动实现自定义序列化器。
+- ServerRpc
+  - client 发送，在 server 上执行逻辑
+  - 默认只有对象的所有者（client/connection）才能调用 ServerRpc
+  - RequireOwnership = false 可以允许任何 client/conneciton 对 Object 调用 ServerRpc
+  - ServerRpc 方法可以包含一个 NetworkConnection 参数<br/>Fishnet 自动添加调用者，用于 server 端识别哪个客户端在调用 Rpc
+- ObserverRpc
+  - server 发送，在 client 上执行
+  - 只有一个 object 的 observer clients 执行 ObserverRpc
+  - server 根据 NetworkObserver 设置的条件判断一个 object 的 observer clients
+  - 观察者包含 owner，指定 ExcludeOwner = true 可以排除 observer
+  - 可以通过 ObserverRpc 将最新数值同步到新加入观察者序列的客户端<br/>适合仅通过 RPC 变更的数值类型，对比是 SyncTypes
+    - 指定 BufferLast 选项
+    - 新加入观察者自动被 server 发送这个 ObserverRpc，同步一次
+- TargetRpc
+  - server 发送，在 client 上执行
+  - 第一个参数是 NetworkConnection，指定在哪个 client 上执行 rpc
+  - 对比 ObserverRpc
+    - 相同点：都需要服务端手动发起，调用 TargetRpc/ObserverRpc 方法<br/>但是 ObserverRpc 可以通过 BufferLast 缓存最后一次 rpc<br/>当有新加入的 observer client，会自动为其发送最后一次缓存的 rpc
+    - 不同点：TargetRpc 需要手动指定要执行逻辑的客户端<br/>ObserverRpc 则由 server 根据 NetworkObserver 设置的条件自动判断要执行 rpc 的客户端
+- Multi-Purpose Rpc
+  - 一个方法可以既是 TargetRpc，又是 ObserverRpc
+  - 这样方法既可以作为观察者自动被 server 调用，又可以被 server 指定调用 rpc
+- Channels
+  - Rpc 可以通过 reliable 或 unreliable 通道调用
+  - 在 Rpc 方法中添加一个 channel 参数
+    - 对于发送者，指定发送的通道
+    - 对于接收者，指定接收的通道
+  - 每次 rpc 调用都可以指定不同的通道，即使是同一个方法的多次调用
+- RunLocally
+  - 默认 rpc 只会通过网络发送到目的地执行
+  - 所有 rpc 都可以指定 RunLocally，尤其是 ServerRpc
+  - 方法首先在本地调用(client/server)，同时发往目的地(server/client)
+- Rpc 方向
+  - ObserverRpc/TargetRpc：Server -> Client
+  - ServerRpc：Client -> Server
+  - Client 之间不能直接 Rpc
+- DataLength：Rpc 参数可以指定潜在发送参数数据的最大数据 size<br/>使框架可以优化 rpc 内存分配
+
 ### SyncTypes
 
-### Boradcasts
+- 作为网络通信方法，rpc 对比 method，sync type 对比 field
+- 方向：server -> client，服务端修改，改变发送到客户端
+- 增量同步，仅传输变化数据，尤其是容器
+- 为 custom type 自动生成序列化器
+- OnStartServer 之前的修改只在客户端或服务器执行，其后的变化通过网络同步
+- 可以设置 SendRate 网络同步频率，0f 表示每个 tick 发送一次 change
+- Host Client 限制：当 asServer = false，prev value 是当前值或 null，否则才是真正的之前值
+- 设置 SyncTypeSettings：和 rpc 一样，作为通信方式，都有各种设置
+  - 在创建 SyncTypes 变量时指定设置
+  - 在创建后可以修改设置
+  - 同步频率
+  - 发送通道：unreliable/reliable
+  - SyncTypes 变量可以向普通变量一样在 Inspector 中显示
+- SyncVar
+  - 最简单的同步方案，可以同步一个变量
+  - 支持所有数据类型：值、结构体、类
+  - 它是一个模板，模板参数是要同步的类型
+  - 同步设置：频率、变化通知回调
+  - 回调函数参数：prev value，current value，asServer
+  - 回调函数可以作为另一种 rpc 来使用<br/>触发方式就是改变 SyncVar，在回调函数中执行逻辑
+  - 方向：只能 Server 修改，同步到客户端，客户端无法直接修改 SyncVar 的值来触发同步
+  - 客户端要修改可以使用 ServerRpc，将 Property 方法实现为 ServerRpc，使得在 server 端修改 sync types
+  - 后续可能实现客户端权威属性
+  - ReadPermissions.ExcludeOwner 设置可以防止自身触发更新
+  - WritePermissions.ClientUnsynchronized 允许客户端直接修改变量
+  - 在 ServerRpc 中启用 RunLocally=true 可确保 RPC 逻辑同时在客户端和服务端执行
+- 容器类型
+  - SyncList
+  - SyncDictionary
+  - SyncHashSet
+  - 只发生变化部分
+  - 值类型可直接修改
+  - 引用类型（class）必须手动标记 dirty，来触发同步
+- 计时类型
+  - SyncTimer
+    - 服务器-客户端之间高效的定时器同步方案
+    - 与 SyncVars 不同，SyncTimer 只同步定时器启动、停止等状态变化，而不是逐帧变化
+    - 与 SyncVars 相同，修改只能在 server 触发
+    - 方法
+      - StartTimer
+      - PauseTimer
+      - UnpauseTimer
+      - StopTimer
+    - 更新
+      - timer 必须在 server 和 client 都 udpate
+      - 对于 host 模式，只需要其中一个 update
+      - 可以在任何方法中 update，但应该在 MonoBehaviour.Update 中更新
+    - 读取值
+      - Paused
+      - Remaining
+    - 回调
+      - 参数：SyncTimerOperation op, float prev, float current, bool asServer
+      - SyncTimerOperation
+        - Start
+        - Pause
+        - PauseUpdated
+        - Unpause
+        - Stop
+        - StopUpdated
+        - Finish
+        - Complete
+  - SyncStopwatch
+    - 服务器-客户端高效的秒表同步方案
+    - SyncTimer 基于 Tick，SyncStopwatch 基于毫秒
+    - SyncTimer 与 FishNet 的 TimeManager 配合<br/>处理网络计时、服务器与客户端的时间同步<br/>以及对客户端预测计时的支持，用于维护整个网络的时间基准<br/>确保不同客户端和服务器的时间一致性<br/>通常用于需要严格时间同步的网络操作，例如同步游戏中的关键事件、状态更新
+- 自定义 SyncType
+  - SyncVar 同步整个变量（结构体、类）
+  - 容器只同步变化的 item（仍然是整体同步）
+  - 自定义 SyncType 可以向容器一样，只同步 struct/class 变化的部分
+  - 适用于包含大量数据的复合类型（struct/class）
+
+### Broadcasts
+
+- Broadcasts 允许在多个 object 之间发送消息，而不需 object 具有 NetworkObject 组件
+- 允许非联网对象之间通信，例如聊天系统
+- 和 local message dispatcher 在单体应用中任意 objects 之间发送消息一样，只是它是在网络上发送
+- Fishnet 框架负责接收网络消息，任意对象（非 NetworkObject）都可以注册监听网络消息
+- 可通过 reliable 或 unreliable 通道发送
+- 方向：既可以客户端向服务端发送，也可以服务端向客户端发送
+- 通过 ClientManager/ServerManager 发送广播，和注册回调<br/>可在 NetworkBehaviour/NetworkManager/InstanceFinder 中找到其引用
+- 消息必须是结构体，结构体类型同时作为消息名字、类型，通过结构体类型注册到相应的消息通道，以及在相应的消息通道发送广播
+- 回调函数参数 NetworkConnection conn, ChatBroadcast msg, Channel channel
+- 任何脚本都可以注册回调，不需要 NetworkBehaviour
+
+### 数据序列化
+
+- SyncTypes 负责数据同步逻辑，Data Serialization 负责数据序列化和反序列化<br/>SyncTypes 和 Broadcasts，以及 Rpc 调用 Data Serialization 传输数据。
+- 无论是 SyncTypes，Broadcasts，还是 Rpc，在网络传输数据类型的时候<br/>Fishnet 自动寻找或创建该类型的序列化器
+- Fishnet 序列化的字段跟 Unity 一样，只序列化 public 或 serialized 字段<br/>要排除字段，添加 System.NonSerialized 属性
+- Fishnet 还支持继承序列化
+- 自定义序列化器
+  - 当自动序列化不可行时，或想定制时，可自定义序列化器
+  - 按照约定实现，Fishnet 可自动识别类型的自定义序列化器
+  - 自定义序列化器可以覆盖自动序列化器
+  - 步骤
+    - 方法必须是 static，并且在一个 static class
+    - 写方法名字必须以 Write 开始
+    - 读方法名字必须以 Read 开始
+    - 第一个参数必须是 this Writer，或者 this Reader
+    - Data 必须以和写入相同的顺序读取
+    - Data 可以以任何逻辑写入，不一定全量写入<br/>例如可根据某个 bool 字段，只写入读取其中的几个字段
+    - 可以将对象以接口或基类的方式序列化，首先写入一个枚举值，<br/>指示具体类型是什么，但返回时返回类型或基类的类型
+
+## Ownership 管理
+
+- 理解如何使用 ownership，以及它如何影响 clients 和 server 对任何 project 是至关重要的
+- 所有权是 Fish-Net 的核心概念，用于确定哪个客户端拥有对某个对象的控制权
+- 每个 NetworkObject 都可以被分配给一个客户端 Connection 作为其所有者，<br/>或者该对象也可以没有分配所有者
+- 只有服务器有权限更改对象的所有权，不过服务器本身不能成为任何对象的所有者，<br/>Owner 是一个 Connection
+- 当某个客户端拥有一个对象时，它就被视为该对象的合法使用者，<br/>可以执行诸如移动角色或使用武器等操作
+- 所有权也可以临时授予，用于与世界对象的交互，比如操作炮塔。
+- 所有权检查对于确保对对象的正确控制至关重要
+  - 验证某个客户端是否有权操作某个对象
+  - 检查玩家相关数值（如名称或分数）的所有权状态
+  - 确保只有所有者才能执行特定的网络调用（例如 ServerRpc）
+- 分配所有权
+  - Spawn 时指定所有权，通过 NetworkConnection 参数指定
+  - 改变或新指定所有权，通过 NetworkObject.GiveOwnership(newConnection)
+  - 移除所有权：NetworkObject.RemoveOwnership()
+- 检查所有权
+  - 可以通过 NetworkObject/NetworkBehaviour 属性检查
+  - base.IsOwner：如果 local client 拥有这个 object，返回 true
+  - base.Owner：获取当前 owner 的 NetworkConnection
+  - base.IsController：如果是 local client 并且拥有这个 object，<br/>或者是 server 并且没有指定任何 owner，返回 true
+- 所有权转移
+  - 只有 server 可以 assign，transfer，remove ownership。<br/>典型地，ownership 在 spawning object 时授予。
+  - 自动分配所有权：PlayerSpawner 脚本（位于 NetworkManager 预制体中）<br/>会确保生成的玩家对象由其对应的客户端持有所有权。
+  - 立即分配所有权：若客户端需要即时获得所有权（例如无延迟地控制炮塔），<br/>可使用 PredictedOwner 组件。该组件支持扩展以实现自定义逻辑。
+- 通过 Connection 读取其他客户端的 values
+  - 要求在 ServerManager 上启用共享 ID（Share Ids），<br/>这样客户端能知道其他客户端（Conneciton），<br/>然后可以通过 Connection 读取其他 player 的信息
+  - 共享 ID 默认处于启用状态，且不会向客户端泄露任何敏感信息
+  - 共享的 ID 就是 NetworkConnection，NetworkConnection 可以序列化并在网络上传递
+  - 在 Server 上用 Sync 容器可以向所有客户端同步共享所有客户端的 NetConnection，<br/>Server 可以用 SyncDictionary 保存各个客户端的其他信息，这样 client 就能知道其他客户端的相关信息了

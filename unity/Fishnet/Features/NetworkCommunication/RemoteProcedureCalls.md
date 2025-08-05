@@ -1,8 +1,4 @@
-远程过程调用（RPC）是一种通信方式，其接收对象与发送对象为同一实例。RPC主要分为以下3类：
-
-- ​ServerRpc​：由客户端调用，在服务端执行，用于请求服务端执行特定操作。
-- ​ObserversRpc​：由服务端调用，向所有观察该对象的客户端广播执行，常用于状态同步。
-- ​TargetRpc​：由服务端调用，仅向特定客户端发送消息或执行逻辑，需指定目标连接。
+远程过程调用（RPC）是一种通信方式，接收方是和发送方相同的 object，只是分布在不同的机器上。RPC主要分为以下3类：
 
 RPC使用简单，类似本地方法调用，但需注意：
 
@@ -89,7 +85,7 @@ private void RpcSetNumber(int next)
 
 ## TargetRpc
 
-TargetRpc用于在指定客户端上运行逻辑，需通过添加\[TargetRpc\]特性实现。
+TargetRpc 是服务端发起，在指定客户端上运行逻辑，需通过添加\[TargetRpc\]特性实现。
 
 调用时，方法的第一个参数必须为NetworkConnection类型，该参数指定数据发送的目标连接（即目标客户端的连接对象）
 
@@ -192,7 +188,7 @@ private void RpcTest()
 }
 ```
 
-仅支持 不可靠消息传输的传输层协议方 可发送不可靠RPC。若当前传输层不支持不可靠传输模式 却尝试发送不可靠RPC，系统将自动将其转为可靠传输模式。
+只有支持 unreliable messages 的 transports 可以以 unreliable 发送 Rpcs。如果 transports 不支持 unreliable 而试图以 unreliable 发送 rpc，rpc 默认会以 reliable 通道发送。
 
 ## DataLength
 

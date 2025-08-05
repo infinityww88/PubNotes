@@ -1,4 +1,4 @@
-l理解如何使用 ownership，以及它如何影响 clients 和 server 对任何 project 是至关重要的。
+理解如何使用 ownership，以及它如何影响 clients 和 server 对任何 project 是至关重要的。
 
 ## What is Ownership?
 
@@ -83,9 +83,7 @@ void Update()
 
 ## 使用 Ownership 读取 values
 
-学习如何为客户端存储值，并通过读取所有者信息在未链接对象上读取这些值。
-
-这个指南要求在 ServerManager 上启用共享 ID（Share Ids），以便客户端能够读取这些值。共享 ID 默认处于启用状态，且不会向客户端泄露任何敏感信息。
+这个指南要求在 ServerManager 上启用共享 ID（Share Ids），即服务器与所有客户端共享所有的 ClientIds，这样客户端能知道其他客户端（Conneciton）的 ID，然后可以通过 ID 读取其他 player 的信息。共享 ID 默认处于启用状态，且不会向客户端泄露任何敏感信息。
 
 我们将演示如何为每个客户端分配显示名称，并将该名称显示在玩家对象上。
 
@@ -100,6 +98,8 @@ void Update()
 ![PlayerNames](../Image/PlayerNames.png)
 
 请注意，在 NetworkObject 组件中我们还将初始化顺序（Initialize Order）设为 -128。这样做能确保该 NetworkObject 优先于其他所有对象完成初始化，从而保证其 OnStart 回调在其他脚本之前执行。虽然这一步骤通常并非必需，但考虑到该脚本本质上是用于管理玩家名称的全局控制器，赋予其更高的执行优先级是推荐的最佳实践。
+
+NetworkConnection 也是可以序列化并在网络上传递的，共享 ID 就是共享这些 NetworkConnection。
 
 然后以下面的 code 填充 PlayerNames 脚本：
 

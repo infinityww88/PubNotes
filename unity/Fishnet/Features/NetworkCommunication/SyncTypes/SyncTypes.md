@@ -16,7 +16,7 @@ SyncTypes 还会为 custom types 自动生成序列化器。
 
 当在单一构建中同时运行客户端和服务器时，所有SyncTypes都存在一个小限制。
 
-作为主机客户端时，回调中的先前值（如适用）将是当前值；若asServer参数为false，则 prev 为null。这一现象主要体现在SyncVars上，具体示例如下：
+作为 host client 时，如果 asServer 参数为 false，callbacks 中，prev value 将是当前值或者 null。否则 prev value 是真正的之前值。
 
 ```C#
 // This example assumes you are acting as the host client.

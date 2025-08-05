@@ -1,6 +1,6 @@
 SyncVars​ 是最简便的网络同步方案，可自动同步单个变量。
 
-SyncVars​ 用于同步单个字段，支持几乎所有数据类型：值类型、结构体或类均可。若y要用 ​SyncVar，必须将你的类型实现为 ​SyncVar 类。
+SyncVars​ 用于同步单个字段，支持几乎所有数据类型：值类型、结构体或类均可。若要使用 ​SyncVar，必须将你的类型实现为 ​SyncVar 类。
 
 ```C#
 public class YourClass : NetworkBehaviour
