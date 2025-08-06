@@ -1,4 +1,4 @@
-Scene Stacking 是 server 或 host 的能力，来在同一个 scene 中同时加载多个 instances，通常每个 scene 有不同的 clients 或 observers。
+Scene Stacking 是 server 或 host 的能力，加载同一个 scene 的多个 instances，通常每个 scene 有不同的 clients 或 observers。
 
 ## General
 
@@ -13,7 +13,7 @@ Stacked Scenes 通常有不同的 Clients 观察 scene 的每个 instance。
 ### Loading Into New Stacked Scene
 
 - 要 stack scene，你必须在 SceneLoadData 选项中设置 AllowStacking 为 true
-- 要创建一个 stacked scene 的新实例，SceneLookupData 必须使用 scene name 填充
+- SceneLookupData 必须使用 scene name 填充，以创建一个 stacked scene 的新实例
 - Global Scenes 不可 stacked
 
 ```C#

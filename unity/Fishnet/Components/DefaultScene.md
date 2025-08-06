@@ -2,6 +2,8 @@
 
 这个组件可以用于在 network start 时加载一个 online scene，在 network stop 时加载一个 offline scene。
 
+这是基于 SceneManager 的一个常用功能，因此和 PlayerSpawner 一样，Fishnet 为此提供了预制脚本，你也可以自己来写。
+
 这个组件根据 server 和 client 的连接状态自动在 online 和 offline scene 之间切换。
 
 online scene 和 offline scene 必须在 inspector 中设置好，而且不能是同一个 scene。

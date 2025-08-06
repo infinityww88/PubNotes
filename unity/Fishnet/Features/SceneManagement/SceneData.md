@@ -4,14 +4,18 @@
 
 ### General
 
-**SceneLookupData** 是服务器用来确定将客户端加载到新场景实例中，还是加载到服务器已加载的场景中的数据。
+SceneLookupData：服务器用来确定将客户端加载到场景的新实例中，还是加载到服务器已加载的场景中
 
-在创建 **SceneLoadData** 或 **SceneUnloadData** 时，系统提供了自动为您生成 **SceneLookupData** 的构造函数。在大多数情况下，您将直接使用这些构造函数，而无需单独创建 **SceneLookupData**。
+SceneLookupData 用于确定如何查找场景，只包含两个字段：Handle，Name。
 
-当您通过场景引用或场景句柄指定场景时，​SceneManager​ 会优先使用场景句柄来查找该场景。这一机制在场景堆叠（Scene Stacking）​场景下尤为重要:
+就像 Unity 场景管理一样，有各种参数、机制确定如何加载场景，Fishnet 场景管理有各种参数配置网络上 server/clients 上同步加载、卸载场景，和如何将 connection 加载到指定的 scene 中（scene 是否对 client 可见）。一个管理本地场景的所有细节，一个管理网络场景的所有细节。
 
-- 若通过句柄查找场景，连接（connections）会被直接载入指定的已有场景；
-- 若通过场景名称查找，则服务器会为指定连接创建一个新的场景实例，并将它们载入该新实例。
+在创建 **SceneLoadData** 或 **SceneUnloadData** 时，系统提供了自动生成 **SceneLookupData** 的构造函数。在大多数情况下，可直接使用这些构造函数，而无需单独创建 **SceneLookupData**。
+
+当通过场景 reference 或场景 handle 指定场景时，​SceneManager​ 会优先使用场景句柄来查找该场景。这一机制在场景堆叠（Scene Stacking）​场景下尤为重要:
+
+- 若通过 handle 查找场景，连接（connections）会被直接载入指定的已有场景；
+- 若通过 scene name 查找，则服务器会为指定 connection 创建一个新的场景实例，并将它们载入该新实例。
 
 需要注意的是，上述行为仅在使用多次加载调用​（multiple Load calls）时生效。例如：当您连续两次调用 LoadConnectionScene，且每次传入不同的连接时，系统就会为每个连接创建独立的新场景实例。
 
@@ -41,8 +45,6 @@ SceneLookupData slud = new SceneLookupData()
 - 加载方式（如覆盖、叠加等）  
 - 需要转移至新场景的对象列表  
 - 其他加载配置参数  
-
-您可通过[官方API文档](具体链接)查看其详细接口定义。
 
 ### Default Values
 
@@ -105,7 +107,7 @@ SceneLoadData sld = new SceneLoadData()
   您可以通过 ​Options（选项）​​ 进一步优化场景的加载与卸载行为。
 
   - ​AutomaticallyUnload（自动卸载）​​
-    - 当设置为 ​true​ 时，如果某个场景在服务器上不再有任何连接存在，该场景将被自动卸载。这是默认行为。
+    - 当设置为 ​true​ 时，如果某个场景在服务器上不再有任何 connection 存在，该场景将被自动卸载。这是默认行为。
     - 当设置为 ​false​ 时，即使连接意外离开（例如断开连接），该场景仍将保留在内存中。
     - 注意：如 ​UnloadSceneData​ 章节所述，此行为可以通过 ​UnloadSceneData​ 中的 ​UnloadOptions​ 进行覆盖。
     - 仅针对为连接（客户端）加载的场景，在没有连接使用时才会自动卸载。
@@ -173,9 +175,14 @@ SceneUnloadData sud = new SceneUnloadData()
   与加载时的 **Options** 类似，**UnloadOptions** 在卸载场景时提供额外设置：  
 
   - Mode
+
     这些设置将覆盖场景加载时使用的 ​AutomaticallyUnload（自动卸载）​​ 选项。
     例如，若您在加载场景时将 ​AutomaticallyUnload​ 设为 ​false​（禁止自动卸载），但同时指定了 ​ServerUnloadModes.UnloadUnused​（卸载未使用场景模式），则当该场景不再有任何连接使用时，系统仍会自动将其卸载。
+
   - ServerUnloadModes.UnloadUnused
+
     仅卸载不再被使用的场景的默认设置
+
   - ServerUnloadModes.KeepUnused
+
     即使所有客户端断开连接，仍保留场景在服务器内存中

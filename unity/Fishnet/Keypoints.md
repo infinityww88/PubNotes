@@ -10,3 +10,5 @@
 - 数据序列化
 - 预测（运动、对象生成）
 - 延迟补偿
+- Fishnet 大部分能力（场景管理、对象管理）都是 server 端的能力（服务端权威），只能服务端发起。<br/>客户端的能力只有 ServerRpc，预测移动和预测生成（客户端权威）
+- 每个 NetworkObject 在服务端和客户端都有副本，大部分操作需要在 server 端来做，只有 ServerRpc 和 Prediction 可在 client 端来做

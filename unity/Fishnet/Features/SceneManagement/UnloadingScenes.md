@@ -20,7 +20,7 @@ base.NetworkManager.SceneManager.UnloadGlobalScenes(sud);
 
 Connection Scenes 遵循相同的原则，但是有一些重载的方法。你可以为一个 connection，同时为多个 connections 卸载 scenes，或者在 server 上卸载 scenes。
 
-- 如果所有 connections 都从一个 scene 卸载，Server 只会从自身上卸载那个 connection scene
+- 如果所有 connections 都从一个 scene 卸载，Server 会从自身上卸载那个 scene
 - 如果你希望卸载一个 scene 和所有 connections，获取 scene 中的所有 connections，然后对那些 connections 调用 unload。SceneManager.SceneConnections 保存所有 online scenes 和其中的 connections
 - 如果想卸载所有 Connections 时，保持 scene 在 server 上加载，使用 Scene Caching
 
