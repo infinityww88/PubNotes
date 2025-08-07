@@ -2,6 +2,10 @@ Fish-Networking 框架内置了一个强大的场景管理工具，它能让您�
 
 SceneManager 组件提供了多种场景功能，以满足您的多人游戏需求。
 
+Fishnet.SceneManager 和 Unity SceneManager 使用的是一样的 Scene，Fishnet.SceneManager 是建立在 Unity SceneManager 基础上的。
+
+Fishnet.SceneManager 通过 name 查找的 Scene 就是 Unity 的 Scene。就像 Server Spawn 的 Object 就是 Unity GameObject 一样。
+
 # SceneManager
 
 ## Scene 可以想象为一个 Prefab
