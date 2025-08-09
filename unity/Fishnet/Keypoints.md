@@ -14,4 +14,8 @@
 - 网络调用在 NetworkBehaviour 脚本中，通过 SceneManager、ServerManager、NetworkBehaviour 的 API。
 - 每个 NetworkObject 在服务端和客户端都有副本，在 NetworkObject 的 server 端副本的 NetworkBehaviour 的 code 中进行调用（意味着要判断代码的执行环境）
 
-Fishnet 只是一个网络传输框架，在 GameObject 之间传递消息。本质上跟 scene 无关。scene 只是一堆 GameObject 的集合。只要 server 端和 client 端具有可以互通信息的 gameobject 副本，可以自洽运行，就没有问题，无关是否在相同的场景中。而且实际上，server 端和 clients 本来就可以具有不同的场景组合，每个 instance 上的 scene（gameobject 集合）都可能不同。甚至本质上只需要一个场景即可，一旦建立通信，就可以在这一个场景中不断创建、销毁可以相互通信的 gameobjects，例如可以使用 prefab 作为子场景进行管理。核心是可以相互通信的 gameobjects，scene 不是本质需要的。scene 只是 Unity/Fishnet 用来管理 gameobjects 集合的手段。
+Scene 可以本质上和 Prefab 差不多，都是 Game 中一组 GameObject 的管理单位，让 Unity 以一个集合一起处理一组 GameObjects（加载、卸载）。对于 Fishnet 也是一样，Scene 是其在网络上，在 Server 和 Clients 之间，以一组 GameObject 集合（Scene）一起加载、卸载一组 GameObject。甚至可以整个游戏中可以只有一个 Scene，然后仅以 Prefab 管理子场景（一组 GameObjects）。Fishnet 的场景就是 Unity 的场景，因此只需在网络上传递场景名字即可加载、卸载场景。但是 Fishnet 在 Unity 场景之上还管理了更多一些信息，因此 Fishnet Game Server 和 Clients 应该使用 Scene 管理和同步。Scene 管理（加载、卸载）只应该由 server 发起，客户端只能被动接收、同步。但是注意，场景可以作为 Additive 加载到当前游戏中，而无需替换游戏中的当前场景。
+
+Fishnet 应以 scene 管理 GameObjects 集合，然后再在运行时向场景中生成、销毁更多 Object。
+
+Fishnet -> Scene -> Object。
