@@ -249,3 +249,7 @@ NetworkObject、NetworkBehaviour 既在 server 执行，也在 client 执行。�
 - ServerManager.Started 和 ClientManager.Started
 
   通过 ServerManager.Started 和 ClientManager.Started 判断是否在服务端和客户都执行。
+
+一些类只在 Server 上使用（ServerManager），一些仅在 Client 上使用（ClientManager）。
+
+一些既在 Server 上执行，也在 Client 上执行（NetworkManager，NetworkObject，NetworkBehaviour，SceneManager）。但是不意味着它们所有的 API、event 都可以在 Server 上或 Client 上调用。首先假设所有功能都应该在 server 端执行，直到确定它们应该在 client 端执行。
