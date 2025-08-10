@@ -79,9 +79,11 @@
 
 - IsOwner
 
-  如果本地 client 是这个 object 的 owner。它只在 IsClientInitialized 也为 true 时才返回 true。
+  本地 client 是否是这个 object 的 owner。
+  
+  它只在 IsClientInitialized（对象也完成初始化）也为 true 时才返回 true。
 
-  你可以使用 Owner.IsLocalClient 检测 ownership，无视 client 的初始化状态。
+  可以使用 Owner.IsLocalClient 检测 ownership，无视 object 的初始化状态。
 
 - IsOwnerOrServer
 

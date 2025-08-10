@@ -101,6 +101,8 @@ Server 分别维护 Fishnet.ServerManager 加载的 scenes（Global Scenes/Conne
 
 Fishnet 很多地方出现的 asServer 是泛指是否在 server 执行，不仅仅是 Host 模式的 server。很多 data 都包含 asServer 指示是为服务器执行，还是为客户端执行。
 
+实际上 Fishnet 没有单独的 Host 模式，其 Host 模式是 Instance 同时启动了 ServerManager.StartConnection() 和 ClientManager.StartConnection()。
+
 ```C#
 // True if running as client, while network server is active.
 bool asHost = !asServer && NetworkManager.IsServerStarted;
@@ -202,3 +204,48 @@ public void OnClick_Client()
     DeselectButtons();
 }
 ```
+
+## 判断代码执行环境
+
+ServerManager 总是在 Server 端执行（包括回调），ClientManager 总是在 Client 端执行（包括回调）。
+
+SceneManager 总是应该在 Server 执行。
+
+NetworkObject、NetworkBehaviour 既在 server 执行，也在 client 执行。通过各种标记执行：
+
+- NetworkObject/NetworkBehaviour
+
+  - IsClientStarted
+  - IsClientInitialized
+  - IsClientOnlyInitialized
+
+  - IsServerStarted
+  - IsServerInitialized
+  - IsServerOnlyInitialized
+
+  - IsHostStarted：For both server and client side
+  - IsHostInitialized：For both server and client side
+
+  Started 指示客户端是否初始化，Initialized 指示 Object/Behaivour 是否初始化。
+
+  Client 指示客户端（ClientOnly and Host），Server 指示服务端（ServerOnly and Host）。
+
+  ClientOnly 指示仅客户端（不包括 Host），ServerOnly 指示仅服务器（不包括 Host）。
+
+  Host 指示同时客户端和服务器。
+
+- NetworkManager
+
+  - IsClientStart
+  - IsClientOnlyStart
+  - IsServerStart
+  - IsServerOnlyStart
+  - IsHostStart
+
+- 回调参数 asServer
+
+  指示为服务端执行。
+
+- ServerManager.Started 和 ClientManager.Started
+
+  通过 ServerManager.Started 和 ClientManager.Started 判断是否在服务端和客户都执行。
