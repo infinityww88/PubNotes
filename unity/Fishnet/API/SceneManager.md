@@ -24,7 +24,7 @@
 
 - AddOwnerToDefaultScene(NetworkObject)
 
-  如果没有 global scenes，添加 NetworkObject 的 owner 到其 scene 中。
+  如果没有 global scenes，添加 NetworkObject 的 owner 到其所在的 scene 中。
 
 - static Scene GetScene(int sceneHandle)
 

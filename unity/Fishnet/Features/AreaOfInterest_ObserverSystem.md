@@ -8,7 +8,7 @@ Fish-Networking 搭载了一套先进的网络兴趣区域 Area of interest 管�
 
 Fish-Networking 提供的 NetworkManager 预制体已包含新项目开发所需的推荐基础组件。该预制体内置的 ObserverManager 组件预配置了场景条件（Scene Condition）。若您尚未熟悉 ObserverManager 和条件类型，请立即通过上方链接学习相关文档。
 
-新手开发者常遇到的典型问题是场景对象无法为客户端启用：这通常发生在客户端未被认定为对象所在场景的成员，且场景条件阻止了该对象为客户端生成时。NetworkManager 预制体中的 PlayerSpawner 脚本会将玩家添加到当前场景，从而使客户端成为该场景内对象的观察者——但前提是玩家对象必须成功生成。如果您自行创建了 NetworkManager 对象或移除了 PlayerSpawner 脚本，则需要手动将客户端加载到目标观察场景中。
+新手开发者常遇到的典型问题是场景对象无法为客户端启用：这通常是因为客户端未被认定为对象所在场景的成员，且场景条件阻止了该对象为客户端生成时。NetworkManager 预制体中的 PlayerSpawner 脚本会将玩家添加到当前场景，从而使客户端成为该场景内对象的观察者——但前提是玩家对象必须成功生成。如果您自行创建了 NetworkManager 对象或移除了 PlayerSpawner 脚本，则需要手动将客户端加载到目标观察场景中。
 
 遇到此类问题时，您当然可以选择移除 ObserverManager 或其中的场景条件，但此举并不推荐——因为其他场景的对象可能会错误地尝试在未授权客户端上生成。另一种解决方案是将客户端添加到对象所在场景，具体实现方式多种多样。
 
@@ -16,7 +16,7 @@ Fish-Networking 提供的 NetworkManager 预制体已包含新项目开发所需
 
 ## Modifying Conditions
 
-运行时可以修改多个条件。每个条件可修改的内容可能有所不同。我建议您查看API以了解每个条件公开了哪些属性。
+运行时可以修改多个条件。每个条件可修改的内容可能有所不同。查看API以了解每个条件公开了哪些属性。
 
 要修改某个条件的属性，您必须通过NetworkObserver组件来访问该条件。
 
