@@ -120,7 +120,9 @@ Fisnnet 非常灵活，网络操作的每个步骤都是独立分离的。例如
 
 很多对 Sever 有意义的工作对 client 是没有意义的。
 
-Server 端需要维护 Scene 和 NetworkConnection 的对应关系，即哪个 scene 包含哪些 connections，哪个 connection 在哪些 scene 中。这是因为基于 Scene 管理和分离场景是最基本的客户端管理。Server 端可能同时存在多个区域，或同时服务多个房间，只有同一个场景（或同一个兴趣区域）的客户端才能看见彼此，这是所有网络游戏最基础的。这也是为什么 SceneCondition 作为基本的 ObserverCondition 添加到 ObserverManager 作为默认条件。Fishnet 只会将 NetworkObject 的状态发送给其观察者（最基本的就是同一个 Scene 中的客户都），Owner 只是让 Server 确认来自 NetworkObject 的 Rpc 请求是 Owner Connection 发送的。以上就是 Server 要维护 Scene 和 NetworkConnection 对应关系的原因。但是这对 Client 就是没意义的。Client 的所有 Scene 都是其 NetworkConnection 能看见和所在的，不需要维护 Scene 和 Connection 的对应关系。因此 SceneManager 中管理 Scene 和 Connection 对应关系的 API 对客户端也是没有意义，它们只应该在 server 端调用。
+Server 端需要维护 Scene 和 NetworkConnection 的对应关系，即哪个 scene 包含哪些 connections，哪个 connection 在哪些 scene 中。这是因为基于 Scene 管理和分离场景是最基本的客户端管理。Server 端可能同时存在多个区域，或同时服务多个房间，只有同一个场景（或同一个兴趣区域）的客户端才能看见彼此，这是所有网络游戏最基础的。因此一般游戏应该至少添加 SceneCondition。Fishnet 提供的 NetworkManger Prefab 中就添加了包含 SceneCondition 的 ObserverManager。
+
+Fishnet 只会将 NetworkObject 的状态发送给其观察者（最基本的就是同一个 Scene 中的客户都），Owner 只是让 Server 确认来自 NetworkObject 的 Rpc 请求是 Owner Connection 发送的。以上就是 Server 要维护 Scene 和 NetworkConnection 对应关系的原因。但是这对 Client 就是没意义的。Client 的所有 Scene 都是其 NetworkConnection 能看见和所在的，不需要维护 Scene 和 Connection 的对应关系。因此 SceneManager 中管理 Scene 和 Connection 对应关系的 API 对客户端也是没有意义，它们只应该在 server 端调用。
 
 ```C#
 //查看 Fishnet 源码可知，AddConnectionToScene 内部间接调用了 ServerManager.Objects.RebuildObservers()
@@ -253,3 +255,7 @@ NetworkObject、NetworkBehaviour 既在 server 执行，也在 client 执行。�
 一些类只在 Server 上使用（ServerManager），一些仅在 Client 上使用（ClientManager）。
 
 一些既在 Server 上执行，也在 Client 上执行（NetworkManager，NetworkObject，NetworkBehaviour，SceneManager）。但是不意味着它们所有的 API、event 都可以在 Server 上或 Client 上调用。首先假设所有功能都应该在 server 端执行，直到确定它们应该在 client 端执行。
+
+只有 Server 和 Client（IsServer/IsServerOnly 和 IsClient/IsClientOnly）都是过时的。后面都带有后缀：判断服务端或客户端是否初始化，后面带 Start，判断 Object 是否初始化，使用 Initialized。Only 表示非 Host 的实例。Fishnet 没有专门的 Host 模式，同时启动 server 和 client 就是 host，但是为此特殊处理了 Scene 和 Object 可见性（观察者系统）。
+
+NetworkObject/NetworkBehaviour 才包含 Initialized，因为它们是对象组件。NetworkManger 只有 Start，因为它只包含 ClientManager、ServerManager，不针对具体 Object。
