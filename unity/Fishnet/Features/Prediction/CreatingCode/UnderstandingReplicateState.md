@@ -10,7 +10,7 @@
 
 - CurrentCreated
 
-  Value 只在 Server 和对 object 拥有 ownership 的 client 上可见。
+  Value 只在 对 object 拥有 ownership 的 server 和 client 上可见。
 
   Data 在这个 tick 收到。
 
@@ -49,17 +49,6 @@
   Client 没有z这个 tick 的数据，但是期望有，期望有数据到来但是并没有。Client 当前在 reconciling 校准。
 
 以视频流媒体想象多人游戏的 Prediction 和插值技术。客户端不可能物理上每时每刻保持一致状态（例如17:06:12时刻，所有 clients 看到的画面都是一致的），甚至绝大多数情况下不是那么同步的，有的快一点有的慢一点，但是不会差得太多，整体看起来是同步的，人感知不到其中的微小差别。就把多人游戏想象为可交互的流媒体，追求整体效果，而不是一丝一毫的细节，只有 server 端保持关键数据（例如比分、生命值等等）的权威数据即可，至于某个物体在一些 clients 相差几个像素（0.001米的世界距离）不那么重要（更何况本身物理模拟因为浮点数的不确定性，本身在不同的机器上就不同）。
-
-- invalid
-- valid
-  - current
-    - created
-    - future
-    - predicted
-  - replayed
-    - created
-    - future
-    - predicted
 
 ## Future States
 
