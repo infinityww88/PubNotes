@@ -6,49 +6,80 @@
 
 ## ReplicateState
 
-这是在 replicate 方法中收到的状体。
-
-- CurrentCreated
-
-  Value 只在 对 object 拥有 ownership 的 server 和 client 上可见。
-
-  Data 在这个 tick 收到。
-
-- CurrentFuture
-
-  Value 只在对 object 没有 ownership 的 client 上可见。
-
-  Tick 在未来，data 还未知。这可以用于及早退出 replicate（不处理 actions 直接退出），或者基于之前的状态创建 actions（即维持之前的 actions）。
-
-- CurrentPredicted
-
-  Value 只在 server 没有 object 的 ownership 时，在 server 上可见。
-
-  Server 没有 object 的控制器，不知道 object 应该如何运动，因此等待 ownership 发送 inputs。
-
-  在这个 tick，server 对其 non-owned object 没有数据但是期望有，期待有数据在这个 tick 到来，但是并没有。
+这是在 replicate 方法中收到的状态。
 
 - Invalid
 
-  state 的默认状态值。当运行 replicate 时，这个值应该从不会出现。
+  state 的默认值。当运行 replicate 时，这个值应该从不会出现。
 
-- ReplayedCreated
+- Ticked
 
-  Value 只能在 clients 上可见。Client 有这个 object 的在这个 tick 的数据。Client 当前在 reconciling 校准。
+  Server 和 client 都使用这个 flag。
 
-- ReplayedFuture
+  如果 data tick 已经在 reconcile 之外运行过，设置这个 flag，例如在 user code 的 OnTick 中。
 
-  Value 只在对 object 没有 ownership 的 clients 上可见。
+- Replayed
 
-  Tick 在未来，data 还未知。这可以用于及早退出 replicate，不处理 actions，或者基于之前的状态创建 actions（即维持之前的 actions）。
+  只有 client 使用这个 flag。
 
-- ReplayedPredicted
+  如果 data 在一个 reconcile 期间运行，设置这个 flag。
 
-  Value 只在对 object 没有 ownership 的 clients 上可见。
+  Server 总是认为是正确的，从不需要修正数据，因此它从不会 reconciles 或 replay input。
 
-  Client 没有z这个 tick 的数据，但是期望有，期望有数据到来但是并没有。Client 当前在 reconciling 校准。
+- Created
+
+  Server 和 client 都使用这个 flag。
+
+  Data 被 server 或 client 创建。
+
+  这个 flag 指示 data 已经被 controller 创建，例如 owner 或 server（如果没有 owner），并且准备发送。
+
+简而言之
+
+- Ticked：Server+Client，Reconcile 之外运行
+- Replayed：Client，Reconcile 期间运行，Server 没有不需要，从不会 reconciles/replay
+- Created：Server+Client，Data 创建，没有 data 不会有 Created
+
+### 方法
+
+- IsValid：value 是否为 valid。应该从不为 false
+- ContainsTicked：state 是否包含 Ticked
+- ContainsCreated：state 是否包含 Created
+- ContainsReplayed：state 是否包含 Replayed
+- IsTickedCreated：ReplicateState.Ticked | ReplicateState.Created
+- IsTickedNoCreated：ReplicateState.Ticked
+- IsReplayedCreated：ReplicateState.Replayed | ReplicateState.Ticked | ReplicateState.Created
+- IsFuture：仅 ReplicateState.Replayed
 
 以视频流媒体想象多人游戏的 Prediction 和插值技术。客户端不可能物理上每时每刻保持一致状态（例如17:06:12时刻，所有 clients 看到的画面都是一致的），甚至绝大多数情况下不是那么同步的，有的快一点有的慢一点，但是不会差得太多，整体看起来是同步的，人感知不到其中的微小差别。就把多人游戏想象为可交互的流媒体，追求整体效果，而不是一丝一毫的细节，只有 server 端保持关键数据（例如比分、生命值等等）的权威数据即可，至于某个物体在一些 clients 相差几个像素（0.001米的世界距离）不那么重要（更何况本身物理模拟因为浮点数的不确定性，本身在不同的机器上就不同）。
+
+### 示例
+
+```C#
+//You will see this value if the data is being replayed, it previously ran outside the
+//reconcile, and data is created by controller.
+
+//如果 data 被 replayed，会看见这个 value，它之前在 reconcile 之外运行，并且 data 被 controller 创建
+
+state = (ReplicateState.Replayed | ReplicateState.Ticked | ReplicateState.Created);
+
+//When the state is only Replayed then the data is not Created, and the tick on data
+//has not occurred outside the reconcile yet. This is what we often refer to as a
+//future state.
+
+//当 state 只是 Replayed，则 data 不是 Created 的，data 的 tick 还没有在 reconcile 之外发生
+//这是我们经常称为 future 的 state
+
+state = ReplicateState.Replayed;
+
+//When a state is Ticked only it indicates that the data is being run outside a
+//reconcile, and that the controller has not sent data for this particular tick.
+
+//当 state 只是 Ticked，它指示 data 正在一个 reconcile 之外运行
+//controller 还没有为这个 tick 发送 data
+
+state = ReplicateState.Ticked;
+```
 
 ## Future States
 
@@ -61,6 +92,8 @@
 对于 objects 的 controller，你从来不会 in the future，这让你只 replay 到你创建的 inputs，从不会超出。
 
 **Replicate 方法和 Reconcile 方法就像 Update 一样，每个 Tick 都会调用，Fishnet 会根据当前状态传递数据和状态值，然后在方法内根据状态值决定做如何处理。**
+
+## Created Flag
 
 当没有 create state 时，data 将是 default。这通常让很多开发者措手不及，因为他们可能期望从 controller 看见连续的 input，就像 controller 一直按住一个移动键。
 
@@ -83,6 +116,28 @@ private void MovePlayer(ReplicateData data, ReplicateState state = ReplicateStat
 ```
 
 如果你在 PredictionManager 上使用 State Order -> Inserted，则 Created 将只会在一个 reconcile 期间在 spectated objects 上设置。因为 spectated objects 上的 states 被插入到 replicate history，因此它们在 reconciles 期间运行，而不是 reconciles 之外。
+
+## Ticked
+
+就像之前提到的那样，Ticked 指示 data 已经在 reconcile 之外运行过了（Created 那个 Tick）。
+
+还如之前描述的，State 可以是 Ticked 和 Replayed 的，这意味着它之前在 reconcile 之外运行，但是当前在 replay/reconcile 之中运行。
+
+Ticked 和 not replayed 经常被用于执行 one-time action，例如显示视觉效果（例如跳跃、开火，但并不真正修改关键数据，关键数据只应该由 server 权威修改）。当 jump 第一次发生时，以及每次 input 在 reconcile 中 replay 时，你可能不想播放 jump audio，
+
+```C#
+[Replicate]
+private void MovePlayer(ReplicateData data, ReplicateState state = ReplicateState.Invalid, Channel channel = Channel.Unreliable)
+{
+    if (data.Jump)
+    {
+        DoJump();
+        //If ticked and not replayed then also play jump audio.
+        if (state.ContainsTicked() && !state.ContainsReplayed())
+            PlayJumpAudio();
+    }
+}
+```
 
 ## Preventing Future State Logic and Movement
 

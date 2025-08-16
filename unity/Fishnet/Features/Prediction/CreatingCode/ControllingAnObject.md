@@ -4,10 +4,11 @@
 
 ## Data Structures
 
-实现预测需通过创建​​复制（Replicate）​​和​​调和（Reconcile，校准）​​方法，并按需调用它们：
+实现预测通过创建 replicate 和 reconcile 方法来实现，并按需调用它们。
 
-​​- 复制方法​​ Replicate：接收需在所有者（Owner）、服务器及客户端（若使用状态转发）执行的输入，如跳跃、冲刺、移动方向等控制指令，甚至包含开火等机制。
-​​- 调和方法​​ Reconcile：在复制操作后接收对象状态，用于修正可能的数据不同步问题，例如同步生命值、速度、位置及旋转等属性。
+Replicate 方法会采集你想要在 owner、server、其他 clients（如果使用 state forwarding）上运行的输入。这可以说你的 controller 需要的任何 input，例如 jumping，sprinting，movement direction，甚至可以包含其他机制（例如持续按住 fire 按键）。
+
+Reconcile 方法在 replicate 执行之后，采集这个 object 的 state。State 用于修正可能的 de-synchronizations（不同步）。例如你可能向发送回 health，velocity，transform position 和 rotation 等等。
 
 此外，若需在结构体中分配资源，建议使用 ​​Dispose 回调​​，该回调会在数据被丢弃时自动执行清理操作。
 
@@ -55,14 +56,13 @@ public struct ReconcileData : IReconcileData
 
 ## Preparing To Call Prediction Methods
 
-通常建议在 OnTick 中执行复制（Replicate）或输入处理。是否在 OnPostTick 发送调和（Reconcile）取决于是否使用 Physics Bodies：  
+通常建议在 OnTick 中复制运行 Replicate 或 inputs。何时发送 reconcile 依赖于你是否使用 physics bodies。
 
-- 使用 physics bodies（如刚体）：需在 OnPostTick 发送调和，以确保在物理模拟完成后同步状态。  
-- 非物理控制器：可直接在OnTick发送调和，无需等待物理模拟。  
+当使用 physcis bodies，例如一个 rigidbody，你会在 OnPostTick 期间发送 reconcile，因为你想在 physics 已经为你的 inputs 模拟之后发送 state。
 
-具体实现可参考 TimeManager API 中关于 Tick 和物理事件回调的说明。
+Non-Physics 控制器也可以在 OnTick 发送，因为它们在运行 inputs 之后，不需要等待 physics 模拟就可以获得正确的结果。
 
-你可能需要根据你的 rigidbody 的 shape，drag，mass 修改 move 和 jump forces。
+下面的 code 显示哪些 callbacks 和 API 用于设置 rigidbody。
 
 ```C#
 //How much force to add to the rigidbody for jumps.
@@ -106,6 +106,8 @@ public override void OnStopNetwork()
 
 Update 用于收集单帧发出的 input（例如按键按下、释放）。Ticks 不会每个 frame 都执行，而是以 TickDelta 时间间隔执行，就像 FixedUpdate 一样。
 
+Tick 是 Update 的倍数，一个 Tick 内任何 Update 中出现的 Input 都规约到这个 Tick 中。
+
 虽然下面的代码只使用 Update 收集单帧 inputs，但是没有什么阻止你也用它收集 hold inputs（持续按键）。
 
 ```C#
@@ -121,9 +123,7 @@ private void Update()
 
 现在 OnTick 将用来构建 Replicate 数据。不需要一个单独的 CreateReplicateData 方法来创建数据，但是这可以让你的代码更有组织。
 
-当尝试创建 replicate data 时，如果不是 object 的所有者，返回 default。
-
-Server 接收来自 owner 的输入并运行，因此 server 不需要创建数据，而对非 object owner 的客户端，它从 server 接收输入，就像使用 state forwarding 时其他客户端转发的一样。如果不使用 state forwarding，此情景下也会使用 default input，但是 clients 不会在 non-owned objects 上运行 repliates。如果没有 owner，也可以在 server 上运行 inputs，对此，使用 base.HasAuthority 最好。
+当尝试创建 replicate data 时，如果不是 object 的所有者，返回 default。Server 接收来自 owner 的输入并运行，因此 server 不需要创建数据，而对非 object owner 的客户端，它从 server 接收输入，就像使用 state forwarding 时其他客户端转发的一样。如果不使用 state forwarding，此情景下仍然会使用 default input，但是 clients 不会在 non-owned objects 上运行 repliates。如果没有 owner，也可以在 server 上运行 inputs，对此，使用 base.HasAuthority 最好。
 
 ```C#
 private void TimeManager_OnTick()
@@ -152,7 +152,7 @@ private ReplicateData CreateReplicateData()
 [Replicate]
 private void RunInputs(ReplicateData data, ReplicateState state = ReplicateState.Invalid, Channel channel = Channel.Unreliable)
 {
-    /* ReplicateState 基于 data 是新的设置，例如 replayed 等待。
+    /* ReplicateState 基于 data 是否是新的来设置，例如 replayed 等等。
      * 查看 ReplicateState enum 获取更多信息
      */
     
@@ -200,12 +200,12 @@ public override void CreateReconcile()
      */
     ReconcileData rd = new ReconcileData(PredictionRigidbody);
 
-    /* 就像 replicate 一样，你可以指定一个 channel，但是对 reconcile 这通常不会 */
+    /* 就像 replicate 一样，你可以指定一个 channel，但是对 reconcile 通常不会这样做 */
     ReconcileState(rd);
 }
 ```
 
-Reconcile 校准在客户端上执行。
+Reconcile 校准只在客户端上执行。
 
 只 Reconciling 一个 rigidbody state 非常简单：
 

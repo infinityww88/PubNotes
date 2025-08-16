@@ -62,7 +62,6 @@ Replciate 方法有两个阶段：
 
 Replayed 都是 client 的状态，都是 client 正在进行 reconciling。
 
-
 可见 server 只有两个状态：CurrentCreated 和 CurrentPredicted.
 
 Server 端从不会遇到 Future 状态。
