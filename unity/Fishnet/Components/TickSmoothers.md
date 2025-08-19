@@ -95,3 +95,7 @@ OfflineTickSmoother 表现地就像 NetworkTickSmoother，除了它使用 Instan
 # Misc
 
 Smoother 组件同步 graphical 和 target，不管 target 是如何运动的，无论它是通过 NetworkTransform 同步的，还是通过 PredictionRigidbody 同步的，还是通过手动同步的（Rpc，Broadcast）。它只负责将 graphical object 的 transform 想 target transform 平滑过渡。
+
+NetworkTransform 是类似用 NetworkBehaviour 和 Replicate 和 Reconcile 实现了一个同步 Transform 的脚本，只是 Fishnet 为此常见需求提供了预制脚本。它用于同步非物理控制的物体，例如角色控制器。而被物理同步的物体只用 PredictionRigidbody 同步，不需要 NetworkTransform。
+
+因此 NetworkTransform 和 PredictionRigidbody 是两个用于相同目的不同脚本。使用了 NetworkTransform 了就不需要 PredictionRigidbody 了，反之亦然。
