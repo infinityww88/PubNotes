@@ -123,3 +123,33 @@ SceneId of 4294434555 not found in SceneObjects. For more information on the mis
 ```
 
 同一个游戏区域中，Clients 和 Server 的场景必须保持同步，不能 server 或一部分 clients 包含额外的 scenes，另一些 clients 则没有，这会导致各种 scene 找不到的问题，尤其是指定了 SceneCondition 的时候。
+
+## Predicition
+
+TimeManager 以一定频率调用 OnTick，每个 OnTick 前有一个 OnPreTick，后面又一个 OnPostTick。对于 Fishnet 网络应用程序，涉及网络更新部分，必须在 TimeManager 的 Tick 中执行，它相当于 Unity 的 Update/FixedUpdate/LateUpdate 等。
+
+例如，Replicate 方法通常在 OnTick 执行，Reconcile 通常在 OnPostTick 执行。
+
+Fishnet 类似的网络框架并不会分开编写 server 和 client 的代码，而是作为共同体编写同一个脚本，同时用在服务器和客户端。至于如何区分服务端运行还是客户端运行：
+
+- 通过标记识别，例如 IsServerStarted
+- 通过方法属性 attribute
+
+Replicate 用于执行动作（动画、特效、音效、各种 action），Reconcile 用于同步各种状态（生命值、子弹数量、耐力值、各种标记），Reconcile 不执行任何动作。
+
+Replicate 类似 Rpc，Reconcile 类似 SyncVar。
+
+Replicate 标记的方法既可以在 Server 运行，也可以在 client 运行。
+
+- Controller 首先收集 Input data，执行它，并发送给 Server
+- Server 执行收到的 Input data，并将 Input data 发送给其他 Clients
+- 其他 Clients 收到 Server 发送的 Input data，并执行（这就是 replay）
+
+执行 Replicate 方法都是使用相同的数据结构 ReplicateData,由 Controller 收集，然后在网络上传输，收到者用这个同样的 ReplicateData 执行 Replicate 方法。
+
+可见 Replicate 在 Controller、Server、其他 Clients 上的逻辑都不相同，但是逻辑都写在同一个方法中，这些不同的逻辑都是被 Replicate 属性实现，包括 Server、Client 对 input data 的缓存，也是在其中实现的。
+
+无论是 Controller 还是 Server，还是其他 Clients，Replicate 方法总是在 Tick 中实时在运行，无论有没有输入。但是当没有输入时？
+
+状态同步和执行动作是分开的，可以视为异步执行，因此它们不需要严格保持同步，代码中也不能依赖于此。考虑状态时只考虑状态，考虑动作时只考虑动作即可。当收到 Reconcile，只需要将其中的 data 复制到本地即可。当收到 Replicate，只需要按照 Input data 执行动作即可。若要在 Reconcile 和 Replicate 实现某种同步，可以通过 data 所在的 Tick 确定先后顺序，完成同步，类似线程同步的同步变量。
+
