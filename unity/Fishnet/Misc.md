@@ -153,3 +153,16 @@ Replicate 标记的方法既可以在 Server 运行，也可以在 client 运行
 
 状态同步和执行动作是分开的，可以视为异步执行，因此它们不需要严格保持同步，代码中也不能依赖于此。考虑状态时只考虑状态，考虑动作时只考虑动作即可。当收到 Reconcile，只需要将其中的 data 复制到本地即可。当收到 Replicate，只需要按照 Input data 执行动作即可。若要在 Reconcile 和 Replicate 实现某种同步，可以通过 data 所在的 Tick 确定先后顺序，完成同步，类似线程同步的同步变量。
 
+## Physics OnPostTick
+
+物理模拟 reconcile 必须在 OnPostTick 进行。
+
+TimeManager tick rate 设置 Time Manager 每秒执行多少个 tick。
+
+replicate 只执行动作，reconcile 只同步状态。
+
+不要关心谁先谁后，这也是不稳定的，要同步，要通过明确的变量和 Tick 自己实现。
+
+Network Physics 模拟 会在各个阶段重置、重新计算、模拟物理各种属性，错误放置 replicate reconcile 会导致 position 出现抖动。
+
+标准规范行事，robust，只要更高层次上符合使用规范，就不容易出问题，网络编程太容易出问题。
