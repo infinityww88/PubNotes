@@ -124,3 +124,6 @@ Hot Reload 可以在应用新 patch 时调用你的函数。有两个属性可�
       Debug.Log("MyMethod got invoked");
   }
   ```
+
+这两个属性位于 SingularityGroup.HotReload 命名空间之下。
+
