@@ -127,3 +127,16 @@ Hot Reload 可以在应用新 patch 时调用你的函数。有两个属性可�
 
 这两个属性位于 SingularityGroup.HotReload 命名空间之下。
 
+Editor Enter Play Mode 有几个选项：
+
+- Reload Scene Only
+- Reload Domain and Scene
+
+Reload Scene Only 只重新加载 scene，不会重新加载程序集（domain）。Reload Domain and Scene 还会重新加载程序集。
+
+Editor 任何时候（无论是 Edit Mode，还是 Play Mode）都只有一个程序集。domain 指的是运行时程序集。是否重新加载程序集影响最大的是静态变量。重新加载程序集会重置所有静态变量，否则会保持。重新加载程序集会消耗很多时间，这是影响快速迭代（Edit Mode 进入 Play Mode）的非常重要的一点。如果能确保你的代码不依赖静态变量重置，就可以将 Enter Play Mode 设置为 Reload Scene Only，可以大大减少迭代时间。
+
+HotReload 跟 current domain 打交道，跟是在 Editor Mode 还是 Play Mode 无关。它只判断当前修改是否应该为当前 domain 打补丁。无论这个 domain 是 Edit Mode domain，还是 Play Mode domain，还是从 Edit Mode 进入 Play Mode 保持的 domain。因此 HotReload 是可以在 Reload Scene Only 下工作的。但是无论在哪个 domain，如果有 HotReload 不支持的修改，都不会打补丁，要应用这样的修改，必须 recompile，而 recompile 必须退出 play mode，只能在 edit mode 下进行。
+
+当有 HotReload 不支持的修改时，尽管无法为当前 Domain 打相应的补丁，但是仍然可以继续进行其他 HotReload 支持的修改。
+
