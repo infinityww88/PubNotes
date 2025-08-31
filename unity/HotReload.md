@@ -139,4 +139,3 @@ Editor 任何时候（无论是 Edit Mode，还是 Play Mode）都只有一个�
 HotReload 跟 current domain 打交道，跟是在 Editor Mode 还是 Play Mode 无关。它只判断当前修改是否应该为当前 domain 打补丁。无论这个 domain 是 Edit Mode domain，还是 Play Mode domain，还是从 Edit Mode 进入 Play Mode 保持的 domain。因此 HotReload 是可以在 Reload Scene Only 下工作的。但是无论在哪个 domain，如果有 HotReload 不支持的修改，都不会打补丁，要应用这样的修改，必须 recompile，而 recompile 必须退出 play mode，只能在 edit mode 下进行。
 
 当有 HotReload 不支持的修改时，尽管无法为当前 Domain 打相应的补丁，但是仍然可以继续进行其他 HotReload 支持的修改。
-
