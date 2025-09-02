@@ -36,4 +36,5 @@ Kinematic Rigidbody 可以施加基于物理的力到 physics-based Rigidbody Ga
 
 默认地，Rigidbody 的 sleeping 和 waking 是自动发生的。但是你可以使用脚本控制它，通过 Rigidbody.Sleep 和 Rigidbody.WakeUp。
 
-Rigidbody 可能无法响应通过脚本移动的 Static Collider（没有 Rigidbody 的 Colliders）
+Sleeping 的 Rigidbody 无法响应 通过脚本而不是物理系统移动的 Static Collider（没有 Rigidbody 的 Colliders）。为此，可以使用 Rigidbody.WakeUp 唤醒 sleeping Rigid body。
+

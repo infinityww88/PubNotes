@@ -321,4 +321,15 @@ Hinge 就是两个物体各自的 anchor 锚定（重叠）在同一点，然后
 
 #### Spherical Joint
 
+Spherical Joint 使一个解剖学关节，最适合模拟人类四肢关节。
+
+这个 Joint 可以有最多 3 个自由度。每个自由度都可以 free，limited，locked。
+
+注意：不可以同时锁定所有的自由度，否则会移除它所有的自由度，变成一个退化关节。还有，不可以同时锁定两个 swing 自由度（仅剩下 twist 自由度）来模拟一个 revolute（hinge）关节。因为这个模拟与 revolute joint 的效果不同，并且更加消耗性能。
+
+类似 revolute joint：
+
+- Scene View 以颜色圆盘显示 free rotations，以颜色 circle sectors 显示 limited rotations。每个颜色（red，green，blue）表示绕着这个颜色的坐标轴的旋转
+- 小红块、小绿块分别表示 lower 和 upper limits
+
 
