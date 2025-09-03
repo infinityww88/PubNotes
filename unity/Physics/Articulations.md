@@ -340,6 +340,8 @@ Articulation 是 Unity 新加的物理模拟系统。它和 Rigidbody 非常类�
 
 Articulation 与 Rigidbody/Joint 不同的是，它只支持单向关节链，不支持关节链循环，即 A 约束 B，B 约束 C，C 又反过来约束 A。除此以外，几乎可以用 ArticulationBody 代替 Rigidbody/Joint。
 
+Articulation Body 的刚体属性和关节属性都在一个 GameObject 上定义，这也使得一个 body 只能连接一个 Articulation Body（即 parent GameObject）。而 Joint 可以连接任意两个 Rigidbody，而且一个 Rigidbody 可以同时被多个 Joint 约束。
+
 二者通常无法共存使用。因为每个都被其所在的物理模拟系统约束控制，无法和谐地相互影响。Rigidbody 被原始物理系统更新，ArticulationBody 被新物理系统更新。因此要么只使用 Articulation Body，要么使用 Rigidbody/Joint。联合使用会相互冲突。
 
 但是某些情况下可以联合使用 Articulation 和 Rigidbody。Joint 提供了一个 Connected Articulation Body 属性，可以指定这个 Joint 连接（依赖）到哪个 Articulation Body 上，使得 Articulation Body 可以控制 Joint。注意只能使用 Joint 连接 Articulation Body，Articulation Body 无法指定连接到哪个 Rigidbody。
