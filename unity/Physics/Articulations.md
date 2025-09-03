@@ -342,6 +342,12 @@ Articulation 与 Rigidbody/Joint 不同的是，它只支持单向关节链，�
 
 Articulation Body 的刚体属性和关节属性都在一个 GameObject 上定义，这也使得一个 body 只能连接一个 Articulation Body（即 parent GameObject）。而 Joint 可以连接任意两个 Rigidbody，而且一个 Rigidbody 可以同时被多个 Joint 约束。
 
+Articulation Body 只能连接到 Parent 一个 Body 上。但是一个 Parent Body 下面可以有多个 Child Body。每个 Child Body 定义了一个关节。注意 Child Body 只是定义了一个关节，不意味着它是被 Parent 控制，关节的约束是相互的，在关节运行时，没有 parent、child 的概念，既有 parent body 约束 child body，也有 child body 约束 parent body，就像普通的 Joint 关节一样。
+
+Articulation 关节的定义是一个树形结构，parent 可以包含多个 child，每个 child 定义一个关节，关节运行时没有 parent-child 的概念，约束是相互的。另外 Joint 定义可以指定 Rigidbody 连接到哪个 ArticulationBody，使得 Joint 可以介入 Articulation 关节系统。同样的，通过 Joint 连接的 ArticulationBody 和 Rigidbody 的约束也是相互的，就像两个普通的 Rigidbody 一样。
+
+Immoveable 只能为 Root Body 定义。
+
 二者通常无法共存使用。因为每个都被其所在的物理模拟系统约束控制，无法和谐地相互影响。Rigidbody 被原始物理系统更新，ArticulationBody 被新物理系统更新。因此要么只使用 Articulation Body，要么使用 Rigidbody/Joint。联合使用会相互冲突。
 
 但是某些情况下可以联合使用 Articulation 和 Rigidbody。Joint 提供了一个 Connected Articulation Body 属性，可以指定这个 Joint 连接（依赖）到哪个 Articulation Body 上，使得 Articulation Body 可以控制 Joint。注意只能使用 Joint 连接 Articulation Body，Articulation Body 无法指定连接到哪个 Rigidbody。
