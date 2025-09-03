@@ -332,4 +332,20 @@ Spherical Joint 使一个解剖学关节，最适合模拟人类四肢关节。
 - Scene View 以颜色圆盘显示 free rotations，以颜色 circle sectors 显示 limited rotations。每个颜色（red，green，blue）表示绕着这个颜色的坐标轴的旋转
 - 小红块、小绿块分别表示 lower 和 upper limits
 
+## Rigidbody/Joint vs Articulation
 
+Articulation 是 Unity 新加的物理模拟系统。它和 Rigidbody 非常类型，具有几乎相同的接口。ArticulationBody 同时实现了 Rigidbody 和 Joint 功能，即刚体和关节的功能被放在了同一个 GameObject 上。
+
+几乎可以与 Rigidbody/Joint 一样来使用 ArticulationBody。二者都是用 Collider 作为碰撞体。物理材质应用在 Collider 之上。
+
+Articulation 与 Rigidbody/Joint 不同的是，它只支持单向关节链，不支持关节链循环，即 A 约束 B，B 约束 C，C 又反过来约束 A。除此以外，几乎可以用 ArticulationBody 代替 Rigidbody/Joint。
+
+二者通常无法共存使用。因为每个都被其所在的物理模拟系统约束控制，无法和谐地相互影响。Rigidbody 被原始物理系统更新，ArticulationBody 被新物理系统更新。因此要么只使用 Articulation Body，要么使用 Rigidbody/Joint。联合使用会相互冲突。
+
+但是某些情况下可以联合使用 Articulation 和 Rigidbody。Joint 提供了一个 Connected Articulation Body 属性，可以指定这个 Joint 连接（依赖）到哪个 Articulation Body 上，使得 Articulation Body 可以控制 Joint。注意只能使用 Joint 连接 Articulation Body，Articulation Body 无法指定连接到哪个 Rigidbody。
+
+Joint 连接 Articulation Body 时，二者优先级不同，Articulation Body 优先。
+
+另外 Articulation Body 虽然不能直接影响 Rigidbody，但是可以在其上添加一个 Kinematic Rigidbody，因为它不会被物理系统更新。这样就可以让 Articulation Body 控制 Kinematic Body，然后 Kinematic Body 可以反过来影响 Rigidbody（退开它，或者其上挂载 Joint）。
+
+可以先尝试使用 ArticulationBody 取代 Rigidbody/Joint 处理所有的物理模拟，这样既可以学习 Articulation 系统，还可以学习物理引擎的功能，还可以了解哪些场景不适合 Articulation 而应该使用 Rigidbody/Joint。
