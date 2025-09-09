@@ -78,3 +78,13 @@ element.style.transitionProperty = new StyleList<StylePropertyName>(properties);
 ```c#
 element.style.transitionProperty = new List<StylePropertyName> {"rotate"}
 ```
+
+## Misc
+
+一个 visual element 可以定义多个 transition。
+
+每个 transition 为一个或多个属性（包括 USS 的所有 style 属性）定义 duration、ease、delay。
+
+要触发 transition 动画，通过各种方法改变 transition 针对的样式值，无论是添加 class，还是用 C# 脚本直接改变样式值。
+
+例如对一个 visual element，定义了 transition1 和 transition2 两个 transitions。transition1 针对 left 属性，transition2 针对 background-color 属性。每个 transition 定义一个 duration，ease，delay。当改变元素的 left 属性时，触发 transition1 动画，当改变元素的 background-color 属性，触发 transition2 动画。
