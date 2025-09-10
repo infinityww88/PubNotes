@@ -85,9 +85,28 @@ Awake 和 OnEnable 在 object 被加载时调用，这包括：
 
 OnValidate 是 Editor-only 的函数，Unity 在 script 被加载，或者在 Inspector 中改变一个值的时候调用它。在 Inspector 中改变一个值之后，可以使用这个函数来执行校验，确保数据完整性。无论是改变普通字段，还是数组中的元素。
 
-OnValidate 不支持一个 SO 脚本修改不是它自身的其他脚本的 values。
+OnValidate 不支持 SO 脚本修改不是它自身的其他脚本的 values。
 
 You cannot reliably perform Camera rendering operations here. Instead, you should add a listener to EditorApplication.update, and perform the rendering during the next Editor Update call.
 
 SO 在运行时不可被已修改，因此不能作为 PlayerPrefs 一样的数据库，它是只读数据。
 
+# ScriptableObjectArchitecture
+
+上面说的 SO 不能在运行时修改，指的是在 Build 中，硬盘上的 SO 文件不能被修改，它们的角色是只读的配置文件。但是：
+
+- 运行时，存在于内存中的 SO，就是普通的内存对象，它们可以像普通的内存对象一样被修改
+- 在 Editor 中，即使在 Play Mode，修改内存的 SO 对象，同样可以同步到硬盘上的 SO 文件，看起来似乎是修改内存 SO 对象可以同样修改硬盘上的 SO 文件，但这只适用于 Editor 的 Play Mode。对于 Build，运行时修改内存 SO 对象，是不会同步到硬盘上的 SO 文件的，每次重新启动 Build，SO 都是相同的
+- 编辑时，不同的 Scene GameObject 或 Prefab 引用的同一个 SO 文件，在运行时仍然会引用相同的 SO 内存对象。SO 内存对象是区别 GameObject 存在的另一种对象，GameObject 引用 SO 对象，就像引用另一个 GameObject 一样
+- SO 内存对象和 SO 文件的关系，就像 GameObject 和 Prefab 的关系。Prefab 就是 GameObject 的内存文件。修改 Prefab 会立即同步到 GameObject，就像修改 SO 文件会立即同步到 SO 内存对象。
+
+在运行时（无论是 Play Mode 还是 Build），是可以修改 SO 内存对象的，只是 Editor 中，修改可以同步到硬盘上的 SO 文件，而 Build 中，修改在退出程序后就被丢弃了。
+
+ScriptableObjectArchitecture 在 SO 基础上创建了一个框架。变量本身还提供了事件机制，引用者可以监听运行时对其的修改。有两种方法修改
+
+- 为 Var.Value 赋值，这在 Editor 时还会同步修改到硬盘上
+- 调用 Var.SetValue() 方法，这只修改内存对象，不会同步到硬盘上
+
+SOA 框架不仅仅是将 SO 作为配置数据，更重要是实现了一套消息机制，为程序解耦。
+
+总而言之：SO 的本质角色是只读的配置文件，但是在运行时还可以作为一个数据中心和消息总线，用于不同组件之间的解耦。
