@@ -149,5 +149,9 @@ Editor 的渲染频率不受 Application.targetRate 控制，Editor 有独立 Bu
 
 这就是为什么物理模拟会有内插值平滑选项。物理引擎延迟一个物理帧，这样第一个物理帧之后，每计算一个物理帧都能得到两个物理帧的数据。然后在下一个物理帧计算的过程中，渲染上一个物理帧的结果。在两个计算后的物理帧结果中间，插值得到每个渲染帧的状态。
 
-Unity 还提供了判断当前渲染帧是否与物理帧在同一帧的方法。
+Time.InFixedTimeStep 可以判断当前 code 执行是否在 FixedUpdate 内。Unity 在执行 FixedUpdate 阶段时，运行之前标记 flag=true，运行结束之后标记 flag=false。
+
+# Physics
+
+Rigidbody 的 mass 单位是千克，默认重力加速度是 9.8，AddForce 的单位是牛顿，因此要将静止的物体向上运动，力的大小至少应该是 10 倍的 mass，否则物体仍然保持静止，似乎没有受力一样。
 
