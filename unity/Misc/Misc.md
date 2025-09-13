@@ -93,27 +93,27 @@ Transform 的 position，rotation，scale 分别具有 world 版本和 local 版
 
 当想要创建一个分别沿着两个坐标轴（假设 x y）万向旋转的效果，例如智能导弹发射平台或大炮沿着两个轴旋转，皆可以为两个轴的旋转分别创建一个 GameObject 作为 parents，每个 GameObject 控制一个坐标轴的旋转，也可以只使用一个 GameObject，然后为两个轴的旋转分别创建 Quaternion，然后左乘在一起，作为 GameObject 的 localRotation。这相当于创建了两个虚拟的 GameObject。
 
-## Unity 版本
+# Unity 版本
 
 尽量使用 LTS 版本，不要追求最新版本甚至 beta alpha 版本。不仅仅因为最新版本本身可能存在的问题，还因为很多必须的依赖插件不一定跟着 Unity 最新版本更新。
 
-## CodeLess
+# CodeLess
 
 努力追求 code less 开发，对游戏开发来说，快速迭代就是一切。使用第三方工具或自己开发插件尽量实现 code less 开发。即使只能通过 code 实现，也要使用 HotReload 或脚本来提升迭代速度。
 
 ![IterationIsEverything](IterationIsEverything.jpg)
 
-## UnityWebRequest
+# UnityWebRequest
 
 拼接路径使用 Uri，而不是 Path.Join，后者使用的平台文件路径分隔符，在 Windows Unity Editor 中分隔符是反斜线，这在 URL 中无效的。
 
 对 request.downloadHandler 使用一个 new DownloadHandlerFile(filePath) 可以将文件自动保存在指定路径，而不必手动写入。
 
-## 静态类与单例模式
+# 静态类与单例模式
 
 其他语言中，使用静态类，静态方法和单例模式没有太大区别。但是在 Unity 中，尽量使用 MonoBehaviour 的单例模式，而不是静态类/属性/方法。因为很多 Code Less 依赖 MonoBehaviour 的序列化和 Inspector。一旦使用静态类就没有办法使用大量 Unity 工具了，静态类没办法引用各种 asset，并且不能利用 Inspector。
 
-## SkinnedMeshRenderer SkinWeight
+# SkinnedMeshRenderer SkinWeight
 
 SkinnedMesh 的 SkinWeight 控制动画随骨骼变形的平滑度。它表示在变形时每个 vertex 最多被多少个 bones 控制。每个模型可以在 import setting 中 Rig > Skin Weights 设置。此外 QualitySettings.skinWeights 还控制整个项目范围内 meshes 的 SkinWeight。
 
@@ -140,4 +140,14 @@ TwoBone
 FourBone
 
 ![FourBone](FourBone.jpg)
+
+# Time
+
+Editor 的渲染频率不受 Application.targetRate 控制，Editor 有独立 Build 的刷新频率，通常比 build 快很多。
+
+无论是 Editor 还是 Build，渲染帧的刷新频率（Update）通常比物理帧的频率（FixedUpdate）快。因此一个物理帧频率会包含几个渲染帧，而不是反过来。
+
+这就是为什么物理模拟会有内插值平滑选项。物理引擎延迟一个物理帧，这样第一个物理帧之后，每计算一个物理帧都能得到两个物理帧的数据。然后在下一个物理帧计算的过程中，渲染上一个物理帧的结果。在两个计算后的物理帧结果中间，插值得到每个渲染帧的状态。
+
+Unity 还提供了判断当前渲染帧是否与物理帧在同一帧的方法。
 
