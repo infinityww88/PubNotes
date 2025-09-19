@@ -82,3 +82,11 @@ Blender 只作为最终保障，即使用 BB 确实很不方便构建，例如�
 简短一点，就是学习最高级最先进的工具、技术，但是真正应用时只应用到最基本简单的材料。例如学习 Blender 是可以学习各种 modifier、骨骼蒙皮、雕刻，但是实际工作只构建 lowpoly 甚至只使用 cube。还有学习各种写实绘画技巧，但是实际工作只绘制像素画。
 
 vscode 中文输入标点符合，会产生两个重复的标点。在 settings 中关闭 editor.experimentalEditContextEnabled。
+
+Blockbench：主要建模工具
+UModeler：快速原型验证，和简单纯色模型
+Blender：更复杂，用 Blockbench 和 UModeler 不容易创建的模型
+
+注意 Blender 创建的模型复杂的多边形 face 需要 triangle 化再导入到 Blockbench 才能正常显示。Blockbench 对模型的识别可能没有 Blender 高级，不能处理一些复杂的 face。
+
+
