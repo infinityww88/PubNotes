@@ -120,3 +120,25 @@ Limit Spring 和 Motor 可以说是一样的系统，只是暴露的属性不一
 - Limit Spring 可以单独设置 Limit 处的反弹行为
 - 二者都用 Spring 和 Damper 属性作为控制力的属性（Spring 控制到 Target Position 的力，Damper 控制到 Target Velocity 的力）
 
+# SphereJoint
+
+ArticulationBody 的 SphereJoint 和 Character Joint 模拟人体关节。这个是个旋转关节（不是移动关节，不能进行线性运动），类似 HingeJoint/RevoluteJoint，但是这两者只能绕着指定的一个轴旋转，而 SphereJoint 可以指定绕着 X/Y/Z 轴都旋转，包含：
+
+- 绕着 X 轴的旋转，称为 twist（扭转）
+- 绕着 Y 轴和 Z 轴的旋转，称为 swing（摆动）
+
+这通常用于模拟人体或生物的四肢关节，它们的特点是可以绕 X Y Z 任意轴旋转，但是每个轴都有 limit，尤其是 Y/Z 轴通常都设置 limit，形成一个锥形体，关节就在这个锥形体内摆动。
+
+关节设置中参考的 axis 不是 body transform 的 local axis，而是基于 transform local axis 由  anchor 定义的更 local 的 axis。所说的 X Y Z 轴是 Anchor Axis 的 X Y Z 轴。
+
+SphereJoint limit 是按照左手坐标系定义的角度。以 Y 轴为例，与 Axis 重合时，角度为 0。按照左手坐标系（左手握拳，拇指指向 Y 轴，四指指向的方向就是旋转的正方向），正向旋转为正角度，反向旋转为负角度。
+
+注意使用 Gizmos 可视化设置 limit 时，扇形区域定义的是 AB 绕相应轴的旋转范围，而不是定义上面说的虚拟锥形体的角度范围。例如下面的设置
+
+![SphereJointLimit](Image/SphereJointLimit.png)
+
+![SphereJointAxis](Image/SphereJointAxis.png)
+
+绿色扇形区域，定义的是绿色的 Y 轴的旋转范围，蓝色扇形区域，定义的是蓝色的 Z 轴的旋转范围。这两个扇形都是水平定义的，但是定义的却是竖直的锥形体，与红色的锥形体方向一致。
+
+
