@@ -1,0 +1,3 @@
+Splines，CinemachineCamera，Feel，SensorToolkit，UIToolkit，AllInOneEffects，DOTween，UniTask。
+
+取代基本低级的 Unity 模块，将这些高级模块作为 Unity 工程的基本 Blocks。无论做什么游戏，都不要嫌复杂，即使对简单的场景也要使用，因为要将这些 block 作为日常工作的基础，因此要经常熟悉它们。可以想象为没有了原本基础低级的 Unity 模块，只有这些高级模块，所有工作都使用这些高级模块来完成，就好像这些工作原本就是用这些 block 完成的一样。
