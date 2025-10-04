@@ -6,7 +6,7 @@ Cinemachine 并不会创建新的相机。相反，它通过一个单一的 Unit
 
 CinemachineCameras 是与 Unity Camera 分开的 GameObject，它们独立运行。它们之间并不相互嵌套。例如，一个场景可能看起来是这样的：
 
-![CinemachineSceneHierarchy](Images/CinemachineSceneHierarchy.png)
+![CinemachineSceneHierarchy](../Images/CinemachineSceneHierarchy.png)
 
 这个 CinemachineCamera 的主要任务是：
 

@@ -1,0 +1,2 @@
+此CinemachineCamera旋转控制行为会匹配追踪目标的朝向。当与位置控制中的"硬锁定目标(Hard Lock To Target)"行为配合使用时，最终效果是让CinemachineCamera与控制游戏对象的路径和旋转保持一致。
+

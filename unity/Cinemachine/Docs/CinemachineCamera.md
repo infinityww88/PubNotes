@@ -10,11 +10,13 @@ CinemachineCamera 是一个组件，可以添加到一个空的 GameObject 上�
 
 CinemachineCamera 本身是一个被动对象，这意味着它的变换（transform）可以被控制或作为其他对象的父级，就像任何其他 GameObject 一样。它充当真实相机的占位符：当它处于 Live 状态时，Unity 相机会被定位以匹配 CinemachineCamera 的变换，并且其镜头设置也会与之匹配。此外，作为 Cinemachine 生态系统的一部分，它可以参与混合（blend），并且可以通过 Timeline 中的 Cinemachine 轨道进行控制。你还可以添加诸如冲击力（impulse）、后期处理（post-processing）、噪声（noise）以及其他扩展效果，以增强镜头的表现力。
 
+当 CinemachineCamera 激活工作时，它的 Transform （position，rotation）完全被跟踪算法组件控制，其他组件对 Transform 的修改将无效。
+
 # Going Procedural
 
 然而真正的魔力在于当你添加程序化组件（Procedural Components）让摄像机活起来时，它能稳健地追踪目标并 compose 它的 shots。为此，你可以添加位置控制（Position Control）、旋转控制（Rotation Control）和噪声行为（Noise behaviors）来驱动 CinemachineCamera 的位置、旋转和镜头参数。当 Cinemachine Brain 或 Timeline 将 Unity 相机的控制权转移给 CinemachineCamera 时，这些设置就会被应用到Unity Camera上。
 
-![CmCameraInspector](Images/CmCameraInspector.png)
+![CmCameraInspector](../Images/CmCameraInspector.png)
 
 # 属性
 
@@ -125,6 +127,8 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 - Position Control
 
   用于快速设置 CinemachineCamera 程序化 positioning behaviour 的 short cut。
+
+  选择一个位置跟踪算法，会为 GameObject 添加相应的组件。
 
 - Rotation Control
 
