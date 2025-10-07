@@ -2,11 +2,11 @@ Cinemachine 相机并不直接处理用户输入。相反，它们会暴露出�
 
 Cinemachine 自带 CinemachineInputAxisController 组件。当将其添加到 CinemachineCamera 上时，它会自动检测所有可由用户输入驱动的轴（axes），并暴露相关设置，让你能够控制这些轴的数值。
 
-它同时兼容 Unity 的 Input 包和 Unity 的旧版输入管理器。您也可以将其作为模板，用于编写自定义的输入处理器。
+它同时兼容 Unity 的 Input System 包和 Unity 的旧版输入管理器。您也可以将其作为模板，用于编写自定义的输入处理器。
 
-输入轴控制器不仅将输入映射到已公开的轴上，还为每个轴提供设置以通过加速/减速和增益来调整响应性。
+CinemachineInputAxisController 不仅将输入映射到已公开的 axis 上，还为每个 axis 提供设置以通过加速/减速和增益来调整响应性。
 
-如果你愿意，你也可以将 CinemachineInputAxisController 与自己的脚本一起使用来驱动输入轴，例如在实现玩家运动的脚本中。
+如果你愿意，也可以将 CinemachineInputAxisController 与自己的脚本一起使用来驱动输入轴，例如在实现玩家运动的脚本中。
 
 该组件可以轻松地让你在单人游戏环境中使用鼠标和键盘或手柄来控制CinemachineCamera。
 
@@ -104,3 +104,15 @@ public class SliderInputController : InputAxisControllerBase<SliderInputControll
     }
 }
 ```
+
+对于 ```public class SliderInputController : InputAxisControllerBase<SliderInputController.SliderReader>``` 这样的代码应以组合的方式理解。
+继承并不是好的编程范式。继承本质就是组合，为“派生类”添加一个“基类”对象作为成员，只是它简化了对“基类”对象成员的调用，可以自动向“基类”查找方法，而无需显示指定这个对象成员。这样虽然方便了调用，但是隐含添加了记忆上的依赖，你必须时刻记住这个类是“基类”的“派生类”，所有通过自己调用的方法，不一定属于自己，一些方法属于自己，另一些方法属于基类，违法 Python “显胜于隐” 的哲学。而使用明确的组合方式，虽然多写了一些引用，但是却可以在字幕上让读者知道这个对象包含了另一个对象，可以很明确知道哪些方法属于自己，哪些方法属于成员对象，减少了记忆的负担，将这些负担都明确写在纸面上，无论谁来看都一目了然，而无需知道并记住继承带来的上下文。
+
+例如，对于 ```public class SliderInputController : InputAxisControllerBase<SliderInputController.SliderReader>``` 这样的代码，以组合的方式理解就是：
+
+```
+SliderInputController 里面使用了一个 InputAxisControllerBase<SliderReader> 对象作为成员，例如 Update 中调用的 UpdateControllers 就是它的方法。
+而 InputAxisControllerBase 是一个模板类，它以一个实现 IInputAxisReader 的类作为模板类型，内部生成一个对象，并会使用它的 GetValue 方法。
+```
+
+
