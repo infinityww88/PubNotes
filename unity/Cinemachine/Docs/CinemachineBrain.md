@@ -23,7 +23,7 @@ Cinemachine Brain 控制以下关键属性：
 
   当Cinemachine Brain切换镜头时会触发事件。当某个CinemachineCamera开始生效时，它会触发一个事件；当它从一个CinemachineCamera剪切切换到另一个时，也会触发一个事件。你可以使用后一种事件来重置时间类后期特效。
 
- ![CinemachineBrainInspector](../../Images/CinemachineBrainInspector.png)
+ ![CinemachineBrainInspector](../Images/CinemachineBrainInspector.png)
 
 # 属性
 

@@ -114,7 +114,7 @@ Camera 的 3D 位置被限制在一个 Colume 中。
 
 # Cinemachine Confiner 2D
 
-![CinemachineConfiner2Dc](../../../Images/CinemachineConfiner2Dc.png)
+![CinemachineConfiner2Dc](../../Images/CinemachineConfiner2Dc.png)
 
 使用 Cinemachine Confiner 2D 扩展组件可以将相机的位置限制在某个范围内，确保屏幕边缘始终位于由 2D 多边形定义的形状内。该功能适用于正交相机或透视相机，前提是相机的前向向量必须与边界形状的法线平行（也就是说，相机必须正对多边形，而不能以倾斜角度观察它）。
 

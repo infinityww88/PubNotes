@@ -2,7 +2,7 @@
 
 通过使用 Spline Dolly，可以让 Cinemachine 相机沿着样条路径移动。
 
-![CinemachinePathScene](../../Images/CinemachinePathScene.png)
+![CinemachinePathScene](../Images/CinemachinePathScene.png)
 
 要创建一个带 dolly path 的 Cinemachine Camera：
 

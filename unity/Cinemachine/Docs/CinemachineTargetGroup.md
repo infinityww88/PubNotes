@@ -15,7 +15,7 @@
 - 在新的 item 中，指定一个 GameObject，然后编辑 Weight 和 Radius 属性
 - 重复上面两个步骤，添加更多的 GameObjects
 
-![CinemachineTargetGroup](../../Images/CinemachineTargetGroup.png)
+![CinemachineTargetGroup](../Images/CinemachineTargetGroup.png)
 
 - Position Mode：如何计算 Target Group 的 position，作为这个整体 target 的 position
 

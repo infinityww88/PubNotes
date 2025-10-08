@@ -8,7 +8,7 @@ Timeline 覆盖 Cinemachine Brain 决定的优先级。当 timeline 完成时，
 
 要在两个 CinemachineCameras 中进行剪辑（cut），将一个 clip 放在另一个后面。要在两个 CinemachineCameras 之间 blend，将 clip 首尾进行重叠。
 
-![CinemachineTimelineShotClips](../../Images/CinemachineTimelineShotClips.png)
+![CinemachineTimelineShotClips](../Images/CinemachineTimelineShotClips.png)
 
 要为 Cinemachine 创建 Timeline：
 
