@@ -2,8 +2,6 @@
 
 CinemachineCamera Live 时，它与 Unity Camera 的 transform（position，rotation）都被算法控制，不可再被编辑。
 
-CinemachineCamera 没有提供何时更新 Unity Camera 的选项，不用关心在 Update，FixedUpdate、还是 LateUpdate 中更新相机位置，只需指定 target 就可以平滑跟踪。
-
 Cinemachine 包含以下移动 CinemachineCamera 的行为：
 
 - None：不进行过程化相机移动 CinemachineCamera
@@ -20,3 +18,4 @@ Cinemachine 包含以下移动 CinemachineCamera 的行为：
 
 在哪个阶段同步 Unity Camera，在 Cinemachine Brain 中指定，Update、FixedUpdate、LateUpdate。
 
+Composer 是构图的意思，在场景确定的前提下，将相机放在哪里，朝向哪里，如果旋转，焦距多少，视角多少，都影响同一个场景最终的渲染画面，包括哪些物体被纳入镜头，远近如何，焦点如何，在镜头中的分布、结构如何，这个过程就是构图。

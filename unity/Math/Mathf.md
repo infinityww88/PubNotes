@@ -23,7 +23,7 @@
 
   所有角度都被 wrap 在 [-180, 180] 之间，而且在坐标系中都指向同一个角度。
 
-  ![LerpAngle](image/LerpAngle.png)
+  ![LerpAngle](Image/LerpAngle.png)
 
 - float LerpUnclamped(float a, float b, float t)
 
