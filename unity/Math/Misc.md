@@ -103,3 +103,171 @@ Vector3 也包含 RotateTowards 和 Slerp 方法，是将 vector3 作为方向�
 
 - 因子应乘以 Time.deltaTime，以在帧率变化时保持一致速度
 - 可添加一个末端 clamp：如果当前值过渡到目标值附近，与目标值相差非常小的时候，可以直接跳跃到目标值，并且不进行插值。因为固定因子插值理论上永远到达不了 target，只能无限接近
+
+# SmoothDampAngle
+
+![SmoothDampAngle](Image/SmoothDampAngle.gif)
+
+如图所示，右边的 cube 跟随左边 cube 的 z 轴旋转，欧拉角（0， 0， z）。前一半阶段使用 SmoothDamp，每当角度超过 360 度的边界，跟随的 cube 就会出现突变的旋转。后一半阶段使用 SmoothDampAngle，角度进行 360 wrap，旋转状态正常。
+
+SmoothDampAngle 只有 Float 版本，只能应用于当个角度。也不要想对欧拉角每个分量分别使用 SmoothDampAngle，因为这本质上还是用欧拉角表示旋转，还是会出现万向锁问题。
+
+SmoothDamp 只对 float Vector3 提供，Quaternion 没有 SmoothDamp 方法，对 Quaternion 平滑过渡使用 Slerp。
+
+下面是使用 AI 生成的脚本，让相机平滑跟踪和观察 target，可见对位置的平滑使用 SmoothDamp，对旋转使用 Slerp.
+
+以下是一个完整的 Unity C# 脚本，实现​​相机以固定偏移量平滑跟随目标物体​​，同时​​平滑朝向目标物体​​的功能。脚本采用 LateUpdate确保相机移动在目标物体移动之后，避免穿模；使用 Vector3.SmoothDamp实现位置平滑过渡，用 Quaternion.Slerp实现旋转平滑，兼顾性能与视觉效果。
+
+```C#
+using UnityEngine;
+
+[RequireComponent(typeof(Camera))] // 确保脚本挂载的物体有Camera组件
+public class SmoothCameraFollow : MonoBehaviour
+{
+    [Header("Target Settings")]
+    [Tooltip("需要跟随的目标物体")]
+    public Transform target; // 目标物体的Transform组件
+
+    [Header("Follow Offset Settings")]
+    [Tooltip("相机与目标的偏移量（初始值，可运行时调整）")]
+    public Vector3 followOffset = new Vector3(0, 5, -10); // 相机相对于目标的偏移（x:左右, y:上下, z:前后）
+
+    [Header("Movement Smoothing Settings")]
+    [Tooltip("位置平滑速度（值越大，跟随越快；0.1-0.3适合多数场景）")]
+    public float positionSmoothSpeed = 0.15f; // 位置插值的平滑系数
+    [Tooltip("位置变化的阈值（小于该值时停止移动，避免微小抖动）")]
+    public float positionThreshold = 0.01f; // 位置变化的阈值
+
+    [Header("Rotation Smoothing Settings")]
+    [Tooltip("旋转平滑速度（值越大，转向越快；0.1-0.3适合多数场景）")]
+    public float rotationSmoothSpeed = 0.2f; // 旋转插值的平滑系数
+
+    private Vector3 velocity = Vector3.zero; // 用于SmoothDamp的速度变量
+    private Vector3 targetPosition; // 相机的目标位置
+
+    private void Start()
+    {
+        if (target == null)
+        {
+            Debug.LogError("Target is not assigned to the camera follow script!", this);
+            enabled = false; // 如果没有目标，禁用脚本
+            return;
+        }
+
+        // 初始化目标位置（计算初始偏移后的位置）
+        targetPosition = target.position + followOffset;
+    }
+
+    private void LateUpdate()
+    {
+        if (target == null) return;
+
+        // 计算相机的新目标位置（目标位置 + 偏移量）
+        targetPosition = target.position + followOffset;
+
+        // 使用SmoothDamp平滑移动相机到目标位置
+        transform.position = Vector3.SmoothDamp(
+            transform.position, 
+            targetPosition, 
+            ref velocity, 
+            positionSmoothSpeed, 
+            Mathf.Infinity, 
+            Time.deltaTime
+        );
+
+        // 让相机始终看向目标物体
+        SmoothLookAt(target);
+    }
+
+    /// <summary>
+    /// 平滑让相机看向目标物体
+    /// </summary>
+    /// <param name="lookTarget">需要看向的目标物体</param>
+    private void SmoothLookAt(Transform lookTarget)
+    {
+        if (lookTarget == null) return;
+
+        // 计算相机到目标的方向向量
+        Vector3 directionToTarget = lookTarget.position - transform.position;
+        
+        // 处理目标在相机正下方或正上方的情况（避免旋转异常）
+        if (directionToTarget.sqrMagnitude < 0.001f)
+            return;
+
+        // 计算目标旋转（方向向量转四元数，保持Y轴不变）
+        Quaternion targetRotation = Quaternion.LookRotation(directionToTarget);
+
+        // 使用Slerp平滑旋转相机到目标旋转
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation, 
+            targetRotation, 
+            rotationSmoothSpeed * Time.deltaTime
+        );
+    }
+
+    #region Runtime Adjustment Methods (Optional)
+    // 以下方法用于运行时动态调整参数（可通过Inspector或代码调用）
+    public void SetFollowOffset(Vector3 newOffset)
+    {
+        followOffset = newOffset;
+        targetPosition = target.position + followOffset; // 更新目标位置
+    }
+
+    public void SetPositionSmoothSpeed(float newSpeed)
+    {
+        positionSmoothSpeed = Mathf.Clamp(newSpeed, 0.01f, 1f); // 限制速度范围
+    }
+
+    public void SetRotationSmoothSpeed(float newSpeed)
+    {
+        rotationSmoothSpeed = Mathf.Clamp(newSpeed, 0.01f, 1f); // 限制速度范围
+    }
+    #endregion
+}
+```
+
+​
+- 核心逻辑​​
+​
+  - ​位置跟随​​：通过 Vector3.SmoothDamp实现相机位置的平滑过渡，避免生硬的“跳跃”感。velocity变量记录上一次的速度状态，确保运动连贯。
+​
+  - ​旋转跟随​​：通过 Quaternion.Slerp实现相机旋转的平滑过渡，Quaternion.LookRotation计算目标方向的旋转，确保相机始终朝向目标。
+
+  - ​​LateUpdate​​：在 Update之后执行，确保相机移动在目标物体移动之后，避免穿模问题。
+
+- ​参数配置​​
+
+  - ​​Target Settings​​：绑定需要跟随的目标物体（必填）。
+​
+  - ​Follow Offset Settings​​：设置相机相对于目标的偏移量（初始值为 (0, 5, -10)，即相机在目标后方10米、上方5米处）。
+
+  - ​​Movement Smoothing Settings​​：调整位置平滑速度（positionSmoothSpeed）和阈值（positionThreshold），控制跟随的快慢与稳定性。
+
+  - ​​Rotation Smoothing Settings​​：调整旋转平滑速度（rotationSmoothSpeed），控制转向的快慢。
+​​
+- 扩展功能​​
+
+  ​运行时调整​​：提供了 SetFollowOffset、SetPositionSmoothSpeed、SetRotationSmoothSpeed方法，可通过代码动态调整参数（如根据游戏进度改变跟随距离）。
+
+# unity 中相机跟随目标物体移动，目标物体在 fixedupdate 中更新，相机在 update 中更新，为什么会有抖动？
+
+1. Update与FixedUpdate的调用频率差异
+
+   Unity的Update函数每帧调用一次，其调用间隔受帧率影响（如帧率60FPS时，每帧约0.0167秒；帧率30FPS时，每帧约0.0333秒），时间间隔不固定。而FixedUpdate函数按固定时间步长（默认0.02秒，可通过Project Settings→Time→Fixed Timestep调整）调用，不受帧率波动影响。当目标物体在FixedUpdate中更新（如通过Rigidbody移动），而相机在Update中跟随时，两者的更新频率不一致，导致相机无法准确匹配目标的位置，从而产生抖动。  
+
+2. 执行顺序导致的位置信息不同步
+
+   Unity的生命周期中，FixedUpdate的执行优先级高于Update（每帧先执行所有FixedUpdate，再执行Update）。若目标物体在FixedUpdate中更新位置，而相机在Update中读取目标位置并跟随，会出现“目标已移动但相机未及时更新”的问题：  
+
+   例如，某一帧FixedUpdate中目标向前移动了0.1米，但Update中相机仍读取的是上一帧的目标位置（未移动），导致相机与目标之间出现瞬时位移差；  
+
+   下一帧FixedUpdate中目标可能停止移动，但相机仍在向旧位置移动，导致位置来回波动，表现为抖动。  
+
+3. LateUpdate的缺失导致跟随时机错误
+
+   即使Update和FixedUpdate的执行顺序正确，若相机跟随代码写在Update中而非LateUpdate中，仍会出现问题。LateUpdate的作用是在所有Update函数执行完毕后再执行，确保读取的是目标物体的最终位置。若相机在Update中跟随，可能会读取到目标物体尚未完成的中间位置（如目标在Update中正在移动），导致相机跟随滞后或超前，进而引发抖动。  
+
+4. 物理模拟与渲染帧的不匹配
+
+   目标物体使用FixedUpdate（物理更新）时，其移动是基于物理引擎的计算（如Rigidbody的力、碰撞等），而相机的Update是基于渲染帧的。物理引擎的更新频率（Fixed Timestep）与渲染帧率（Frame Rate）不同步，导致相机的跟随节奏与目标的物理运动节奏不一致。例如，当帧率下降时，Update的调用间隔变长，相机可能错过目标的多个物理更新步骤，导致位置偏差累积，表现为明显的抖动。
+

@@ -55,7 +55,7 @@ OS X 上用 cmd 键代替 ctrl.
 - Ctrl + Z：Undo
 - Shift + Ctrl + Z：Redo
 - Alt + UpArrow/DownArrow：将当前一行或选择的 lines 向上移动或向下移动一行，并重新调整缩进
-- Ctrl+K 或 Ctrl+/：对光标当前行或选择的 lines 切换 code comments（只用于 C# 文件）
+- Ctrl+K：对光标当前行或选择的 lines 切换 code comments（只用于 C# 文件）
 - Ctrl + [：对当前 line 或选择的 lines 减少要给缩进
 - Ctrl + ]：对当前 line 或选择的 lines 增加要给缩进
 - Tab：如果没有选择的文本，插入一个 tab，如果有选择的文本，增加一个缩进
