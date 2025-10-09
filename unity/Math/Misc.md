@@ -102,7 +102,15 @@ Vector3 也包含 RotateTowards 和 Slerp 方法，是将 vector3 作为方向�
 固定因子插值几个注意点：
 
 - 因子要乘以 Time.deltaTime，以在帧率变化时保持一致速度，否则可能会出现平滑的现象
-- 可添加一个末端 clamp：如果当前值过渡到目标值附近，与目标值相差非常小的时候，可以直接跳跃到目标值，并且不进行插值。因为固定因子插值理论上永远到达不了 target，只能无限接近
+- 可添加一个末端 clamp
+
+  如果当前值过渡到目标值附近，与目标值相差非常小的时候，可以直接跳跃到目标值，并且不进行插值。
+  
+  因为固定因子插值理论上永远到达不了 target，只能无限接近。
+
+  但这是可选的，因为实际中，target 通常也在时刻不停的运动，即使用 SmoothDamp 也可能一直追不上 target，只能不停的接近新的 target。
+
+  因此追求到达 target 很多时候是没有意义的，target 也总是在更新。
 
 MoveTowards 和 RotateTowards 不是带阻尼的平滑，而是以常量速度移动，并确保最终不会超出目标值，仅此而已。例如一个 object 跟随 target，无论 target 怎样移动，object 都以固定的速度跟踪，虽然最后也能到达目标位置，但是没有类似 SmoothDamp 和固定因子（乘以 Time.deltaTime）插值（Lerp，Slerp）那样带阻尼的效果（先快后慢）。
 
