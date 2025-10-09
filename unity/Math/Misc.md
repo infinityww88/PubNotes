@@ -230,6 +230,7 @@ public class SmoothCameraFollow : MonoBehaviour
 
 注意，Quaternion 使用固定因子 rotationSmoothSpeed 插值的方式进行平滑，而 Vector3 则是使用 SmoothDamp 的方法。Vector3 也可以用固定因子插值的方法，而且效果看起来差不多，几乎没有区别。另外固定因子（例如 rotationSmoothSpeed）在插值时还需要乘以 Time.deltaTime，以消除帧率变化时可能导致的不平滑，因为插值是线性的（结果正比于 factor），因此直接乘以 Time.deltaTime 即可。
 
+在 Update 中连续执行，形成随时间变化的效果，都需要乘以 Time.deltaTime，在形成稳定的、免于帧率变化的效果。
 ​
 - 核心逻辑​​
 ​
@@ -275,3 +276,53 @@ public class SmoothCameraFollow : MonoBehaviour
 
    目标物体使用FixedUpdate（物理更新）时，其移动是基于物理引擎的计算（如Rigidbody的力、碰撞等），而相机的Update是基于渲染帧的。物理引擎的更新频率（Fixed Timestep）与渲染帧率（Frame Rate）不同步，导致相机的跟随节奏与目标的物理运动节奏不一致。例如，当帧率下降时，Update的调用间隔变长，相机可能错过目标的多个物理更新步骤，导致位置偏差累积，表现为明显的抖动。
 
+# 将平滑跟踪和平滑 LookAt 做成组件
+
+游戏中，平滑跟踪和平滑 LookAt 是很常用的功能，可以分别做成 SmoothFollow 和 SmoothLookAt 组件，每个需要相应功能的 GameObject 只需要添加对应的组件即可。
+
+SmoothFollow.cs：
+
+```C#
+public class SmoothFollow : MonoBehaviour
+{
+	public Transform target;
+	public Vector3 offset;
+	private Vector3 currVel;
+	public float smoothTime = 0.5f;
+	
+	public void Update()
+	{
+		if (target == null) {
+			return;
+		}
+		var pos = target.transform.TransformPoint(offset);
+		transform.position = Vector3.SmoothDamp(transform.position, pos, ref currVel, smoothTime);
+	}
+}
+```
+
+SmoothLookAt.cs：
+
+```C#
+public class SmoothLookAt : MonoBehaviour
+{
+	public Transform target;
+	public float rotationSpeed = 0.2f;
+	public Vector3 upwards = Vector3.up;
+	
+	// Update is called every frame, if the MonoBehaviour is enabled.
+	protected void Update()
+	{
+		if (target == null) {
+			return;
+		}
+		var forward = target.position - transform.position;
+		var projVec = Vector3.ProjectOnPlane(forward, upwards);
+		if (projVec.magnitude < 0.0001f) {
+			return;
+		}
+		var rot = Quaternion.LookRotation(forward, upwards);
+		transform.rotation = Quaternion.Lerp(transform.rotation, rot, rotationSpeed * Time.deltaTime);
+	}
+
+```
