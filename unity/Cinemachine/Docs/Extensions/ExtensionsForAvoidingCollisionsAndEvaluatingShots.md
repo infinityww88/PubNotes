@@ -8,10 +8,10 @@
 
 Cinemachine Deoccluder 是 CinemachineCamera 的一个扩展组件。它对 CinemachineCamera 的**最终位置进行后处理**，尝试保持与相机 Look At 目标的视线畅通。其实现方式是通过**远离那些遮挡视线的游戏对象**来进行位置调整。
 
-添加一个 Cinemachine Deoccluder 扩展到 CMC，可以执行以下任务：
+添加一个 Cinemachine Deoccluder 扩展到 CC，可以执行以下任务：
 
 - 将 camera 推离遮挡视野的障碍物
-- 当障碍物出现在CMC 和 Look At target 中间时，将 camera 放在障碍物前面
+- 当障碍物出现在CC 和 Look At target 中间时，将 camera 放在障碍物前面
 - 评估拍摄质量。拍摄质量是衡量 CinemachineCamera 与其理想位置之间的距离、相机与目标之间的距离，以及阻挡目标视线的障碍物的综合指标。其他模块（包括 Clear Shot）会使用拍摄质量这一数据
 
 Deoccluder 使用物理射线投射器（Physics Raycaster）。因此，Cinemachine Deoccluder 要求潜在的障碍物必须具有碰撞体（Collider）体积。这一要求会带来一定的性能开销。如果您的游戏中这种开销过高，建议考虑采用其他方式实现类似功能。

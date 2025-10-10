@@ -4,7 +4,7 @@
 
 # 属性
 
-- Profile：当 CMC 变成 live 时，应用的 Volume Settings profile
+- Profile：当 CC 变成 live 时，应用的 Volume Settings profile
 - Focus Tracking：若配置文件中启用了相应 override 选项，系统将自动把 base focus distance 设置为从选定目标到摄像机的距离。随后可通过 Focus Offset 字段对该距离进行修正。
   - None：没有 focus tracking
   - Look At Target：Focus offset 是相对 LookAt target 的

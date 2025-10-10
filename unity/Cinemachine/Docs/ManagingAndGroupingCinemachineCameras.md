@@ -23,7 +23,7 @@ Cinemachine 包含以下 manager cameras：
 
 当您为每种玩家状态添加了带有相应设置的子相机，并将它们连接至您的管理器实例后，您就拥有了一个会根据玩家状态自动调整的Cinemachine相机装置。该装置本身在系统其他部分看来就像一个普通的CinemachineCamera，因此可以像使用普通CinemachineCamera一样在任何地方使用它——包括嵌套在其他相机装置中。
 
-Manager CMC 和 Normal CMC 每帧执行的方法、回调等等都一样，这就是为什么它可以 Normal CMC 一样被使用。
+Manager CC 和 Normal CC 每帧执行的方法、回调等等都一样，这就是为什么它可以 Normal CC 一样被使用。
 
 # Managed Cameras need to be GameObject children of the manager
 
