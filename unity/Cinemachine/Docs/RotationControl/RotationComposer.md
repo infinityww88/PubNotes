@@ -1,3 +1,6 @@
+**这个组件与 PositionComposer 非常类似，Hard Limit、Soft Limit、Dead Zone 的定义完全一样，作用也完全一样，但是 RotationComposer 更简单，它不需要移动 CC 的位置，只需要旋转相机，让 target 在 Screen 的位置满足 Composer Rule 就可以了**
+
+
 此 CinemachineCamera 旋转控制行为会使相机面向"注视目标(Look At)"。它同时支持设置偏移量、阻尼值和构图规则（画面构成）。
 
 该功能仅控制相机旋转，不会改变相机位置。典型的注视目标包括：角色的脊椎上部或头部骨骼、载具，或是通过程序控制/动画驱动的虚拟对象。
