@@ -1,3 +1,5 @@
+Cinemachine 是开源的，有问题可以直接查看源码分析。
+
 CinemachineCamera 是一个组件，可以添加到一个空的 GameObject 上。它在 Scene 中表示一个 CinemachineCamera。
 
 任何时候，每个 CinemachineCamera 属于以下状态之一：
@@ -60,6 +62,10 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
   控制当 CinemachineCamera 不处于活跃状态时，其更新频率。
 
+  - Always：保持每帧更新 virtual camera，即使它不是 live 的相机
+  - Never：只在 virtual camera 是 Live 时，才更新相机
+  - RoundRobin：偶尔更新 virtual camera，精确地频率依赖于有多少 virtual cameras 时 standby 的。轮转算法，每次（每帧）更新一个 standby 相机
+
 - Lens
 
   以下这些属性是 Unity camera 相应属性的镜像。
@@ -98,7 +104,7 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
 - Blend Hint
 
-  为进出该CinemachineCamera时的位置混合提供提示。这些值可以组合使用。
+  为进出此 CinemachineCamera 时的位置混合提供提示。这些值可以组合使用。
 
   - Spherical Position
 
@@ -123,6 +129,10 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
   - Freeze When Blending Out
 
     通常情况下，相机在混合过程中会保持活跃状态，因为这样能产生最平滑的过渡效果。如果启用了此提示，则相机在淡出混合时不会更新；相反，它会创建其状态的快照，然后基于该快照进行混合。
+
+    即将混合目标冻结为其淡出时刻的状态。淡出过程中，相机不会继续更新。
+
+    所谓的状态就是相机的各种参数：位置、旋转、Lens，FOV 等等。
 
 - Position Control
 

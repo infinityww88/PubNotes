@@ -88,3 +88,6 @@ Follow 过程化算法移动 CinemachineCamera，相对 Tracking Target 维持�
 事实证明，第一种方法在切换时非常突兀，第二种方法则是完全平滑的。Cinemachine 既然提供了丰富的在 CC 之间 Blend 的机制，似乎为每个目标单独设置 CC，然后在 CC 之间切换才是建议的使用方式。而且第一张方式不够灵活，直接切换 Tracking Target，只能是为每个 Target 都使用相同的 CC 设置（例如 Lens，FOV）相同的 Position Control 和 Rotation Control。而实际上每个目标的镜头需求可能都是不同的，因此为每个目标定制 CC，然后在 CC 之间切换才是主流的方式。
 
 另外这也说明了为什么非 active 的 CC 也可能需要正常运行（只是不操控 Unity Camera），因为 CC 可能会在多个正常运行的 CC 之前切换来创建画面，因此非 active 的 CC 有时只是临时的，在非 active 的时候也需要正常运行（该跟随的跟随，该旋转的旋转）。
+
+**注意：对于 Follow，Hard Lock To Target 这里基于点 point 的 binding mode，offset 偏移的是 CC 自身的位置，而对于 Orbital Follow 这里基于体积表面的 binding mode，偏移的是 Volume 的中心，即相对 Target 偏移 Volume，例如 Sphere 的球心**
+
