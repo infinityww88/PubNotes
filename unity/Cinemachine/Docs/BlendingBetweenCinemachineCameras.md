@@ -41,17 +41,17 @@ Cinemachine 混合并不是淡入淡出、擦除或溶解效果。相反，Cinem
 
 如下图所示，在 orthographic 相机和 perspective 相机之间切换时，会有画面突变：
 
-![alt text](Blend_Orthographic_Perspective.gif) 
+![alt text](../Images/Blend_Orthographic_Perspective.gif) 
 
 即使两个相机在相同的位置也是如此：
 
-![alt text](Blend_Orthographic_Perspective_Same_Position.gif) 
+![alt text](../Images/Blend_Orthographic_Perspective_Same_Position.gif) 
 
 在两个 perspective 相机或两个 orthographic 相机之前切换就可以平滑过渡：
 
-![alt text](Blend_Perspective_Perspective.gif) 
+![alt text](../Images/Blend_Perspective_Perspective.gif) 
 
-![alt text](Blend_Orthographic_Orthographic.gif)
+![alt text](../Images/Blend_Orthographic_Orthographic.gif)
 
 # 怎样混合
 
