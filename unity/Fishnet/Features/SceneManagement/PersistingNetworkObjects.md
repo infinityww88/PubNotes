@@ -43,7 +43,7 @@ SceneManager.LoadGlobalScenes(sld);
 
 若要将某个 ​NetworkObject​ 设为全局对象，只需在其组件上将 ​IsGlobal​ 布尔值设为 ​true​ 即可。
 
-通常情况下，客户端始终作为 ​DDOL 场景​ 的观察者存在。因此，​全局网络对象（Global NetworkObjects）​​ 更适用于 ​管理器类型（Manager）​​ 的游戏对象，而非带有网格渲染的实体对象——但这并非强制限制，您仍可灵活选择。
+通常情况下，客户端始终作为 ​DDOL 场景​ 的观察者存在。因此，​全局网络对象（Global NetworkObjects）​​ 更适用于 ​管理器类型（Manager）​​ 的游戏对象，而非带有网格渲染的实体对象——但这并非强制限制，你仍可灵活选择。
 
 ## Nested NetworkObjects
 

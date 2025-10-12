@@ -73,7 +73,7 @@ Position Composer 和 Rotation Composer 算法定义了 camera frame（视口）
 
 Game View Guides 给出这些区域的一个交互的，可视化指示。
 
-![CinemachineGameWindowGuides](image/CinemachineGameWindowGuides.png)
+![CinemachineGameWindowGuides](../Images/CinemachineGameWindowGuides.png)
 
 中间清空的区域指示 dead zone（target 在这个区域运动，Cinemachine 不会 reframe）。蓝色的区域指示 soft zone。Screen Position 是 Dead Zone 的中心。红色区域指示不可穿越的区域，相机会阻止 target 进入这个区域。黄色的方块指示 target 自身（在屏幕的位置）。
 

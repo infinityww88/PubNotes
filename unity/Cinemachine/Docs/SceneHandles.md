@@ -1,6 +1,6 @@
-Cinemachine Handle 工具栏是一组3D控制工具，允许您在Scene视图中直观地操控CinemachineCamera的参数。您可以使用这些手柄工具快速高效地交互式调整选中对象的参数，而无需通过Inspector面板进行控制。
+Cinemachine Handle 工具栏是一组3D控制工具，允许你在Scene视图中直观地操控CinemachineCamera的参数。你可以使用这些手柄工具快速高效地交互式调整选中对象的参数，而无需通过Inspector面板进行控制。
 
-当您选择一个关联了手柄控制功能的CinemachineCamera类型时，该工具栏会自动出现在Scene视图工具栏的叠加层中。
+当你选择一个关联了手柄控制功能的CinemachineCamera类型时，该工具栏会自动出现在Scene视图工具栏的叠加层中。
 
 # Handle Tools
 

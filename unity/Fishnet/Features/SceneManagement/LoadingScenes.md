@@ -11,17 +11,17 @@
 
 ## Setup
 
-在调用 SceneManager 的加载场景函数之前，您需要先设置加载数据，以告知 SceneManager 您希望它如何处理场景加载。
+在调用 SceneManager 的加载场景函数之前，你需要先设置加载数据，以告知 SceneManager 你希望它如何处理场景加载。
 
 - SceneLookupData（场景查找数据）
 
-  SceneLookupData 是用于指定希望 SceneManager 加载哪个场景的类。您无需手动创建查找数据，而是使用 SceneLoadData 的构造函数，这些构造函数会自动为您创建 SceneLookupData。
+  SceneLookupData 是用于指定希望 SceneManager 加载哪个场景的类。你无需手动创建查找数据，而是使用 SceneLoadData 的构造函数，这些构造函数会自动为你创建 SceneLookupData。
 
 - SceneLoadData（场景加载数据）
 
-  无论以何种方式加载场景，您都必须将一个 SceneLoadData 类的实例传入加载方法中。该类为 SceneManager 提供了正确加载一个或多个场景所需的所有信息。
+  无论以何种方式加载场景，你都必须将一个 SceneLoadData 类的实例传入加载方法中。该类为 SceneManager 提供了正确加载一个或多个场景所需的所有信息。
 
-  SceneLoadData 提供的构造函数会根据您是加载新场景还是加载已有的场景实例，自动创建 SceneManager 所需的 SceneLookupData。
+  SceneLoadData 提供的构造函数会根据你是加载新场景还是加载已有的场景实例，自动创建 SceneManager 所需的 SceneLookupData。
 
 ## Loading New Scenes
 
@@ -44,9 +44,9 @@ base.SceneManager.LoadGlobalScenes(sld);
 
 连接场景遵循相同的原理，但提供了几种不同的方法重载（overloads）。
 
-您可以针对单个连接加载场景，也可以一次性为多个连接加载场景，或者仅在服务器端加载场景，为后续连接做准备。
+你可以针对单个连接加载场景，也可以一次性为多个连接加载场景，或者仅在服务器端加载场景，为后续连接做准备。
 
-当通过连接加载场景时，只有您指定的连接才会加载这些场景。
+当通过连接加载场景时，只有你指定的连接才会加载这些场景。
 
 还可以随时将额外的 connection 添加到已加载的场景中。
 
@@ -61,15 +61,15 @@ base.SceneManager.LoadConnectionScenes(conn, sld);
 NetworkConnection[] conns = new NetworkConnection[] { connA, connB };
 base.SceneManager.LoadConnectionScenes(conns, sld);
 
-// 仅在服务器端加载场景。可用于预加载您不希望所有玩家都进入的场景
+// 仅在服务器端加载场景。可用于预加载你不希望所有玩家都进入的场景
 base.SceneManager.LoadConnectionScenes(sld);
 ```
 
 ### 加载多个场景（Loading Multiple Scenes）
 
-无论是全局加载还是按连接加载，您都可以在单次方法调用中加载多个场景。
+无论是全局加载还是按连接加载，你都可以在单次方法调用中加载多个场景。
 
-当您在单次调用中加载多个场景时，您放入 `Moved NetworkObjects` 中的网络对象（NetworkObjects）将被移动到您尝试加载的场景列表中的第一个有效场景。有关在场景之间保持网络对象的更多信息，请参阅“持久化网络对象（Persisting NetworkObjects）”。
+当你在单次调用中加载多个场景时，你放入 `Moved NetworkObjects` 中的网络对象（NetworkObjects）将被移动到你尝试加载的场景列表中的第一个有效场景。有关在场景之间保持网络对象的更多信息，请参阅“持久化网络对象（Persisting NetworkObjects）”。
 
 ```csharp
 // 为多个连接加载多个场景

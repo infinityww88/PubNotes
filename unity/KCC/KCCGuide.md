@@ -8,33 +8,33 @@ Core Scripts：
 - ICharacterController：实现这个接口，将 class 赋值给 KinematicCharacterMotor 以实现你自己的 character controller。
 - IMoverController：实现这个接口，将 class 赋值给 PhysicsMover 以实现你自己的 mover controller。
 
-角色控制器是出了名的难以完美实现，不同游戏对它的需求也千差万别。可能性是无限的。因此，运动学角色控制器（Kinematic Character Controller）并不会试图预先打包所有问题的解决方案，而是专注于解决角色控制器动态响应这一核心物理难题，其余部分则完全交由开发者掌控。这种设计理念确保您能打造出专为游戏定制的角色控制器，并使其完美适配任何项目架构。
+角色控制器是出了名的难以完美实现，不同游戏对它的需求也千差万别。可能性是无限的。因此，运动学角色控制器（Kinematic Character Controller）并不会试图预先打包所有问题的解决方案，而是专注于解决角色控制器动态响应这一核心物理难题，其余部分则完全交由开发者掌控。这种设计理念确保你能打造出专为游戏定制的角色控制器，并使其完美适配任何项目架构。
 
 该组件要求开发者自行编写以下功能的代码：玩家输入、镜头控制、动画系统，甚至包括角色移动逻辑（例如指定移动速度和朝向等）。不过，它真正提供的是底层物理解决方案——通过一系列基础组件处理复杂的角色物理运算，让开发者能够相对轻松地构建完全自定义的角色控制器。
 
-整个系统的核心是"KinematicCharacterMotor"组件，它通过胶囊体模拟角色碰撞，并能根据输入参数（速度、旋转等）精确计算运动轨迹。当您设定移动速度后，该组件会自动执行运动逻辑，实现合理的表面碰撞/滑动效果。此外，它还能提供精准的接地状态检测、处理移动平台站立、推动其他刚体等物理交互——这些正是构建角色控制器的底层基础。
+整个系统的核心是"KinematicCharacterMotor"组件，它通过胶囊体模拟角色碰撞，并能根据输入参数（速度、旋转等）精确计算运动轨迹。当你设定移动速度后，该组件会自动执行运动逻辑，实现合理的表面碰撞/滑动效果。此外，它还能提供精准的接地状态检测、处理移动平台站立、推动其他刚体等物理交互——这些正是构建角色控制器的底层基础。
 
-要为KinematicCharacterMotor提供输入参数，您需要创建一个实现ICharacterController接口的自定义类，并将其赋值给KinematicCharacterMotor.CharacterController变量。完成此操作后，您的类将开始接收来自Motor的"回调"请求。这些"回调"本质上可以理解为KinematicCharacterMotor向您提出的问题：
+要为KinematicCharacterMotor提供输入参数，你需要创建一个实现ICharacterController接口的自定义类，并将其赋值给KinematicCharacterMotor.CharacterController变量。完成此操作后，你的类将开始接收来自Motor的"回调"请求。这些"回调"本质上可以理解为KinematicCharacterMotor向你提出的问题：
 ● UpdateVelocity："当前应该采用什么移动速度？"
 ● UpdateRotation："角色需要如何旋转？"
 ● IsColliderValid："这个碰撞体是否应该被忽略？"
 ● 其他运动状态查询...
 
-这些回调函数都会由 KinematicCharacterMotor 在角色更新循环中自动调用，您完全无需担心它们的执行顺序问题。通过实现这些回调，您就能精确控制 KinematicCharacterMotor 的所有行为表现。
+这些回调函数都会由 KinematicCharacterMotor 在角色更新循环中自动调用，你完全无需担心它们的执行顺序问题。通过实现这些回调，你就能精确控制 KinematicCharacterMotor 的所有行为表现。
 
 这一设计原则同样适用于移动平台的创建。此时：
 
 - ​PhysicsMover​ 承担与 KinematicCharacterMotor 相同的职责
 - ​IMoverController​ 则对应 ICharacterController 的角色
 
-通过实现 PhysicsMover 的回调接口，您就能精确控制移动平台的运行轨迹。
+通过实现 PhysicsMover 的回调接口，你就能精确控制移动平台的运行轨迹。
 
 
 本小节将概述如何通过多个组件的协同运作，在"CharacterPlayground"场景中创建示例角色。请先打开该场景，然后跟随本节内容进行操作。
 
 ## Kinematic Character System Overview
 
-本节将概述所有"核心"脚本如何协同运作，以实现正确的角色移动逻辑并构建完整的角色系统。请注意：您的KinematicCharacterMotors和PhysicsMovers组件需要遵循特定的执行顺序才能正常工作——这一关键功能由KinematicCharacterSystem类统一管理。
+本节将概述所有"核心"脚本如何协同运作，以实现正确的角色移动逻辑并构建完整的角色系统。请注意：你的KinematicCharacterMotors和PhysicsMovers组件需要遵循特定的执行顺序才能正常工作——这一关键功能由KinematicCharacterSystem类统一管理。
 
 ### 组件注册
 
@@ -57,7 +57,7 @@ Core Scripts：
 
 ### Manual Simulation
 
-需精确控制物理模拟过程，可将KinematicCharacterSystem.AutoSimulation设为false。此时您需要手动管理模拟流程——该模式在网络同步场景中尤为实用，例如当您需要在同一帧内多次调用Simulate()来重新模拟历史输入时。
+需精确控制物理模拟过程，可将KinematicCharacterSystem.AutoSimulation设为false。此时你需要手动管理模拟流程——该模式在网络同步场景中尤为实用，例如当你需要在同一帧内多次调用Simulate()来重新模拟历史输入时。
 
 查看 KinematicCharacterSystem.FixedUpdate() 默认 autoSimulation loop 如何工作。
 
@@ -68,11 +68,11 @@ Core Scripts：
 - character gameObject 的 lossy scale（global scale）必须是 (1, 1, 1)，否则 physics 计算不能正确工作。这意味着它所有的 parents 的 scale 都必须是 (1, 1, 1)
 - 如果想在 play 中 resize capsule，总是使用 KinematicCharacterMotor 的 SetCapsuleDimensions 方法，因为它缓存了 capsule dimensions 的信息，这个信息稍后会被大多数 movement code 所使用。
 
-KinematicCharacterMotor采用无GC分配的物理查询方法，这意味着它使用固定大小的数组来存储查询结果。默认配置下，该组件最多可支持32个射线检测结果和32个碰撞体重叠结果的存储。如需更大容量，您可直接修改KinematicCharacterMotor中的"MaxHitsBudget"（最大射线检测预算）和"MaxCollisionBudget"（最大碰撞检测预算）常量值。
+KinematicCharacterMotor采用无GC分配的物理查询方法，这意味着它使用固定大小的数组来存储查询结果。默认配置下，该组件最多可支持32个射线检测结果和32个碰撞体重叠结果的存储。如需更大容量，你可直接修改KinematicCharacterMotor中的"MaxHitsBudget"（最大射线检测预算）和"MaxCollisionBudget"（最大碰撞检测预算）常量值。
 
 可以通过修改KinematicCharacterSystem中的"Interpolate"参数，全局控制所有KinematicCharacterMotors和PhysicsMovers的插值功能开关状态。
 
-若需实现基于动画根运动的角色移动，您只需在自定义角色控制器的OnAnimatorMove()方法中：
+若需实现基于动画根运动的角色移动，你只需在自定义角色控制器的OnAnimatorMove()方法中：
 
 - 获取动画器根运动位移(animator.deltaPosition)
 - 转换为速度向量(animator.deltaPosition/deltaTime)

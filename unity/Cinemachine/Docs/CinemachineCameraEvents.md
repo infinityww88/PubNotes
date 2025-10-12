@@ -2,17 +2,25 @@
 
 有时我们希望事件只针对特定的摄像机发送，这样脚本就可以根据该特定摄像机的活动得到通知，而无需编写代码来过滤事件。Cinemachine Events 组件正是为了满足这一需求而设计的。
 
-如果你将它添加到一个 Cinemachine 摄像机上，它将暴露出基于该摄像机活动而触发的事件。当你为该摄像机添加的任何监听器，都会在该摄像机的相应事件发生时被调用。
+如果将 CinemachineEvents 添加到一个 Cinemachine 摄像机上，它将暴露出基于该摄像机活动而触发的事件。当你为该摄像机添加的任何监听器，都会在该摄像机的相应事件发生时被调用。
 
-如果你想获取针对特定 CinemachineBrain 触发的事件，请参见 Cinemachine Brain 事件。
+CinemachineBrainEvent：获取针对特定 CinemachineBrain 触发的事件
 
-如果你想获取针对特定 CinemachineCameraManager 触发的事件，请参见 Cinemachine 摄像机管理器事件。
+![alt text](../Images/CinemachindBrainEvents.png) 
+
+CinemachineCameraEvent：获取针对特定 CinemachineCamera 触发的事件
+
+![alt text](../Images/CinemachineCameraEvents.png)
+
+CinemachineCameraManager：获取针对 CinemachineCameraManager 触发的事件
+
+![alt text](../Images/CinemachineCameraManagerEvents.png) 
 
 # 属性
 
 - Event Target
 
-  这是正在监控其事件的对象。如果为 null，并且当前 GameObject 具有一个 CinemachineVirtualCameraBase 组件，则将使用该组件。
+  这是正在被监控事件的对象。如果为 null，并且当前 GameObject 具有一个 CinemachineVirtualCameraBase 组件，则将使用该组件。
 
 - Camera Activated Event
 

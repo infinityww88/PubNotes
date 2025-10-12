@@ -6,7 +6,7 @@ Cinemachine 混合并不是淡入淡出、擦除或溶解效果。相反，Cinem
 
 ![CinemachineCustomBlends](../Images/CinemachineCustomBlends.png)
 
-“From”和“To”设置是基于名称而非引用的。这意味着Cinemachine通过将相机名称与这些设置进行匹配来查找相机。它们并未链接到具体的游戏对象(GameObject)。您可以使用内置的下拉菜单从当前场景中选择一个CinemachineCamera，或者直接在文本框中输入名称。如果输入的名称与当前场景中的任何CinemachineCamera都不匹配，该字段将以黄色高亮显示。
+“From”和“To”设置是基于名称而非引用的。这意味着Cinemachine通过将相机名称与这些设置进行匹配来查找相机。它们并未链接到具体的游戏对象(GameObject)。你可以使用内置的下拉菜单从当前场景中选择一个CinemachineCamera，或者直接在文本框中输入名称。如果输入的名称与当前场景中的任何CinemachineCamera都不匹配，该字段将以黄色高亮显示。
 
 使用保留名 \*\*ANY CAMEEA\*\* 指定 blend from 或 to 的任何 Cinemachine Camera。
 

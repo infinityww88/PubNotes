@@ -1,10 +1,10 @@
-使用 Cinemachine Target Group 可将多个游戏对象视为单一追踪目标。
+Cinemachine Target Group 将多个游戏对象视为单一追踪目标。
 
-该功能也可作为程序化行为的 target 使用，这类行为需要获知 target 尺寸信息，例如 Group Framing 扩展组件。
+Position Control 和 Rotation Control 既可以以当个 Transform 为 target，也可以以 Target Group 作为 Target。这类行为需要获知 target 尺寸信息，例如 Group Framing 扩展组件。
 
-要创建一个 Target Group，添加一个 CinemachineTargetGroup 组件到一个空 GameObject 上。
+要创建一个 Target Group，为一个空 GameObject 添加 CinemachineTargetGroup 组件。
 
-要创建一个带 Target Group 的 CinemachineCamera，选择 GameObject > Cinemachine > Target Group Camera。Unity 会向场景中添加要给新的 CinemachineCamera 和 Target Group。CinemachineCamera 中的 Follow 和 Look At targets 引用新的 Target Group。
+要创建一个带 Target Group 的 CinemachineCamera，选择 GameObject > Cinemachine > Target Group Camera。Unity 会向场景中添加一个新的 CinemachineCamera 和 Target Group。CinemachineCamera 中的 Follow 和 Look At targets 引用新的 Target Group。
 
 要将一个现有 CinemachineCamera target 转换为一个 target group：从 Cinemachine Camera 的 Inspector 中的 Tracking Target field 的弹出菜单中选择 Convert to TargetGroup。
 
@@ -24,7 +24,7 @@
 
 - Rotation Mode：如何计算 Target Group 的 rotation，作为这个整体 target 的 rotation
 
-  - Manual：使用 TargetGroup transform 的 Rotation 属性。这是建议设置
+  - Manual：使用 Target Group Game Object 自己的 transform 的 Rotation 属性。这是建议设置
   - Group Average：使用 TargetGroup 中所有 items 的加权平均 orientation
 
 - Update Method：何时更新 Target Group 的 transform

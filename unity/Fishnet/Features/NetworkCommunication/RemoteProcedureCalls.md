@@ -57,7 +57,7 @@ private void RpcSetNumber(int next)
 }
 ```
 
-在某些情况下，您可能需要让对象的所有者忽略接收到的ObserversRpc调用。为实现这一需求，只需在ObserversRpc特性中将ExcludeOwner属性设置为true即可。
+在某些情况下，你可能需要让对象的所有者忽略接收到的ObserversRpc调用。为实现这一需求，只需在ObserversRpc特性中将ExcludeOwner属性设置为true即可。
 
 ```C#
 [ObserversRpc(ExcludeOwner = true)]

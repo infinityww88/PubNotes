@@ -14,7 +14,7 @@ NetworkBehaviour lifecycle 回调是 NetworkObject 生成-销毁 过程中在 se
 
   当客户端完成身份验证（无论成功或失败）时，系统将触发此事件。该事件提供两个关键参数：相关的NetworkConnection对象，以及一个布尔值（用于标识该客户端是否验证成功）。
 
-  此事件非常实用，您可以通过它实现以下功能：
+  此事件非常实用，你可以通过它实现以下功能：
 
   存储成功连接服务器的客户端NetworkConnection；
 

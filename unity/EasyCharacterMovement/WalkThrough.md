@@ -10,13 +10,13 @@ ECM提供三种可扩展的基础控制器：
 
 推荐使用方式是继承某个基础控制器（如BaseCharacterController），通过派生自定义控制器并添加游戏特定逻辑来满足需求——毕竟最了解游戏需求的始终是开发者自己！
 
-需特别说明：虽然建议使用现成基础控制器，但这并非强制要求。您完全可以创建独立控制器，并依赖GroundDetection和CharacterMovement组件处理位移。但继承基础控制器能直接获得大量开箱即用的功能，这通常是更优选择。
+需特别说明：虽然建议使用现成基础控制器，但这并非强制要求。你完全可以创建独立控制器，并依赖GroundDetection和CharacterMovement组件处理位移。但继承基础控制器能直接获得大量开箱即用的功能，这通常是更优选择。
 
 # Custom Controllers
 
 使用ECM的推荐方式是：选择内置的基础控制器进行扩展，添加游戏特定功能。这样既能基于现有功能构建游戏基础，也可按需修改甚至完全替换控制器，而无需直接修改ECM源代码。
 
-这种方案的核心优势在于实现游戏代码与资源代码分离——当您更新ECM时，游戏代码将完全不受影响。
+这种方案的核心优势在于实现游戏代码与资源代码分离——当你更新ECM时，游戏代码将完全不受影响。
 
 创建自定义控制器非常简单：
 
@@ -34,11 +34,11 @@ public sealed class MyCharacterController : BaseCharacterController
 } 
 ```
 
-要使用新创建的自定义控制器（MyCharacterController），您只需执行以下操作：将角色GameObject上的BaseCharacterController组件替换为MyCharacterController即可——由于继承关系，新控制器将完整保留BaseCharacterController的所有功能。
+要使用新创建的自定义控制器（MyCharacterController），你只需执行以下操作：将角色GameObject上的BaseCharacterController组件替换为MyCharacterController即可——由于继承关系，新控制器将完整保留BaseCharacterController的所有功能。
 
 # Custom Input
 
-ECM将所有输入相关逻辑都封装在BaseCharacterController的HandleInput方法中。在您的自定义控制器（继承自某个基础控制器）中，可以通过重写该方法来实现自定义输入方案，例如：
+ECM将所有输入相关逻辑都封装在BaseCharacterController的HandleInput方法中。在你的自定义控制器（继承自某个基础控制器）中，可以通过重写该方法来实现自定义输入方案，例如：
 
 移动端输入支持
 Unity新版Input System等
@@ -80,7 +80,7 @@ public sealed class MyCharacterController : BaseCharacterController
 
 随后（在BaseCharacterController的CalcDesiredVelocity方法中），ECM会使用这个moveDirection向量（当前由输入直接填充）来计算角色的期望速度。因此，要实现角色相对于摄像机视角的移动，可采用以下方案：
 
-在您的HandleInput方法中，只需使用内置的扩展辅助方法，将moveDirection输入指令转换到主摄像机相对坐标系即可：
+在你的HandleInput方法中，只需使用内置的扩展辅助方法，将moveDirection输入指令转换到主摄像机相对坐标系即可：
 
 moveDirection = moveDirection.relativeTo(mainCamera.transform);
 

@@ -15,7 +15,7 @@ Timeline 覆盖 Cinemachine Brain 决定的优先级。当 timeline 完成时，
 - 创建一个 Empty GameObject，命名为 IntroTimeline
 - 选中这个 GameObject，创建一个 Timeline Asset 和 instance
 - 点击 Timeline window 的 lock 按钮，锁定 Timeline instance，使得更加容易地编辑 timeline
-- 将一个 带 CinemachineBrain 的 Unity Camera 拖拽到 Timeline Editor 中，然后在下拉菜单中选择 Create Cinemachine Track
+- 将一个 **带 CinemachineBrain 的 Unity Camera** 拖拽到 Timeline Editor 中，然后在下拉菜单中选择 Create Cinemachine Track
 - 添加其他 tracks 到 Timeline 来控制场景中的其他东西，例如 Animation track 来活动 main character
 
 提示：可删除引用你的 Timeline object 的默认 track。这个 track 对 Timeline 不是必须的。
@@ -32,3 +32,4 @@ Timeline 覆盖 Cinemachine Brain 决定的优先级。当 timeline 完成时，
 - 要动画 CinemachineCamera 的属性，为它创建 Animation Track，并向其他任意 GameObject 一样为其添加动画
 - 组织你的 Timeline tracks，并精细调整场景
 
+要创建 Cinemachine Track，要将 Cinemachine Brain 拖拽到 Timeline，而不是 Cinemachine Camera。不仅可以为 CC 创建 Cinemachine Track Shot，还可以创建普通的 Activate Track Shot，还有 Animation Track Shot。

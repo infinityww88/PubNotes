@@ -2,7 +2,7 @@
 
 SceneManager 提供了多种事件机制来辅助开发，且事件的触发顺序是稳定可靠的。
 
-下图展示了事件执行的预期顺序。您也可以在 Fish-Networking 导入包的 Example/All/SceneManager 路径下找到该示意图。
+下图展示了事件执行的预期顺序。你也可以在 Fish-Networking 导入包的 Example/All/SceneManager 路径下找到该示意图。
 
 ![SceneEvent](../../Image/SceneEvent.png)
 
@@ -14,9 +14,9 @@ SceneManager 提供了多种事件机制来辅助开发，且事件的触发顺�
 
 ### OnClientLoadedStartScenes
 
-每当客户端首次加载起始场景时，该事件就会被触发。起始场景可以是您设置的任何全局场景；如果没有设置全局场景，则为您进入游戏时所加载的场景。PlayerSpawner.cs 示例展示了 OnClientLoadedStartScenes 事件的使用方法。该事件包含 connection 信息（即加载了这些场景的客户端），以及一个布尔值，用于指示回调是在服务器端（值为 true）还是在客户端（值为 false）执行的。
+每当客户端首次加载起始场景时，该事件就会被触发。起始场景可以是你设置的任何全局场景；如果没有设置全局场景，则为你进入游戏时所加载的场景。PlayerSpawner.cs 示例展示了 OnClientLoadedStartScenes 事件的使用方法。该事件包含 connection 信息（即加载了这些场景的客户端），以及一个布尔值，用于指示回调是在服务器端（值为 true）还是在客户端（值为 false）执行的。
 
-如果您只想知道某个特定 connection 何时加载了起始场景，NetworkConnection 类也提供了一个类似事件 OnLoadedStartScenes。
+如果你只想知道某个特定 connection 何时加载了起始场景，NetworkConnection 类也提供了一个类似事件 OnLoadedStartScenes。
 
 ### OnQueueStart, OnQueueEnd
 
@@ -24,22 +24,22 @@ SceneManager 提供了多种事件机制来辅助开发，且事件的触发顺�
 
 ### OnLoadStart, OnUnloadStart
 
-OnLoadStart 和 OnUnloadStart 在队列条目开始处理之前触发。对于队列中的每个条目，这两个事件都会被调用。例如：如果您连续两次调用 SceneManager.LoadGlobalScenes()，则 OnQueueStart 仅会触发一次，而 OnLoadStart 会触发两次。当某个场景的加载开始时，会调用 OnLoadStart；当某个场景的卸载开始时，会调用 OnUnloadStart。
+OnLoadStart 和 OnUnloadStart 在队列条目开始处理之前触发。对于队列中的每个条目，这两个事件都会被调用。例如：如果你连续两次调用 SceneManager.LoadGlobalScenes()，则 OnQueueStart 仅会触发一次，而 OnLoadStart 会触发两次。当某个场景的加载开始时，会调用 OnLoadStart；当某个场景的卸载开始时，会调用 OnUnloadStart。
 
-加载和卸载事件都包含一个结构体，其中有一个名为 QueueData 的字段。QueueData 保存了有关该队列条目的信息。提供这些数据是为了方便您使用。
+加载和卸载事件都包含一个结构体，其中有一个名为 QueueData 的字段。QueueData 保存了有关该队列条目的信息。提供这些数据是为了方便你使用。
 
 ### OnLoadPercentChange
 
-仅在加载场景时可用的事件是 **OnLoadPercentChange** 。该事件包含了当前队列条目中场景已加载的百分比信息。与启动类事件类似，它也会提供 **QueueData**。此外，您还会获得一个 **float 类型** 的 **Percent** 值，表示当前场景加载的总体进度。这个信息可用于显示加载界面，或者执行各种初始化任务。
+仅在加载场景时可用的事件是 **OnLoadPercentChange** 。该事件包含了当前队列条目中场景已加载的百分比信息。与启动类事件类似，它也会提供 **QueueData**。此外，你还会获得一个 **float 类型** 的 **Percent** 值，表示当前场景加载的总体进度。这个信息可用于显示加载界面，或者执行各种初始化任务。
 
 ### OnLoadEnd
 
 **OnLoadEnd** 事件会在队列条目中的所有场景加载完成后被调用。该事件只有在所有场景完全加载完毕，并且（如果适用）活动场景已经设置后才会触发。与 **OnLoadStart** 事件类似，该事件也会提供 **QueueData**。此外，它还提供了两个字段：**LoadedScenes** 和 **SkippedSceneNames**。  
 
-- **LoadedScenes** 提供了已加载场景的 **Scene 引用**，您可以据此获取具体加载了哪些场景。  
+- **LoadedScenes** 提供了已加载场景的 **Scene 引用**，你可以据此获取具体加载了哪些场景。  
 - **SkippedSceneNames** 包含了未被加载的场景名称（字符串形式）；这通常发生在这些场景已经被加载的情况下。
 
-您可能希望在场景加载完成后为玩家生成对象，但最好等到特定客户端开始观察该场景后再执行此操作，以避免竞态条件。因此，更推荐使用 **OnClientPresenceChange** 事件之一，或者通过场景中的 **NetworkBehaviour** 调用 **OnSpawnServer** 方法。
+你可能希望在场景加载完成后为玩家生成对象，但最好等到特定客户端开始观察该场景后再执行此操作，以避免竞态条件。因此，更推荐使用 **OnClientPresenceChange** 事件之一，或者通过场景中的 **NetworkBehaviour** 调用 **OnSpawnServer** 方法。
 
 ### OnUnloadEnd
 

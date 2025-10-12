@@ -10,7 +10,7 @@ CinemachineCamera 是一个组件，可以添加到一个空的 GameObject 上�
 
 # Passive Cameras
 
-CinemachineCamera 本身是一个被动对象，这意味着它的变换（transform）可以被控制或作为其他对象的父级，就像任何其他 GameObject 一样。它充当真实相机的占位符：当它处于 Live 状态时，Unity 相机会被定位以匹配 CinemachineCamera 的变换，并且其镜头设置也会与之匹配。此外，作为 Cinemachine 生态系统的一部分，它可以参与混合（blend），并且可以通过 Timeline 中的 Cinemachine 轨道进行控制。你还可以添加诸如冲击力（impulse）、后期处理（post-processing）、噪声（noise）以及其他扩展效果，以增强镜头的表现力。
+CinemachineCamera 本身是一个被动对象，这意味着它的变换（transform）可以被控制或作为其他对象的 Child，就像任何其他 GameObject 一样。它充当真实相机的占位符：当它处于 Live 状态时，Unity 相机会被定位以匹配 CinemachineCamera 的变换，并且其镜头设置也会与之匹配。此外，作为 Cinemachine 生态系统的一部分，它可以参与混合（blend），并且可以通过 Timeline 中的 Cinemachine 轨道进行控制。你还可以添加诸如冲击力（impulse）、后期处理（post-processing）、噪声（noise）以及其他扩展效果，以增强镜头的表现力。
 
 当 CinemachineCamera 激活工作时，它的 Transform （position，rotation）完全被跟踪算法组件控制，其他组件对 Transform 的修改将无效。
 
@@ -26,6 +26,8 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
   toggle CinemachineCamera 是否临时处于活跃状态。使用此属性可在 Game View 中立即获得视觉反馈，以便调整CinemachineCamera。
 
+  很多时候，场景中会有多个 CC，只有优先级最高的才真正渲染场景。但是编辑的时候，每个 CC 都需要单独编辑，为了查看编辑的效果，必须将这个 CC 变成当前 Active 的 Camera。一种方法就是调整这个 CC 的优先级为最高，但是这样比较麻烦。Solo 就是为了解决这个问题，点击 Solo 按钮，这个 CC 将忽略优先级，直接变成当前 Active 的 Camera，然后就可以编辑并查看效果。再次点击 Solo，CC 就回到正常的优先级。
+
 - Game View Guides
 
   切换 Game View 中 compositional 辅助线的可见性。当"追踪目标"指定了一个游戏对象，并且 CinemachineCamera 具有 screen-composition 行为（如Position Composer 或 Rotation Composer）时，这些辅助线就会显示。此设置对所有 CinemachineCameras 共享。
@@ -36,7 +38,7 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
 - Save During Play
 
-  勾选此项可在游戏运行模式下应用更改。使用此功能可以精细调整CinemachineCamera，无需记住哪些属性需要复制粘贴。此设置对所有CinemachineCameras通用。
+  勾选此项可在游戏运行模式下应用更改。使用此功能可以精细调整 CinemachineCamera，无需记住哪些属性需要复制粘贴。此设置对所有 CinemachineCameras 通用。
 
 - Priority And Channel
 
@@ -44,19 +46,19 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
   - Channel
 
-    此设置用于控制哪个CinemachineBrain将由该摄像机驱动。当场景中存在多个CinemachineBrain时（例如实现分屏功能时）需要使用此功能。
+    此设置用于控制哪个 CinemachineBrain 将由该摄像机驱动。当场景中存在多个 CinemachineBrain 时（例如实现分屏功能时）需要使用此功能。
 
   - Priority
 
-    此设置用于控制在未受Timeline控制时，多个活跃的CinemachineCameras中哪一个应该处于活跃状态。默认情况下，优先级为0。使用此设置可以指定自定义的优先级值。数值越高表示优先级越高。也允许使用负值。当没有使用Timeline时，Cinemachine Brain会从所有已激活且具有与当前活跃CinemachineCamera相同或更高优先级的CinemachineCameras中选择下一个活跃的CinemachineCamera。在使用Timeline配合CinemachineCamera时，此属性无效。
+    此设置用于控制在未受 Timeline 控制时，多个活跃的 CinemachineCameras 中哪一个应该处于活跃状态。默认情况下，优先级为 0。使用此设置可以指定自定义的优先级值。数值越高表示优先级越高。也允许使用负值。当没有使用 Timeline 时，Cinemachine Brain 会从所有已激活且具有与当前活跃 CinemachineCamera 相同或更高优先级的 CinemachineCameras 中选择下一个活跃的 CinemachineCamera。在使用 Timeline 配合 CinemachineCamera时，此属性无效。
 
 - Tracking Target
 
-  CinemachineCamera程序化跟随的目标游戏对象。程序化算法在更新Unity相机的位置和旋转时，会将该目标作为输入使用。
+  CinemachineCamera 程序化跟随的目标游戏对象。程序化算法在更新 Unity 相机的位置和旋转时，会将该目标作为输入使用。
 
 - Look At Target
 
-  如果启用，这将指定一个不同的目标游戏对象，Unity相机将瞄准该目标。Rotation Control 属性使用此目标来更新Unity相机的旋转。
+  如果启用，这将指定一个不同的目标游戏对象，Unity 相机将瞄准该目标。Rotation Control 属性使用此目标来更新 Unity 相机的旋转。
 
 - Standby Update
 
@@ -90,9 +92,9 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
 - Mode Override
 
-  允许你选择不同的相机模式，在Cinemachine激活此CinemachineCamera时应用到Unity相机组件上。
+  允许你选择不同的相机模式，在 Cinemachine 激活此 CinemachineCamera 时应用到 Unity 相机组件上。
 
-  重要提示：要使此覆盖设置生效，你必须在CinemachineBrain检查器中启用"镜头模式覆盖"选项，并在那里指定一个默认镜头模式。
+  重要提示：要使此覆盖设置生效，你必须在 CinemachineBrain 检查器中启用"镜头模式覆盖"选项，并在那里指定一个默认镜头模式。
 
   - None：保持相机中的投影（Projection）和物理相机（Physical Camera）属性不变。
 
@@ -104,7 +106,7 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
 - Blend Hint
 
-  为进出此 CinemachineCamera 时的位置混合提供提示。这些值可以组合使用。
+  为进出此 CinemachineCamera 时的**位置**混合提供提示。这些值可以组合使用。
 
   - Spherical Position
 
@@ -132,8 +134,6 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
     即将混合目标冻结为其淡出时刻的状态。淡出过程中，相机不会继续更新。
 
-    所谓的状态就是相机的各种参数：位置、旋转、Lens，FOV 等等。
-
 - Position Control
 
   用于快速设置 CinemachineCamera 程序化 positioning behaviour 的 short cut。
@@ -152,4 +152,31 @@ CinemachineCamera 本身是一个被动对象，这意味着它的变换（trans
 
   用于快速设置 CinemachineCamera 添加过程化 extension 行为的 short cut。
   
+# BlendHint
 
+**BlendHint**（混合提示）是Cinemachine虚拟相机（CinemachineVirtualCamera）中**Transitions（过渡）**模块的关键属性，用于**控制虚拟相机在与其他虚拟相机混合（切换）时的运动轨迹逻辑**。它决定了相机从一个位置/方向过渡到另一个位置/方向时的路径形状，直接影响镜头切换的自然度与视觉效果。  
+
+### **BlendHint的可选值及具体作用**  
+BlendHint提供多种预设的混合模式，开发者可根据场景需求选择：  
+- **None（无）**：默认模式，采用**线性混合**。相机从一个位置直接线性移动到目标位置，旋转也以线性方式变化，适合简单的、不需要复杂轨迹的切换场景（如快速切换至远景镜头）。  
+- **Spherical Position（球面位置）**：基于**Look At目标**生成**球面旋转混合**。相机的移动轨迹会围绕Look At目标形成一个球面，适合需要“环绕感”的场景（如角色对话中的镜头环绕、BOSS战的视角环绕），能增强场景的沉浸感。  
+- **Cylindrical Position（柱面位置）**：基于**Look At目标**生成**柱面旋转混合**。相机在水平方向上沿圆弧移动（类似圆柱侧面），垂直方向上保持线性变化，适合特写镜头的切换（如从角色全身切至面部特写），能保持画面的稳定性。  
+- **Screen Space Aim When Targets Differ（目标不同时屏幕空间瞄准）**：相机在切换位置时走**直线**，但在切换视线（Aim）时走**屏幕空间圆弧形路径**。适合需要“视线引导”的场景（如从角色背后切至前方时，视线先沿屏幕弧线移动），能引导玩家注意力。  
+- **Inherit Position（继承位置）**：开启后，当虚拟相机变为Live状态时，会**继承上一个Live相机的位置**（保持两者位置相同）。适合需要“无缝衔接”的场景（如Timeline中的连续镜头），避免位置突变。  
+
+
+### **BlendHint的使用逻辑与注意事项**  
+- **作用时机**：BlendHint仅在**虚拟相机混合（切换）**时生效，即当Cinemachine Brain从一个虚拟相机切换至另一个虚拟相机时，会根据BlendHint的值计算过渡轨迹。  
+- **与Body模块的关联**：BlendHint的运动轨迹受Body模块的**Binding Mode**（绑定模式）影响。例如，若Body的Binding Mode为“World Space”（世界空间），BlendHint的球面/柱面混合会基于世界坐标系计算；若为“Lock To Target”（锁定目标），则会基于目标的本地坐标系计算。  
+- **选择建议**：根据场景的镜头需求选择合适的BlendHint。例如：  
+  - 角色对话场景：使用**Spherical Position**实现镜头环绕，增强互动感；  
+  - 特写切换场景：使用**Cylindrical Position**保持画面稳定，避免视角跳动；  
+  - 快速切换场景：使用**None**或**Inherit Position**，减少过渡时间。
+
+当两个 CC 进行切换混合时，虚拟相机需要再空间中走一条路径，从之前的 CC 过渡到新的 CC 的位置，BlendHint 就是控制这条路径如何生成的。如下图所示，前面是没有指定 BlendHint，虚拟相机简单地直线过渡到新的位置，而后面是指定了 Sphere Position，可以看见 Cinemachine 基于 LookAt Target 和新旧两个 CC 计算出一个 Sphere，并在 Sphere 上找到一条最短弧路径，作为 Blend 时虚拟相机走的路径。
+
+![](../Images/BlendHint.gif)
+
+Cylindrical Position 则是根据 LookAt Target 和新旧两个 CC 创建一个圆柱体，然后虚拟相机水平沿着圆柱体弧线运动，垂直方向沿着轴线方向线性运动。
+
+BlendHint 只控制相机的位置，并且需要指定 LookAt Target。

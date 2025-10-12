@@ -97,9 +97,9 @@ public static ItemBase ReadItembase(this Reader reader)
 }
 ```
 
-除了封装处理通用情况之外，您仍然可以为单个类创建自定义序列化器！举个例子，如果您为Currency类编写了专属序列化器，那么上述代码在执行时就会优先调用您自定义的Currency序列化器，而不会使用Fish-Networking自动生成的版本。
+除了封装处理通用情况之外，你仍然可以为单个类创建自定义序列化器！举个例子，如果你为Currency类编写了专属序列化器，那么上述代码在执行时就会优先调用你自定义的Currency序列化器，而不会使用Fish-Networking自动生成的版本。
 
-最后，我们来说明设计ItemBase基类的原因。该类的唯一作用就是防止读取器陷入无限循环。试想一下，如果我们只返回Item类型，并且同时将其作为基类使用，那么您的读取器代码可能会变成这样...
+最后，我们来说明设计ItemBase基类的原因。该类的唯一作用就是防止读取器陷入无限循环。试想一下，如果我们只返回Item类型，并且同时将其作为基类使用，那么你的读取器代码可能会变成这样...
 
 ```C#
 public static Item ReadItem(this Reader reader)
@@ -120,6 +120,6 @@ public static Item ReadItem(this Reader reader)
 }
 ```
 
-问题就出在 return reader.Read<Item>(); 这行代码上。当你在同一个序列化器中调用相同类型的读取方法时，会导致系统反复执行 ReadItem 方法——先执行一次 return reader.Read<Item>();，接着再次调用 ReadItem，然后又是 return reader.Read<Item>();... 如此循环往复，相信您已经明白问题所在了。
+问题就出在 return reader.Read<Item>(); 这行代码上。当你在同一个序列化器中调用相同类型的读取方法时，会导致系统反复执行 ReadItem 方法——先执行一次 return reader.Read<Item>();，接着再次调用 ReadItem，然后又是 return reader.Read<Item>();... 如此循环往复，相信你已经明白问题所在了。
 
 而通过引入 ItemBase 这样的基类（该基类本身不能作为返回类型），我们就能从根本上杜绝这种无限循环的情况发生。

@@ -1,6 +1,6 @@
 ScriptableObject 配置 Fishnet 会打印哪些日志内容。
 
-​​Level Logging Configuration（日志级别配置）​​ 是一个可编程资源脚本对象 ScriptableObject，用于自定义 Fish-Networking 的日志输出。创建后，您可以在 NetworkManager 组件中选择该配置。
+​​Level Logging Configuration（日志级别配置）​​ 是一个可编程资源脚本对象 ScriptableObject，用于自定义 Fish-Networking 的日志输出。创建后，你可以在 NetworkManager 组件中选择该配置。
 
 系统提供四种日志级别，适用于不同的构建类型和编辑器环境：
 

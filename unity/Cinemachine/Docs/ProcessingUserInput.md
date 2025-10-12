@@ -1,8 +1,8 @@
-Cinemachine 相机并不直接处理用户输入。相反，它们会暴露出一些轴（axes），这些轴可以由脚本、动画或用户输入来驱动。Cinemachine尽可能保持对输入来源的中立性，这样它就能兼容Unity的Input System、Unity的旧版输入管理器或其他第三方输入系统。
+Cinemachine 相机并不直接处理用户输入。相反，它们会暴露出一些轴（axes），这些轴可以由脚本、动画或用户输入来驱动。Cinemachine 尽可能保持对输入来源的中立性，这样它就能兼容 Unity 的Input System、Unity的旧版输入管理器或其他第三方输入系统。
 
 Cinemachine 自带 CinemachineInputAxisController 组件。当将其添加到 CinemachineCamera 上时，它会自动检测所有可由用户输入驱动的轴（axes），并暴露相关设置，让你能够控制这些轴的数值。
 
-它同时兼容 Unity 的 Input System 包和 Unity 的旧版输入管理器。您也可以将其作为模板，用于编写自定义的输入处理器。
+它同时兼容 Unity 的 Input System 包和 Unity 的旧版输入管理器。你也可以将其作为模板，用于编写自定义的输入处理器。
 
 CinemachineInputAxisController 不仅将输入映射到已公开的 axis 上，还为每个 axis 提供设置以通过加速/减速和增益来调整响应性。
 
@@ -42,7 +42,7 @@ CinemachineInputAxisController 不仅将输入映射到已公开的 axis 上，�
 
 - Input Action
 
-  如果使用 Input 包，驱动 axis 的 Input Action 的引用。 
+  如果使用 Input System 包，驱动 axis 的 Input Action 的引用。 
 
 - Gain
 

@@ -49,9 +49,18 @@ Cinemachine Spline Cart 是一个组件，它将其 GameObject 的变换约束�
 - Position：沿样条线放置推车（Cart）的位置。可以直接对此进行动画制作，或者如果速度不为零，则会根据更新方法（Update Method）指定的时间自动更新该位置。该值的解释依据位置单位（Position Units）而定。
 - Automatic Dolly：是否沿着 spline 自动移动
 - Method：控制自动推车移动的方式。可以通过编写自定义的 SplineAutoDolly.ISplineAutoDolly 类来实现对此功能的扩展
-  - None：不进行自动推车移动。您必须通过设置 PathPosition 来手动控制 Cinemachine 相机在样条线上的位置
+  - None：不进行自动推车移动。你必须通过设置 PathPosition 来手动控制 Cinemachine 相机在样条线上的位置
   - Fixed Speed：Camera 沿着 path 以固定速度移动，可以设置速度值
   - Nearest Point To Target：将相机定位在样条线上距离追踪目标位置最近的点上。Cinemachine相机中必须设置追踪目标（Tracking Target）。还可以指定相对于最近点的偏移量，以微调相机的位置。
 
 **注意，Cinemachine Camera 除了 Hard Lock，不会位于 Target 的位置上，通常是跟在 Target 后面，或者围绕着 Target 的球面或曲线上，即它的位置被约束在球面或曲线上，但是会 Look At Target。这个扩展就是为 Camera 指定一个 Spline**
 
+# Cinemachine Spline Smoother
+
+这个组件可以挂载到带有 SplineContainer 的 GameObject（即 Spline GameObject）上。它可以为 spline 应用 smooth。
+
+Smoothing 自动调整 knot tangents 来维护 spline 的 second-order smoothness（二次平滑），使它更适合用作 camera paths。
+
+Smoothing 使很消耗性能的，因为当调整任何一个 knot 时，整个 path 都必须被考虑。
+
+在 Editor mode，提供了一个 Auto Smooth 选项，当 spline 被修改时，自动进行 smooth。在运行时，只能手动调用 SmoothSplineNow() 函数进行平滑。

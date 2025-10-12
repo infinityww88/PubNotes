@@ -1,4 +1,4 @@
-Cinemachine支持正交相机。当您将Unity相机的投影模式设置为“正交（Orthographic）”时，Cinemachine会自动适配这种模式，无需额外配置。  
+Cinemachine支持正交相机。当把Unity相机的投影模式设置为“正交（Orthographic）”时，Cinemachine会自动适配这种模式，无需额外配置。  
 
 在 CinemachineCamera 组件的镜头 Lens 设置中，原本用于透视相机的“视场角（FOV）”参数会被替换为“正交尺寸（Orthographic Size）”。该参数决定了正交相机的视口大小，直接影响画面中物体的显示比例——数值越大，画面涵盖的范围越广；数值越小，画面细节越集中。  
 

@@ -10,7 +10,7 @@
 
 在运行时，如果这个组件不存在，它会自动添加到 network object。
 
-FishNet 提供了多个内置观察条件，这些条件可以组合使用。您也可以继承 ObserverCondition 类来自定义专属条件。当所有条件全部成立时，该对象将对客户端可见。
+FishNet 提供了多个内置观察条件，这些条件可以组合使用。你也可以继承 ObserverCondition 类来自定义专属条件。当所有条件全部成立时，该对象将对客户端可见。
 
 每个条件都必须创建为 ScriptableObject 脚本化对象，并拖拽到 NetworkObserver 组件中进行配置。
 

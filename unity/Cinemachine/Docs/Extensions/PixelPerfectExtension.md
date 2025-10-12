@@ -2,7 +2,7 @@ Pixel Perfect Camera 与 Cinemachine 都会修改摄像机的正交尺寸（orth
 
 Cinemachine Pixel Perfect 是 CinemachineCamera 的一个扩展，它专门用于调整 CinemachineCamera 的正交尺寸。该扩展能自动检测场景中的 Pixel Perfect Camera 组件，并利用其配置参数来计算 CinemachineCamera 的最佳正交尺寸，从而确保精灵（Sprites）始终以像素完美的分辨率进行渲染。
 
-如需为您的 CinemachineCamera 添加此扩展，请在 CinemachineCamera 的检查器（Inspector）窗口中使用 "Add Extension" 下拉菜单进行操作。请务必将此扩展添加到项目中的每一个 CinemachineCamera 上。
+如需为你的 CinemachineCamera 添加此扩展，请在 CinemachineCamera 的检查器（Inspector）窗口中使用 "Add Extension" 下拉菜单进行操作。请务必将此扩展添加到项目中的每一个 CinemachineCamera 上。
 
 对于每个附加了此扩展的CinemachineCamera，Pixel Perfect Camera组件会在播放模式下或启用"Run In Edit Mode"时，计算出一个最能匹配该CinemachineCamera原始尺寸的像素完美正交尺寸。此举旨在实施像素完美计算的同时，尽可能贴近每个CinemachineCamera最初的构图框架。
 

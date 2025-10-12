@@ -10,9 +10,9 @@ ServerSpawner 组件是 FishNet 提供的实用工具，可用于在服务器成
 
 - Automatically Spawn
 
-  该选项决定了组件是在服务器启动时立即实例化并生成对象，还是仅在您手动调用 ServerSpawner 组件的 Spawn 方法后执行。
+  该选项决定了组件是在服务器启动时立即实例化并生成对象，还是仅在你手动调用 ServerSpawner 组件的 Spawn 方法后执行。
 
-  如果您希望手动控制这些对象的生成时机，可以禁用此选项。
+  如果你希望手动控制这些对象的生成时机，可以禁用此选项。
 
 - Network Objects
 

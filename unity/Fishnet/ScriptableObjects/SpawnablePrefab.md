@@ -14,7 +14,7 @@ FishNet 会根据你在 Fish-Networking 配置中指定的目录路径，自动�
 
 ## SinglePrefabObjects
 
-Single Prefab Objects（单预制体对象）​​ 是一个可编程脚本资源，您可以通过继承它来实现自定义功能。
+Single Prefab Objects（单预制体对象）​​ 是一个可编程脚本资源，你可以通过继承它来实现自定义功能。
 
 该资源既被 ​​DefaultPrefabObjects 集合​​所使用，也可以直接用于你自定义的集合。
 

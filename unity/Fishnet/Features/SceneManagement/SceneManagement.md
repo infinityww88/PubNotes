@@ -1,6 +1,6 @@
-Fish-Networking 框架内置了一个强大的场景管理工具，它能让您以极低的成本实现网络场景同步，同时提供了大量高级功能选项。
+Fish-Networking 框架内置了一个强大的场景管理工具，它能让你以极低的成本实现网络场景同步，同时提供了大量高级功能选项。
 
-SceneManager 组件提供了多种场景功能，以满足您的多人游戏需求。
+SceneManager 组件提供了多种场景功能，以满足你的多人游戏需求。
 
 Fishnet.SceneManager 和 Unity SceneManager 使用的是一样的 Scene，Fishnet.SceneManager 是建立在 Unity SceneManager 基础上的。
 

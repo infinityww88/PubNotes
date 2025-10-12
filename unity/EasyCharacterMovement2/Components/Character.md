@@ -10,7 +10,7 @@ Character 类基于它当前的 mode 指示它的移动，将移动的执行委�
 
 Auto-simulation 开启时（默认选项），Character 通过 coroutine 实现了一个 LateFixedUpdate。这确保 Character 在 Unity 内部 Physics update 之后模拟，这是实现无缝 physical 交互的关键步骤。
 
-本质上，角色（Character）会解析输入 vectors 和 events（包括用于控制角色的键盘输入），并将这些输入转换为对角色位置和旋转的更新。这一过程在不同的移动模式（如行走、飞行、游泳，或您可能创建的任何自定义模式）中实现，每种模式定义了输入的处理方式，并影响最终的输出结果。
+本质上，角色（Character）会解析输入 vectors 和 events（包括用于控制角色的键盘输入），并将这些输入转换为对角色位置和旋转的更新。这一过程在不同的移动模式（如行走、飞行、游泳，或你可能创建的任何自定义模式）中实现，每种模式定义了输入的处理方式，并影响最终的输出结果。
 
 所有这些发生在 Simulate 方法中，并按照以下执行顺序：
 

@@ -57,7 +57,7 @@ private void Update()
 }
 ```
 
-与其他 SyncType 一样，您可以为 SyncTimer 订阅变更事件。
+与其他 SyncType 一样，你可以为 SyncTimer 订阅变更事件。
 
 ```C#
 private void Awake()

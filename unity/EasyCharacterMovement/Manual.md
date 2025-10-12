@@ -84,7 +84,7 @@ CharacterMovement 是 ECM 系统的核心，负责移动一个 character 的所�
 ## BaseGroundDetection
 
 这是一个抽象类，主要负责执行地面检测，并提供与"地面"相关的信息，例如地面接触点（角色与地面的接触位置）、地面法线等。
-若需要，您可以扩展此类以实现自定义的地面检测方法。
+若需要，你可以扩展此类以实现自定义的地面检测方法。
 我们提供了一个功能强大的GroundDetection类（继承自抽象类BaseGroundDetection），它能够检测并报告完整的地面信息，例如：
 
 - 角色是否站在平台边缘？
@@ -93,10 +93,10 @@ CharacterMovement 是 ECM 系统的核心，负责移动一个 character 的所�
 - 角色是否位于斜坡上？
 - 等等。
 
-如您所见，它提供了一系列有价值的数据，能帮助您更好地将角色动画与周围地形同步。
-此外，您可以通过新方法ComputeGroundHit随时查询角色与地面的距离（及其他附加数据），且支持任意指定位置。
+如你所见，它提供了一系列有价值的数据，能帮助你更好地将角色动画与周围地形同步。
+此外，你可以通过新方法ComputeGroundHit随时查询角色与地面的距离（及其他附加数据），且支持任意指定位置。
 还新增了一个辅助方法SweepTest，用于测试角色在场景中移动时是否会与其他物体发生碰撞。
-请注意：您不应直接查询/缓存BaseGroundDetection组件，而应通过CharacterMovement组件公开的方法和属性来操作。
+请注意：你不应直接查询/缓存BaseGroundDetection组件，而应通过CharacterMovement组件公开的方法和属性来操作。
 
 ## Ground Detection
 
@@ -127,10 +127,10 @@ CharacterMovement 是 ECM 系统的核心，负责移动一个 character 的所�
 新的 ​GroundDetection​ 组件新增了 ​groundLimit​ 属性，用于有效区分可行走的“地面”（ground）和“墙壁”（walls）。因此，在某些情况下，角色的胶囊体（capsule）可能接触到了“地面”，但根据配置参数，该地面属于“无效地面”（invalid ground）。此时，系统会在胶囊体底部显示一个蓝色球体，以标示该“无效地面”。
 
 另一方面，当角色处于有效地面（即任何可行走的"地面"，且地面角度小于指定的 ​groundLimit）​并且​ 接触地面（其胶囊体底部的球体触碰到任何"地面"）时，才会被判定为已着陆（grounded）。
-您可以通过 ​CharacterMovement​ 组件的 ​isGrounded​ 属性轻松查询此状态，或结合 ​isOnGround​ 和 ​isValidGround​ 属性进行更精确的判断。
+你可以通过 ​CharacterMovement​ 组件的 ​isGrounded​ 属性轻松查询此状态，或结合 ​isOnGround​ 和 ​isValidGround​ 属性进行更精确的判断。
 
 当角色处于着陆状态时，其胶囊体底部会显示一个绿色球体作为视觉提示。
-此外，您可以通过 ​CharacterMovement​ 组件的一系列地面状态属性来查询角色当前的"着地"信息，例如：
+此外，你可以通过 ​CharacterMovement​ 组件的一系列地面状态属性来查询角色当前的"着地"信息，例如：
 
 - ​isGrounded​（是否完全着陆）
 - ​isOnGround​（是否接触地面）
@@ -144,7 +144,7 @@ CharacterMovement 是 ECM 系统的核心，负责移动一个 character 的所�
 
 ECM v1.6版本新增了台阶攀爬功能，角色最高可攀爬高度为其碰撞体半径值（通过stepOffset属性设置）。
 
-您可以使用CharacterMovement组件的isOnStep属性来检测角色是否处于台阶上，并通过stepHeight属性获取当前台阶的实际高度。
+你可以使用CharacterMovement组件的isOnStep属性来检测角色是否处于台阶上，并通过stepHeight属性获取当前台阶的实际高度。
 
 当位于台阶上时，ECM 会显示 step bottom ground point（黑色 point），和 step 高度（黑色 line）。
 
@@ -152,9 +152,9 @@ ECM v1.6版本新增了台阶攀爬功能，角色最高可攀爬高度为其碰
 
 ECM的一项新特性是其独特的悬崖边缘处理机制：当检测到悬崖边缘时，CharacterMovement组件会自动将角色胶囊体底部视为平面（而非默认的圆弧形状）。这种创新设计有效解决了传统物理模拟中常见的"边缘平衡"问题——即角色胶囊体在悬崖边缘"摇晃平衡"时导致的缓慢滑落现象。
 
-新增的 ledgeOffset 属性允许您精确配置角色在悬崖边缘的最大站立距离 - 超过这个预设阈值时，角色才会开始滑落。这个参数本质上定义了角色胶囊体可以安全悬空延伸的物理容差范围。
+新增的 ledgeOffset 属性允许你精确配置角色在悬崖边缘的最大站立距离 - 超过这个预设阈值时，角色才会开始滑落。这个参数本质上定义了角色胶囊体可以安全悬空延伸的物理容差范围。
 
-您可以通过CharacterMovement组件的isOnLedgeSolidSide属性轻松检测角色是否站在悬崖的"实体支撑侧"。例如，可以利用这个属性触发平衡动画，就像经典游戏《索尼克》中的表现效果一样。
+你可以通过CharacterMovement组件的isOnLedgeSolidSide属性轻松检测角色是否站在悬崖的"实体支撑侧"。例如，可以利用这个属性触发平衡动画，就像经典游戏《索尼克》中的表现效果一样。
 
 绿色的圆圈表示角色站在 ledge 的 solid 一侧。
 
@@ -177,7 +177,7 @@ ECM（Enhanced Character Movement）提供了三种可扩展的基础控制器�
 
 ECM 的推荐使用方式是：​继承其中一个内置的 Base Controllers​（例如 BaseCharacterController），通过派生基类创建自定义角色控制器，并添加符合游戏需求的代码（可参考附带的示例）。毕竟，没有人比你更了解自己的游戏需求！
 
-需要说明的是，虽然我们建议使用内置的基础控制器，但这并非强制要求。您完全可以（如果更倾向）创建自己的角色控制器，并依赖 ​GroundDetection​ 和 ​CharacterMovement​ 组件来实现角色移动。不过，继承某个「Base」控制器能让您直接获得大量开箱即用的功能，因此通常是更推荐的做法。
+需要说明的是，虽然我们建议使用内置的基础控制器，但这并非强制要求。你完全可以（如果更倾向）创建自己的角色控制器，并依赖 ​GroundDetection​ 和 ​CharacterMovement​ 组件来实现角色移动。不过，继承某个「Base」控制器能让你直接获得大量开箱即用的功能，因此通常是更推荐的做法。
 
 ## Base Character Controller
 
@@ -196,7 +196,7 @@ ECM 的推荐使用方式是：​继承其中一个内置的 Base Controllers�
 - ​无限空中跳跃​
 - ​根运动(root motion)支持​
 
-它能够为您的自定义控制器开发提供坚实基础。
+它能够为你的自定义控制器开发提供坚实基础。
 
 属性：
 
@@ -254,9 +254,9 @@ NavMeshAgent 所控制角色的基类。它继承自BaseCharacterController，�
 
 # Custom Controllers
 
-如前所述，使用ECM的推荐方式是选择其中一个内置的基础控制器进行扩展，添加游戏特定的功能。这样，您既可以利用现有功能作为坚实基础进行开发，也可以根据需要修改甚至完全替换它，而无需直接改动ECM的源代码。  
+如前所述，使用ECM的推荐方式是选择其中一个内置的基础控制器进行扩展，添加游戏特定的功能。这样，你既可以利用现有功能作为坚实基础进行开发，也可以根据需要修改甚至完全替换它，而无需直接改动ECM的源代码。  
 
-这种方法的一大优势在于将游戏代码与资源代码分离。当您需要更新ECM时，您的游戏代码不会受到影响。  
+这种方法的一大优势在于将游戏代码与资源代码分离。当你需要更新ECM时，你的游戏代码不会受到影响。  
 
 创建自定义控制器非常简单，只需新建一个类来继承某个基础控制器（例如`BaseCharacterController`），然后重写所需的方法即可。
 
@@ -270,7 +270,7 @@ public sealed class MyCharacterController : BaseCharacterController
 }
 ```
 
-要使用这个新创建的自定义控制器（MyCharacterController），您只需将角色GameObject上的BaseCharacterController组件替换为MyCharacterController即可。
+要使用这个新创建的自定义控制器（MyCharacterController），你只需将角色GameObject上的BaseCharacterController组件替换为MyCharacterController即可。
 
 在以下示例中，我们将创建一个自定义控制器，并重写其默认实现，使角色运动相对于主摄像机而非世界坐标系。
 与之前一样，我们继承BaseCharacterController并重写其方法，在本例中重写的是HandleInput方法。

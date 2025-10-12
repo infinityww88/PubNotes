@@ -1,6 +1,6 @@
 # Character Controller Creation Walkthrough 
 
-本教程将循序渐进地演示如何基于Kinematic Character Controller系统从零实现完整的角色控制器。您既可以按照步骤顺序学习，也可以将其作为特定功能（如移动/跳跃/碰撞处理）的专项实现参考。
+本教程将循序渐进地演示如何基于Kinematic Character Controller系统从零实现完整的角色控制器。你既可以按照步骤顺序学习，也可以将其作为特定功能（如移动/跳跃/碰撞处理）的专项实现参考。
 
 ## Player，Character & Camera setup
 
@@ -63,7 +63,7 @@ SetInput() 的目标是变换这些 inputs 为 character 可以用于 movement �
 ​必须始终在此方法内处理角色旋转，因为它在角色更新循环的精确时机被调用，以确保所有功能正常运行。
 你需要修改该方法传入的 currentRotation 引用参数，以设定目标朝向。
 
-点击播放按钮，测试已实现的移动功能。此时，您可以根据需要向场景中添加更多几何体。
+点击播放按钮，测试已实现的移动功能。此时，你可以根据需要向场景中添加更多几何体。
 
 ## Jumping
 
@@ -147,7 +147,7 @@ JumpPreGroundingGraceTime​（预着陆宽限时间）与 ​JumpPostGroundingG
 
 ## Custom collision filtering
 
-在游戏开发中，经常需要筛选特定的碰撞检测，而仅靠物理层（Physics Layers）往往无法优雅地实现需求。例如，在网络游戏中，你可能需要让角色穿透友军，但会被敌人阻挡。下面我们将创建一个简单的碰撞过滤示例，帮助您理解如何实现这类功能。
+在游戏开发中，经常需要筛选特定的碰撞检测，而仅靠物理层（Physics Layers）往往无法优雅地实现需求。例如，在网络游戏中，你可能需要让角色穿透友军，但会被敌人阻挡。下面我们将创建一个简单的碰撞过滤示例，帮助你理解如何实现这类功能。
 
 首先向 MyCharacterController 添加一个 public colliders list，其代表想要忽略的 colliders。
 

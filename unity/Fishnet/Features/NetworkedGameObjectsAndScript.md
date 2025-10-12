@@ -121,7 +121,7 @@ Unity Awake 和 OnEnable callbacks 总是在任何 network 活动（callback）�
 
 - OnStartNetwork
 
-  在某些情况下，你需要同时为服务器和客户端进行初始化。通过使用 OnStartNetwork 而不是分别为客户端和服务器使用 OnStart，你可以节省一些代码和时间。需要注意的是，即使您是客户端主机（clientHost），OnStartNetwork 也只会调用一次。
+  在某些情况下，你需要同时为服务器和客户端进行初始化。通过使用 OnStartNetwork 而不是分别为客户端和服务器使用 OnStart，你可以节省一些代码和时间。需要注意的是，即使你是客户端主机（clientHost），OnStartNetwork 也只会调用一次。
 
   OnStartNetwork 只会调用一次，即使是 clientHost。
 
@@ -147,7 +147,7 @@ Unity Awake 和 OnEnable callbacks 总是在任何 network 活动（callback）�
   当这个 object 为 clients spawn 这个 object 时，这些改变会发送到 clients。
   例如：或许你想设置一个 player 的名字，它是一个 SyncVar。你就可以在这里做。当 object 在 client 上 spawn 时，这个变量将为 clients 设置。
 
-  在使用 OnStartServer 时需注意：此时观察者（observers）尚未为这个 object 构建。例如，若尝试发送一个 ObserversRpc 调用，该调用将不会传递给任何客户端。不过，您仍可使用 ObserversRpc 并设置 BufferLast 参数为 true——这样当对象为客户端生成时，客户端仍能接收到该调用。（即此时为 object 调用 ObserversRpc，并不会发送到 clients，但是会缓存起来，当 observers 为 object 构建时，会将缓存的 rpc 发送给 clients）
+  在使用 OnStartServer 时需注意：此时观察者（observers）尚未为这个 object 构建。例如，若尝试发送一个 ObserversRpc 调用，该调用将不会传递给任何客户端。不过，你仍可使用 ObserversRpc 并设置 BufferLast 参数为 true——这样当对象为客户端生成时，客户端仍能接收到该调用。（即此时为 object 调用 ObserversRpc，并不会发送到 clients，但是会缓存起来，当 observers 为 object 构建时，会将缓存的 rpc 发送给 clients）
   
   另一种方案是使用下文展示的 OnSpawnServer 方法，并向生成该对象的 connection 发送一个 TargetRpc 调用。
   ```
@@ -312,7 +312,7 @@ InstanceFinder.ServerManager.Despawn(gameObject); //通过 ServerManager
 base.Despawn(DespawnType.Pool)； // Pool 这个 object，而不是销毁它
 ```
 
-您可以通过检查 NetworkBehaviour 或 NetworkObject 中的 IsSpawned 属性，判断一个对象是否处于已生成状态。
+你可以通过检查 NetworkBehaviour 或 NetworkObject 中的 IsSpawned 属性，判断一个对象是否处于已生成状态。
 
 场景对象（Scene Objects）的 spawned 和 despawned 与 instantiated 类似，不同之处在于：需要传入已实例化/已放置的场景对象引用。当场景对象被销毁时，系统会将其禁用（Disabled）而非彻底销毁（Destroyed）。
 
@@ -345,7 +345,7 @@ public override void WritePayload(NetworkConnection connection, Writer writer)
 
 ReadPayload方法的第一个参数必须是NetworkConnection类型——该参数表示当前生成操作的目标客户端，由FishNet在调用方法时自动传入。
 
-第二个参数应为Reader类型，它代表正在使用的读取器引用，您需要通过它从生成载荷（Payload）中提取数据。
+第二个参数应为Reader类型，它代表正在使用的读取器引用，你需要通过它从生成载荷（Payload）中提取数据。
 
 ```C#
 public override void ReadPayload(NetworkConnection connection, Reader reader)
@@ -374,7 +374,7 @@ public class SpawnPayloadExample : NetworkBehaviour
          /*
          * 需要特别说明的是：即使是在预测生成（predicted spawn）的情况下，服务器在为客户端生成对象时仍会调用WritePayload方法。
          * 当客户端发起预测生成请求时，服务器不仅会接收该预测生成的ReadPayload数据，同时还会获得向其他非预测生成者客户端发送载荷的机会。
-         * 若您需要转发预测生成者的载荷数据，建议先将这些值在本地缓存，再通过本方法进行发送。
+         * 若你需要转发预测生成者的载荷数据，建议先将这些值在本地缓存，再通过本方法进行发送。
          */
 
         if (isPredictedSpawner)
@@ -450,20 +450,20 @@ public class SpawnPayloadExample : NetworkBehaviour
 
 #### Global Settings
 
-默认情况下，预测生成（Predicted Spawning）功能处于禁用状态。如需启用该功能，您必须通过ServerManager调整相关设置。若项目中尚未添加ServerManager组件，则需先将其挂载到NetworkManager对象上才能进行设置修改。
+默认情况下，预测生成（Predicted Spawning）功能处于禁用状态。如需启用该功能，你必须通过ServerManager调整相关设置。若项目中尚未添加ServerManager组件，则需先将其挂载到NetworkManager对象上才能进行设置修改。
 
-您可以通过以下方式配置该功能：
+你可以通过以下方式配置该功能：
 
 - 在ServerManager组件中勾选"Allow Predicted Spawning"选项以启用预测生成
 - 调整"Reserved Object Ids"数值参数
 
 #### Settings Per Object
 
-即使全局启用了预测生成（Predicted Spawning），仍需为每个NetworkObject单独设置允许预测生成或销毁的选项。这样做有三个重要意义：其一，可以确保只有您指定的对象才能使用该功能；其二，能够针对不同对象限制预测生成的能力范围；其三，允许您通过自定义代码对预测生成过程进行更严格的验证和控制。
+即使全局启用了预测生成（Predicted Spawning），仍需为每个NetworkObject单独设置允许预测生成或销毁的选项。这样做有三个重要意义：其一，可以确保只有你指定的对象才能使用该功能；其二，能够针对不同对象限制预测生成的能力范围；其三，允许你通过自定义代码对预测生成过程进行更严格的验证和控制。
 
 若需要对预制体（Prefabs）或场景对象启用预测生成功能，请为其添加PredictedSpawn组件。
 
-您可以通过继承PredictedSpawn组件来实现方法重写，从而自定义预测生成的行为逻辑。
+你可以通过继承PredictedSpawn组件来实现方法重写，从而自定义预测生成的行为逻辑。
 
 #### Using Predicted Spawning
 
@@ -485,7 +485,7 @@ FishNet 提供了默认实现，允许你将已实例化的对象禁用并加入
 
 #### Setup
 
-如【NetworkManager组件】页面所述，该组件提供一个可分配字段（名为ObjectPool）。您可以在此处指定任何继承自ObjectPool基类的脚本。
+如【NetworkManager组件】页面所述，该组件提供一个可分配字段（名为ObjectPool）。你可以在此处指定任何继承自ObjectPool基类的脚本。
 
 默认情况下，在编辑器中查看NetworkManager时，此字段不会预置任何内容。但当进入播放模式时，NetworkManager会自动填充默认实现方案，并将该脚本挂载到NetworkManager所属的游戏对象上。
 
@@ -521,7 +521,7 @@ Play Mode：自动分配默认 Object Pool
 
 - Spawning NetworkObjects
 
-  在使用对象池时，您需要在网络生成（spawn）这些对象之前，先从池中获取NetworkObject实例。这样做可以从对象池中复用对象，而不是创建新的实例。
+  在使用对象池时，你需要在网络生成（spawn）这些对象之前，先从池中获取NetworkObject实例。这样做可以从对象池中复用对象，而不是创建新的实例。
 
   ```C#
   //There are many overrides which can a variety of information.

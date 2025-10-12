@@ -15,7 +15,7 @@ Filter 可精确控制脉冲源生成脉冲的方式与时机。Cinemachine脉�
 
 # Adding channels
 
-CinemachineImpulseChannels脚本用于在场景中创建通道。该脚本默认包含一个通道，您可根据需要添加新通道，最多可支持31个通道。
+CinemachineImpulseChannels脚本用于在场景中创建通道。该脚本默认包含一个通道，你可根据需要添加新通道，最多可支持31个通道。
 
 要添加新的 channels：
 

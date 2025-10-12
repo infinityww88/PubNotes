@@ -2,7 +2,7 @@ SyncVar 是服务端到客户端自动同步值，DataSerialization 是 Rpc 或 
 
 为在网络间传输数据而进行的序列化与反序列化处理。
 
-当您在通信过程中使用任何类型时，Fish-Networking 会自动识别该类型的序列化器（或为其创建一个）。FishNet 仅会尝试自动序列化公共字段和属性。此过程无需您执行任何额外操作，但若希望排除某些字段的序列化，请在该字段上方添加 [System.NonSerialized] 特性。
+当你在通信过程中使用任何类型时，Fish-Networking 会自动识别该类型的序列化器（或为其创建一个）。FishNet 仅会尝试自动序列化公共字段和属性。此过程无需你执行任何额外操作，但若希望排除某些字段的序列化，请在该字段上方添加 [System.NonSerialized] 特性。
 
 例如，Name 和 Level 字段会被发送到网络中，但 Victories 字段不会。
 

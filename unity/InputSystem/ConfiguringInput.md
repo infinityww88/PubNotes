@@ -29,7 +29,7 @@ Control Type 允许选择 action 期望的 control 类型（float 还是 vector2
 
 例如，如果选择 2D axis，只有提供 2D vector 的 control 才可以用作 bingding control path。
 
-系统还提供了更具体的控件类型选项（如"摇杆(Stick)"、"方向键(Dpad)"或"触控(Touch)"），这些类型会进一步筛选可用绑定。当您为操作选择绑定时，若指定了这类特定控件类型，可用控件列表将仅限于符合该类型的控件。
+系统还提供了更具体的控件类型选项（如"摇杆(Stick)"、"方向键(Dpad)"或"触控(Touch)"），这些类型会进一步筛选可用绑定。当你为操作选择绑定时，若指定了这类特定控件类型，可用控件列表将仅限于符合该类型的控件。
 
 ## Bindings
 
@@ -66,7 +66,7 @@ Unity 会根据 Action 的 Control Type 属性（float or vector2）过滤这个
 
 ![2DVectorComposite](image/2DVectorComposite.png)
 
-要在 Input Action asset 编辑器窗口中创建复合绑定 Composite Binding，请选择您想要添加绑定的 action 旁边的添加（+）图标，然后从弹出菜单中选择复合绑定类型 Composite Binding。
+要在 Input Action asset 编辑器窗口中创建复合绑定 Composite Binding，请选择你想要添加绑定的 action 旁边的添加（+）图标，然后从弹出菜单中选择复合绑定类型 Composite Binding。
 
 ![Add2DVectorComposite](image/Add2DVectorComposite.png)
 
