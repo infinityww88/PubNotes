@@ -18,7 +18,23 @@
 
 若将该行为添加到样条线本身，则所有沿该路径移动的 Cinemachine 相机或 Cinemachine Spline Dolly 都将遵循该旋转设定。反之，若将该行为直接添加到Cinemachine相机上，则旋转效果仅对该相机可见。
 
+和 Spline Dolly LookAt Targets 组件一样，为 Spline Roll 指定 DataPoints 的时候，如果使用 Index 设置 data point 在 spline 上的位置，所有的 data points 会自动按照 index 排序，使得 index 总是按照从上到下，从小到大的顺序排列。因此每次修改 index 的时候，可能会看见正在输入的 data point 一下子跳到了列表中的另一个位置。
+
+Spline 上的 Data Point 和 Knot Data 是一样的，都是在 Spline 的某几个位置上定义一些数据，然后在 Spline 上的任何一点，可以像 Spline 的 position 一样为这些 data 插值，具体应用则看程序如何使用这些 data。
+
+例如 Spline Roll 可以在几个关键位置定义一个绕 Spline 切线（Z 轴）的 roll 角度，然后就可以插值得到 Spline 上任何一点的 Roll 角度，则 CC 就可以沿着 Spline 一边运动一边旋转了。
+
+Data Points 和 Knot Data 可以基于 Distance、Normalized、Knot 在 Spline 上的任何一点定义数据，不仅仅只能在 Knot 上定义数据。这些位置称为 waypoints。
+
+![](../Images/SplineRollDataPoint.gif)
+
 # Cinemachine Splien Cart
+
+Cinemachine Spline Cart 是 Cinemachine Spline Dolly 的通用版。后者只用于将 CC 约束在 Spline 上，而 Spline Cart 不是用于 CC 的，而是用于任何 GameObject，它将 GameObject 固定在 Spline，位置和旋转都不能被编辑，只能被 Spline 控制。它和 Spline Dolly 一样通过操作 Position（Distance，Knot，Normalized）在 Spline 上移动 GameObject。Spline 上的切线方向和 Roll（通过 Spline Roll）定义了每一个位置 GameObject 的旋转。
+
+Spline Roll 定义了 Spline 沿着切线的 Up 向量。
+
+Spline Cart 类似 Spline Animate 组件。但是 Spline Animate 不能处理 Spline Roll，GameObject 不能沿着 Spline Roll。
 
 Cinemachine Spline Cart 是一个组件，它将其 GameObject 的变换约束到一条样条线上。可以使用它来沿路径 animate 一个 GameObject，或者将其作为 CinemachineCamera 的跟踪目标。
 
