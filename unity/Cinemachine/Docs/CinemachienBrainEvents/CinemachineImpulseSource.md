@@ -12,3 +12,34 @@
 
 Impulse Channel，Impulse Type，Impulse Shape 等属性见 CinemachineCollisionImpulseSource。
 
+# API
+
+- void GenerateImpulse()
+
+  在相应的 channels 上广播脉冲信号，使用 Inspector 上指定的默认速度，默认位置就是 transform 的 position。
+  
+- void GenerateImpulseWithVelocity(Vector3 velocity)
+
+  在相应的 channels 上广播脉冲信号，使用一个自定义的冲击速度 impact 这个 source 的 transform 的 position。
+
+- void GenerateImpulseWithForce(float force)
+
+  在相应的 channels 上广播脉冲信号，使用一个自定义的冲击力，以及标准方向，和这个 source 的 transform position。
+
+  force：impact 的 magnitude，1 为 normal。
+
+- void GenerateImpulseAtPositionWithVelocity(Vector3 position, Vector3 velocity)
+
+  - position：impulse 产生的世界空间的位置。
+  - velocity：impact 的 magnitude 和 direction。
+
+过时 API：
+
+- void GenerateImpulse(Vector3 velocity)
+- void GenerateImpulse(float force)
+- void GenerateAt(Vector3 position, Vector3 velocity)
+
+
+
+
+

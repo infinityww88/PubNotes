@@ -56,7 +56,7 @@
 
   你可绘制自定义脉冲形态（动画曲线）。从下拉菜单选择"Custom"选项后点击绿色图标，即可弹出如下所示的编辑器界面。
 
-  ![ImpulseShapeCustom](../../ImpulseShapeCustom.png)
+  ![ImpulseShapeCustom](../../Images/ImpulseShapeCustom.png)
 
 - Default Velocity
 

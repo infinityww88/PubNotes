@@ -25,3 +25,7 @@ Cinemachine 自带两个类型的 Impulse Source components：
 # 关键 Impulse Source 属性
 
 除了 vibration signal 定义了 camera shake 的基本形状，Impulse Source 还控制其他一些重要属性，其定义它产生的 impulses。
+
+Source 有范围，有通道，有信号强度曲线。
+
+
