@@ -13,7 +13,7 @@
 
 创建 Character 之后，还不能移动和控制它。为此创建一个新的脚本 CharacterInput 脚本。
 
-Character 包含一组方法，设计用于使执行 action 更容易。例如，它的 SetMovementDirection 方法可以用于指示 character 向一个特定方向移动（世界空间）。
+Character 包含一组方法，让执行动作更容易。例如，它的 SetMovementDirection 方法可以用于指示 character 向一个特定方向移动（世界空间）。
 
 类似的，Jump 方法发起一个 Jump，而 StopJumping 方法停止正在进行的 Jump，当使用可变 jump 高度时尤其关键。
 

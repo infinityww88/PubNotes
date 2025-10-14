@@ -1,6 +1,8 @@
 # Description
 
-Character 作为所有 game avatars 的基础元素，无论时 player 控制还是 AI 控制。这个类使用 CharacterMovement 组件作为 Character 控制器/马达，无缝继承典型的移动模式，例如 walking，falling，flying，swimming。此外，它还可以完全配置 jump 和 crouch 机制。
+Character 作为所有 game avatars 的基础构造块，无论是 player 控制还是 AI 控制。
+
+这个类使用 CharacterMovement 组件作为 Character 控制器/马达，无缝继承典型的移动模式，例如 walking，falling，flying，swimming。此外，它还可以完全配置 jump 和 crouch 机制。
 
 Character 类基于它当前的 mode 指示它的移动，将移动的执行委托给 CharacterMovement 组件，这最终会执行物理运动。
 
