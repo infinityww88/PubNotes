@@ -4,11 +4,11 @@ Lowpoly 本身是简化模型，只突出关键特征（部件），不突出模
 
 例如下面的模型，很难区分各个部分
 
-![](image/LowpolyWithoutFrame.png)
+![](Images/LowpolyWithoutFrame.png)
 
 如果用白线描出各个边，则看起来好多了
 
-![](image/LowpolyWithFrame.png)
+![](Images/LowpolyWithFrame.png)
 
 
 类似四色原理，两个相邻部分尽量使用不同颜色绘制。或者中间留出空间。真实世界中这些空间会因为 AO 显示为黑色，这可以有效将模型部分分开。如果没有 AO，则可以在 Lowpoly Texture 中手动绘制 AO。
@@ -21,8 +21,8 @@ Lowpoly 本身是简化模型，只突出关键特征（部件），不突出模
 
 如果不知道怎么给模型上色，可以参考乐高模型。
 
-![](image/LowpolyTex1.jpg)
-![](image/LowpolyTex2.jpg)
-![](image/LowpolyTex3.jpg)
-![](image/LowpolyTex4.png)
-![](image/LowpolyTex5.jpg)
+![](Images/LowpolyTex1.jpg)
+![](Images/LowpolyTex2.jpg)
+![](Images/LowpolyTex3.jpg)
+![](Images/LowpolyTex4.png)
+![](Images/LowpolyTex5.jpg)

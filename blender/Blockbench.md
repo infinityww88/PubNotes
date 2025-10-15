@@ -1,21 +1,21 @@
 Blockbench Edit 和 Paint 模式下，模型上不同颜色的部分不是随机渲染的，每个相同颜色的区域块是一个 uv island，通过颜色可以在 uv 和 face 进行对应。
 
-![](image/uv_island1.png)
-![](image/uv_island2.png)
+![](Images/uv_island1.png)
+![](Images/uv_island2.png)
 
 将 Blockbench 的 key_binding 设置为 blender，就可以让 blockbench 的编辑基本与 blender 一致。还可以通过 alt + 左键 选择循环的 face 或 edge。
 
-![](image/blender_key_binding.png)
+![](Images/blender_key_binding.png)
 
 此外 Blockbench 为所有功能都提供了快捷键绑定，包括诸如文件导出这样的功能，这可以加快与 Unity 交互迭代的速度。
 
-![](image/key_binding.png)
+![](Images/key_binding.png)
 
 工具技术限制在 Blockbench + Gimp + Blender + Unity，不再扩展，专注精通它们的细节功能。例如 blender gimp 还有很多基础功能还没有熟悉甚至知道，而它们对提供工作效率有很大辅助。例如 gimp 的选区、滤镜、图层蒙版等功能，blender 菜单中的基本功能还没有全部尝试一遍，各种 modifier 还没有熟悉。Unity NavMesh 的 OffMeshLink 还没有尝试。
 
 例如，Blender 可以根据选中的 mesh 生成 wireframe 模型，这些都是在菜单中的基础功能，在某些情况下非常方便。
 
-![](image/blender_wireframe.png)
+![](Images/blender_wireframe.png)
 
 Blender 和 Unity 支持非共面的 quad（Unity 应该是在导入的时候自动进行三角化），即四边形的点不共面。但是 Blockbench 和 Godot 都不支持。将存在非共面 quad 的模型导入到 Blockbench 和 Godot 是模型出现破缺的原因。解决办法是在 Blender 中选择所有的面，然后在 Face 菜单中选择 Triangulate Faces，将所有面三角化，这样再导入到 Blockbench 和 Godot 中就不会出现破损了。还可以再选择 Tris to Quads，将共面的三角面合并为 Quad，这样会生成更美观更合理的 wireframe，导入到 BB 和 GD 中仍然不会有问题。
 
