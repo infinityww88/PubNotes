@@ -70,3 +70,13 @@ Unity 的欧拉角细节
 
 理论上只要两个轴永远保持 90 度，就不会出现万向锁问题，因此只要不使用中间角，只使用两个轴， XY、ZX、ZY，同时保持另一个轴总是 = 0，就不会有万向锁的问题。只要其中一个轴保持为 0，另外两个轴就总是互成 90 度。
 
+# Api
+
+Unity 绝大部分用角表示旋转的地方使用的都是角度，但是有两个地方使用了弧度，这是遗留并过时的 API，文档中已经不再提及，但是 Unity API 中仍有保留，很容易跟其他以角度表示欧拉角的 API 混淆，因此非常需要注意：
+
+- Quaternion.EulerAngles（用欧拉角构造四元数），它已经被 Quaternion.Euler 取代，后者用角度表示旋转，前者用弧度。
+- Quaternion.AxisAngle（用轴和角构造四元数），它已经被 Quaternion AngleAxis 取代，后者用角度，前者用弧度。从名字也可以看出，Axis-Angle => 轴角，更符合对四元数的定义，属于更早期的命名，但是“错误地”使用了弧度。AngleAxis 明显是对 Axis-Angle 的修正，只是将 Angle 放在前面以给出命名的区别，属于更新更合理的 API。
+
+记不住的话，就看代码自动提示，这两个 API 已经没有文档描述，但是代替的两个有正常的文档描述，明确表示角是 in degrees 的。
+
+其他用角表示旋转的地方，就都是角度（degree）了。transform 的 eulerAngles、localEulerAngles，Quaternion.Euler、Quaternion.eulerAngles，Quaternion.EulerAngles，Quaternion.AngleAxis。
