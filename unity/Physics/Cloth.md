@@ -1,0 +1,63 @@
+# Cloth
+
+- works with Skinned Mesh Renderer
+- physics-based simulating fabrics
+- specifically designed for character clothing
+- only works with skinned meshes
+- Properties
+  - Stretching Stiffness：布料拉伸抗性系数（硬度，弹性）
+  - Bending Stiffness：布料弯曲抗性系数（硬度，弹性）
+  - Use Tethers(bool)：应用约束，防止移动的cloth particles离开固定的cloth particles太远，减小过度的拉伸效果
+  - Use Gravity(bool)：是否应用重力加速度
+  - Damping：运动阻尼系数
+  - External Acceleration：应用到cloth的**常量**外部加速度(风效果)
+  - Random Acceleration：应用到cloth的**随机**外部加速度(旗帜飘动)
+  - World Velocity Scale：character的world-space运动影响cloth vertics的程度系数
+  - World Acceleration Scale：character的world-space加速度影响cloth vertics的程度系数
+  - Friction：布料与character碰撞的摩擦系数
+  - Collision Mass Scale：碰撞的cloth particles的质量增加系数，类似joint的mass scale和connected mass scale
+  - Use Continuous：开启连续碰撞检测来改善碰撞稳定性
+  - Use Virtual Particles：为每个triangle添加一个虚拟particle来改善碰撞稳定性
+  - Solver Frequency：每秒碰撞解析器的迭代次数
+  - Sleep Threshold：cloth休眠阈值
+  - Capsule Colliders：一组Cloth可以发生碰撞的CapsuleCollider
+  - Sphere Colliders：一组Cloth可以发生碰撞的SphereCollider
+- Cloth只针对character cloth设计，不能作为一般的cloth解决方案
+- Cloth为skinned mesh的每个vertex生成一个particle，就像一组由spring连接的rigidbody组成的网格，并对它们进行物理模拟，用物理模拟之后的粒子位置来更新mesh。可以将其中一些粒子设置为固定的，就像fixedjoint，运动哪些不固定的粒子。但是固定的粒子只固定在cloth所在的gameobject上，不能固定到其他rigidbody上实现一些特殊效果，基本上就是附着在**一个**gameobject山的布料（旗帜，衣服等等）
+- Cloth不和场景中所有collider交互，只和指定的一组Capsule/Sphere Colliders交互
+- Cloth模拟是单向的，指定Colliders可以影响cloth，但是cloth不施加反应力
+- Edit Contraints Tool
+  - Edit应用到cloth mesh上的每个vertex的约束
+  - 每个粒子拥有一个颜色显示其约束值
+  - 可以使用brush在cloth上绘制每个vertex的锚定（anchor）约束
+    - Visualization：视觉外观
+      - Max Distance（最大距离）
+      - Surface Penetration（表面侵入）
+      - Manipulate Backfaces
+    - Max Distance：cloth粒子可以从其vertex位置偏移的最大距离
+    - Surface Penetration：cloth粒子可以侵入mesh的深度
+    - Brush Radius
+- There are two modes for changing the values for each vertex
+  - Select Mode：select a group of vertics，then enable Max Distance，Surface Penetration，or both，and set a value
+    - draw a selection box
+    - click on vertics one at a time
+  - Paint Mode：directly adjust each individual vertex，click the vertex you want to adjust，then eable Max Distance，Surface Penetration，or both，and set a value
+- Self collision and intercollision
+  - cloth has several cloth particles that handle collision
+  - you can set up cloth particles for
+    - Self-collision, which prevents cloth from penetrating itself
+    - Intercollision, which allow cloth particles to collide with each other
+    - Initially, none of particles are set to use collision, these unused particles appear black
+    - select a single set of particles to apply collision to
+      - click select button
+      - click-and-drag to select a box of particles
+      - Tick the Self Collision and intercollision checkbox to apply collision to the selected particles
+        - Self collision and intercollision是一个功能项，同时开启或关闭
+      - To enable the self collision behavior for a cloth, set Distance and Stiffness to non-zero values in Self Collision section of the cloth inspector window
+        - Distance: particle sphere直径。Unity保证这些sphere模拟时不会重叠。Distance应该比两个particle的最小距离小一点。否则self collision可能会违反一些distance contraints并导致jittering
+        - Stiffness：particles直接分离冲量的强度，应该将相互碰撞的particle分离开
+      - To enable intercollision behavior, open the Project Physics setting and set Distances and Stiffness to non-zero values in Cloth InterCollision secion
+- Collider collision
+  - cloth only reacts collision with specified CapsuleColliders or Sphere Colliders
+  - the sphere colliders array contains a pair of SpereColliders or a single SphereColliders(with the second of pair being null). A pair of SpheColliders represents a conic capsule shape defined by the two spheres, and the cone connecting the two spheres. 两个sphere定义了一个锥形胶囊体，就像两个相同大小的sphere可以定义一个正常的胶囊体一样。这个锥形胶囊体是真正的collider，而不仅仅是两个sphere而已，中间部分对cloth也是collider。Conic capsule shapes可以用来建模charactor四肢的碰撞体模型
+- Cloth不向场景中物体施加力，因此不能作为游戏机制的一部分，只能作为展示的一部分

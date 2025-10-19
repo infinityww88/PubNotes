@@ -1,0 +1,32 @@
+# Using navmeshes
+
+使用手工绘制的常规navmesh graphs以及使用一个recast方法基于环境mesh自动生成的navmesh
+
+## navmesh
+
+使用少量节点表示大范围可走区域，更多节点表示充满obstacles的区域。Navmesh使用polygon（具体地说是三角形）表示世界，就像render中的mesh一样。
+
+因为navmesh可以用很少的node精确表示大范围的world，因此执行地更快。
+
+Navmesh和Grid graph都可以表示multilayered环境，即同一个world中不同的物体可以使用不同的navmesh。
+
+Navmesh的缺点是要花很长时间生成（或手工绘制navmesh）。要scan一个GridGraph只需要1000-200ms，但是要生成一个recast graph通常要花几秒的时间。它们相对静态：一旦生成它们，跟新它非常慢，即使只更新graph很小的一部分。可以使用navmesh cutting进行有限的快速更新。对于recast graphs，还可以异步地重新计算独立的tiles，但是这也相对很慢。
+
+## 创建navmesh
+
+Navmesh可以手工创建或者自动生成
+
+## 在navmesh上移动
+
+在navmesh上移动的脚本和gridgraph一样，但是添加RichAI组件可以给出在navmesh上的更优美的移动
+
+创建一个GameObject，添加RichAI组件，它自动添加一个Seeker。添加一个Capsule object作为child object，作为移动效果的可视化。RichAI假设pivot是character的feet。注意移除Capsule上的碰撞体，否则需要配置RichAI组件的mask字段排除这些colliders。因为RichAI组件默认使用raycasting来确定ground在哪里。如果raycast到自身的碰撞体将产生非常怪异的行为。RichAI还支持使用CharacterController组件（调用SimpleMove接口），但是如果准备在游戏中移动很多角色，不建议使用CharacterController，因为它相对很慢。
+
+RichAI是特别为在navmesh graphs上移动写的。它强制agent总是停留在navmesh上。和A* project中其他movement脚本不同的是，它不支持path modifiers。这是因为path modifiers修改的是一组vector3（waypoint列表），而navmesh的path不是vector3列表，而是triangles的列表（a list of nodes）。这样的一个优势是character可以往旁边推挤一定距离而仍然正确移动，而不必进行path重新计算。
+
+RichAI内部包含来path简化功能。如果不实用RichAI，建议在GameObject上使用funnel modifier和Seeker。Funnel modifier可以简化路径，使它更加美观更短。
+
+Navmesh graphs有时会给出不是最优的路径。这是因为pathfinding是按照node（triangle）中心计算的。这通常发生于namvesh具有很大和很小的node（triangle）放在一起的时候。Pathfinding通常选择具有更少triangles的path。
+
+对这个问题没有银弹，避免非常大的三角形和非常小的三角形彼此接近。对于recast graphs，可以指定一个小的tile size来将大三角形分割成更小的。还可以降低Max Edge Length。
+

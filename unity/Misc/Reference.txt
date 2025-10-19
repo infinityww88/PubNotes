@@ -1,0 +1,7 @@
+BVH Libraries
+
+Carnegie Mellon University - motion capture library
+
+http://mocap.cs.cmu.edu/
+
+Always Borrow

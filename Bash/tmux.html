@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title>tmux</title>
+    </head>
+    <body>
+        <h2 style="text-align: center;">tmux -- terminal multiplexer</h2>
+        <h3>描述</h3>
+        <p>
+            tmux > screen > nohup
+        </p>
+        <p>
+            tmux是一个终端多路复用器。它允许从一个屏幕上创建、访问、控制大量的terminals。tmux可以从screen上分离detached，并且继续在后台运行。
+        </p>
+        <p>
+            当tmux开始时，它创建一个新的session，其包含一个window，并把它显示在screen上。screen的底部状态条显示当前session的信息，并且被用来输入交互式命令。
+        </p>
+        <p>
+            一个session是一个tmux管理下的伪终端的一个集合。一个session包含一个或多个windows。一个window占据整个屏幕，并且可以被分割为多个面板，每一个都是一个独立的伪终端。任何数量的tmux实例（进程实例，client）可以连接到同一个session，同一个session可以包含任意多个windows。一旦所有的session被杀掉，tmux退出。
+        </p>
+        <p>
+            每个session都是持久的，并且会从意外连接断开（例如ssh连接超时）或者故意的分离（“C-b d”）中保存下来。tmux可以通过<code>tmux attach</code>重新连接。
+        </p>
+        <p>
+            在tmux中，一个session被一个client显示在screen，并且所有sessions被一个server管理。server以及每一个client都是单独的进程，它们通过/tmp中的一个socket文件通信。一个client就是tmux进程实例。运行tmux就创建了一个client。通过client显示、创建、分离、删除session。
+        </p>
+    </body>
+</html>

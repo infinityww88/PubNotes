@@ -1,0 +1,35 @@
+Overview
+
+https://selenium-python.readthedocs.io
+
+Selenium python绑定提供访问Selenium WebDriver的简单api，包括Firefox，Ie，Chrome等
+
+安装
+pip install selenium
+针对不同的浏览器下载并安装Selenium驱动，并确保驱动程序在PATH路径中，Selenium都是由浏览器厂商各自实现的
+
+Simple Usage
+from selenium import webdriver
+#import特殊按键枚举
+from selenium.webdriver.common.keys import Keys 
+
+#创建python selenium驱动，驱动会启动浏览器并打开一个空白界面，不要操作此界面，它被驱动使用
+driver = webdriver.Chrome()
+#在浏览器中加载指定URL的页面，WebDriver将等到直到页面加载完成，即onload事件发射之后返回script
+driver.get("http://www.python.org") 
+assert "Python" in driver.title
+#WebDriver提供来大量查找元素的方法，find_element_by_*
+elem = driver.find_element_by_name("q")
+#清除元素内容/文本
+elem.clear() 
+#发送键盘事件，模拟输入
+elem.send_keys("pycon") 
+#发送回车键
+elem.send_keys(Keys.RETURN) 
+assert "No result found." not in driver.page_source
+#关闭之前打开的tab页，如果tab是唯一的页面，浏览器将关闭。driver.quit将关闭整个浏览器
+driver.close()
+
+导航
+
+

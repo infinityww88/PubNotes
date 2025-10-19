@@ -1,0 +1,54 @@
+SQL查询执行顺序
+
+查询
+过滤
+分组
+分组过滤
+投影
+聚合（group to one）
+排序
+分页
+
+1 From and Joins
+from子句和随后的Joins首先执行，来确定被查询的全部数据集合。整个sql语句将在这个集合上工作。
+这包括子句中子查询，子查询递归的执行sql执行过程。
+子查询、联合查询（Joins）在幕后会创建临时表以保存临时查询的数据
+
+2 Where
+一旦我们有了全部用于工作的数据集合，第一遍Where约束被独立地应用到每一行，不满足约束的行被舍弃。
+每一个约束只能访问直接从From子句查询来的列。
+Select中的aliases在Where中不可用，因为它们可能包含依赖于还没有执行的查询部分的表达式。
+Select在Group和Aggregate之后执行，因此aliases中可能包含aggregate相关的数据，而它们在执行Where时还没有生成
+
+3 Group By
+被Where过滤之后的行基于Group By子句指定的列的共同值进行分组
+在指定列上相同值的行被划分为一组
+这意味着你应该只在需要聚合函数时才使用Group By
+
+4 Having
+对Group的过滤器，过滤掉不符合条件的分组，就像Where一样
+因为Having过滤的是分组，因此过滤条件判断的应该是Group By中使用的列
+这样每个分组对于Having就相当于Where中第一行
+使用不在Group By中的列在Having中过滤是没有意义的
+
+5 Select
+Select列表中任何表达式被最终求值
+在Mysql中对于不依赖GroupBy的表达式别名可以用在GroupBy中，不依赖Having的表达式别名可以用在Having中
+
+6 Distinct
+对于剩余的行，在Distinct指定的列上重复的rows被舍弃，相当于在指定的列上再执行一次group by
+
+7 Order By
+剩余的行基于指定的列或者别名进行排序，所有select中的表达式别名都计算完毕
+
+8 Limit/Offset
+排序之后的结果只保留[Limit, Limit + offset)范围内的结果，范围之外的结果被舍弃，保留的结果就是sql语句的最终查询结果
+
+Tips & Cautions
+Select中的aliases不可以被之前的步骤使用。施加这个限制是因为column的值在Select之前的步骤中可能还没有确定
+在一些database中（例如MySQL），alias可以用在GroupBy和Having中，即使它们是在Select之前被执行的
+表达式别名aliases不可以被用于同一个select列表中的其他表达式，因为select列表中的表达式求值顺序是未定义的
+使用Inter Join时，联合逻辑表达式放在On还是Where都没有关系
+当使用GroupBy时，Distinct是多余的，因此它不从结果集中移除任何记录
+
+https://sqlbolt.com/

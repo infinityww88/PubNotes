@@ -1,0 +1,111 @@
+# ProTex
+
+## Intro
+
+- create and use procedural textures in Unity
+- Create your own textures using the visual node editor and apply them to your materials during runtime
+- save them as normal textures in the Unity Editor to be used however you want.
+- All generated textures are guaranteed to be seamless, meaning that they can be placed side-by-side without creating a noticeable boundary.
+- Types of nodes for composing your textures
+  - Noise generation
+    - FBM
+    - Turbulence
+    - Ridged
+    - Cellular
+    - Random.
+  - Filters
+    - Blur
+    - Sharpen
+    - High Pass
+    - Low Pass
+    - Grayscale
+    - Invert
+  - Math operations
+    - Blend
+    - Interpolate
+    - Add
+    - Subtract
+    - Multiply
+  - Transformations
+    - Rotate
+    - Repeat
+    - Offset
+  - Shape generation
+    - Circle
+    - Triangle
+    - Rectangle
+    - Pentagon
+- Each procedural texture can generate six different output textures, which can be easily applied to the Unity default materials using the **ProTexMaterialBinder**
+  - color
+  - normal
+  - height
+  - metallic
+  - occlusion
+  - emission
+- Nodes are implemented using compute shaders to reduce the generation time. If your computer does not support compute shaders, the software implementation will be used (but take into account that generation times will be increased).
+
+## Creating ProTex Textures
+
+- Create asset ProTex/ProTexTexture
+- Double clicking on the newly created ProTex Texture will launch the  ProTex Editor
+- Particular texture is composed by nodes
+- OUTPUT NODE
+  - a special type of node that will be always present in the workspace area, even the first time you open a new ProTex Texture after creating it
+  - The output of this node will be the output of the ProTex Texture itself
+  - It can’t be deleted, and it’s the only node that doesn’t have an output
+  - the title bar has a green background
+  - Each one of the inputs of this node represents a different type of textures that the ProTex Texture can output
+    - color texture
+    - normal texture
+    - height texture
+    - metallic texture
+    - occlusion texture
+    - emission texture
+  - changing the  Preview  parameter to choose which texture to preview
+  - NormalStrength: to alter how strong the generated normal map will be
+- Node Inspector Area
+  - Once a node is selected, its parameters will be displayed in the Node Inspector Area
+  - The upper part of the inspector will show the output texture of that node
+  - Changing the parameters will modify the output texture, but the changes will not be automatically propagated to the selected node
+  - The changes will only be applied to the selected node when the  Apply Changes button is pressed 
+  - Reset To Defaults button will reset the node to the default values
+
+- ProTex Texture Inspector Window
+  - preview of each one of the different texture types that the procedural texture can output 
+  - generate button that allow us to generate the textures directly in the Unity Editor
+  - The generation size can be selected using the drop down selector on top of the inspector
+  - Textures will be saved in the same path and with the same name as the ProTex Texture, but with the texture type and size appended
+
+- ProTex Material Binder
+- ProTexMaterialBinder
+  - a C# script component
+  - add to any game object with a MeshRenderer and a material assigned
+  - assign a ProTex Texture to gameobject, so the texture will be generated during runtime and applied to the material
+  - work with
+    - the default materials in the standard render pipeline
+    - the High Definition Render Pipeline
+    - the Lightweight Render Pipeline
+  - apply a ProTex Texture to custom material(shader) 
+    - modify the ProTexMaterialBinder
+    - create custom own binder
+  - use ProTexMaterialBinder
+    - add component to gameobject
+    - assign the desired ProTex Texture to it
+  - The actual textures will be generated with the desired size once the game is launched, in the Start method of the  ProTexMaterialBinder
+  - The generation size can be changed in the dropdown menu
+
+- Using ProTex in Scripts
+  - reference ProTex Texture in script
+  - procedurally generate the output textures whenever you want
+  - public Texture2D GenerateTexture (int width, int height)
+    - This method will generate the ProTexTexture default output texture. The default output texture is the one selected by the Preview parameter of the  Output node 
+  - public Texture2D  GenerateTexture (int width, int height, TextureType textureType)
+    - textureType: 
+      - TextureType.Color
+      - TextureType.Normal
+      - TextureType.Height
+      - TextureType.Metallic
+      - TextureType.Occlusion
+      - TextureType.Emission
+  - public bool HasTexture (TextureType textureType)
+    - If the procedural texture doesn’t have a type of texture and we generate it anyway we will just get a black texture with alpha set to 1

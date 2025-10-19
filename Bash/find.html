@@ -1,0 +1,500 @@
+<html>
+    <head>
+        <title>Find</title>
+        <style>
+            table {
+                border-collapse: collapse;
+                width: 70%;
+            }
+            table, tr, td, th {
+                border: 1px solid black;
+            }
+            th, td {
+                padding: 0.5em;
+            }
+            tr > td:first-child {
+                text-align: center;
+            }
+            caption {
+                padding-bottom: 0.5em;
+                font-weight: bold;
+                font-size: 1.2em;
+            }
+            code {
+                color: #C00;
+            }
+            .time {
+                color: #C00;
+            }
+            .depth {
+                color: #0C0;
+            }
+            .custom {
+                color: #00C;
+            }
+            .pattern {
+                color:#A0A;
+            }
+            .flag {
+                color:#0AA;
+            }
+            .info {
+                color: #AA0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>
+            Walk a file hierarchy 遍历一个目录树
+        </h1>
+
+        <h2>
+            描述
+        </h2>
+        <p>
+            find递归遍历每个path参数的目录树，对于树中的每个文件求值一个表达式，求值为true的文件被打印出来(-ls, -print, -print0)。表达式由基元primaries和操作符operands组合成复杂表达式。find提供了几种内置的test基元，可以划分为以下几类：
+            <ul>
+                <li>基于时间</li>
+                <li>基于层次深度</li>
+                <li>基于模式匹配</li>
+                <li>基于文件信息</li>
+                <li>find操作选项</li>
+            </ul>
+        </p>
+        <p>
+            基于时间的test分为两种：
+            <ul>
+                <li>
+                    与当前时间比较
+                </li>
+                <li>
+                    与指定文件的时间比较
+                </li>
+            </ul>
+            时间类型分为：inode创建时间B，inode修改时间c，文件最后访问时间a，文件内容最后修改时间m<br />
+            基于当前时间比较的test，find默认提供基于minute的比较基元min，以及可以指定时间单位的比较基元time，时间单位包括second，minute，hour，day，week
+        </p>
+        <p>
+            基于模式匹配的比较分为两种，glob匹配(name, path)和正则表达式匹配(regex)
+        </p>
+        <p>
+            有一些比较基元总是为true，它们只用来调整find的行为，包括-ls, -print, -print0，都是与打印相关的。它们似乎应该被设计为选项，就像-E, -L, -x等等，不知为何设计为基元。可能是因为选项需要写在path之前，但是我们经常在写完expression之后甚至执行了一次之后才发现输出不是我们想要的格式，因此我们要重新编辑运行命令。如果设计为选项，则需要每次都要将光标调整到命令前面才能修改，而使用基元，则直接就可以在命令后追加。因此应该都设计为基元更合理
+        </p>
+        <p>
+            find还提供了自定义比较基元的方法，将每个文件传递给一个子命令，子命令退出状态为0就表示求值为true
+        </p>
+        <p>
+            可以为find指定一个或者多个遍历的目录。它们既可以作为选项-f的参数，也可以忽略-f，直接作为find的参数
+        </p>
+        <p>
+            find命令的格式为：find 选项 [-f] path, path, ... [expression]
+        </p>
+        <p>
+            对于name、path、regex，匹配必须是全部匹配，而不仅是部分匹配。只是name的内容只是文件名部分，而name、path使用*配任意多个字符(glob)，而regex需要使用.*
+        </p>
+        <p>
+            find默认输出（-print）是每个文件名之后打印一个newline。当find命令的输出传递给xargs时，如果文件名中包含空白，就会被xargs错误地将其分隔为多个token。xargs的-0选项使用NULL作为分隔符，相应地，find可以使用-print0在每个文件名之后打印NULL而不是newline，这样一个包含空白的文件名就可以被xargs正确处理了
+        </p>
+        <div style="display: flex; justify-content: center;">
+        <table>
+            <caption>选项</caption>
+            <tr>
+                <th style="width:20%">
+                    操作符
+                </th>
+                <th>
+                    描述
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    -E
+                </td>
+                <td>
+                    将<code>-regex</code>, <code>-iregex</code>基元指定的正则表达式解释为扩展（现代）正则表达式
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -H
+                </td>
+                <td>
+                    使命令行指定的符号链接返回的文件信息和文件类型为连接引用的文件而不是连接自身。如果引用的文件不存在，则返回连接自身的信息和类型。不在命令行里的符号链接的文件信息是连接自身
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -L
+                </td>
+                <td>
+                    使符号链接返回的文件信息和类型是其引用的文件而不是连接自身。-H只应用与命令行指定的文件连接，-L应用于目录树中的文件连接
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -P
+                </td>
+                <td>
+                    -L的否定，符号链接返回自身信息
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -X
+                </td>
+                <td>
+                    使find可以安全地和xargs一起使用。如果文件名包含任何xargs使用的分隔符delimiter，将在stderr显示一个诊断信息，并跳过此文件。delimiter包括单引号、双引号、反斜线、tab和newline<br />
+                    但是你可能希望将-print0 primary与xargs一起使用
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -d
+                </td>
+                <td>
+                    使find执行一个深度优先搜索。默认是先序遍历，但并不是广度优先。== -depth
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -f
+                </td>
+                <td>
+                    指定一个或多个目录层次让find遍历
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -s
+                </td>
+                <td>
+                    使find以字面量顺序遍历。例如字母表顺序
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -x
+                </td>
+                <td>
+                    阻止find进入和进入点文件不同设备的目录，将遍历限制在同一个设备中
+                </td>
+            </tr>
+        </table>
+        </div>
+
+        <p>
+            所有使用一个数字参数的primaries可以跟随一个前面带有+/-符号的数字。+表示多于n，-表示少于n，每一个都不表示等于n。只有后面跟随n表示严格等于n
+        </p>
+        <div style="display: flex; justify-content: center;">
+        <table>
+            <caption>
+                基元Primaries
+            </caption>
+            <tr>
+                <th style="width:20%">
+                    Primaries
+                </th>
+                <th>
+                    描述
+                </th>
+            </tr>
+            <tr>
+                <td class="time">
+                    -Bmin n<br />
+                    -amin n<br />
+                    -cmin n<br />
+                    -mmin n
+                </td>
+                <td>
+                    如果文件的B/a/c/m时间和find的开始执行时间取整到下一个minute严格等于n则为true
+                    <ul>
+                        <li>
+                            B表示inode的创建时间（Block，文件块，即inode）
+                        </li>
+                        <li>
+                            a表示最后访问时间（access）
+                        </li>
+                        <li>
+                            c表示文件状态最后修改时间(change，inode信息：文件权限，所属，etc)
+                        </li>
+                        <li>
+                            m表示文件内容最后修改时间(modify)
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td class="time">
+                    -Bnewer file<br />
+                    -anewer file<br />
+                    -cnewer file<br />
+                    -mnewer file<br />
+                </td>
+                <td>
+                    == -newerBm<br />
+                    == -neweram<br />
+                    == -newercm<br />
+                    == -newermm<br />
+                </td>
+            </tr>
+            <tr>
+                <td class="time">
+                    -Btime n[smhdw]<br />
+                    -atime n[smhdw]<br />
+                    -ctime n[smhdw]<br />
+                    -mtime n[smhdw]<br />
+                </td>
+                <td>
+                    ~=-[B/a/c/m]min<br />
+                    如果n不指定单位，time取整到24小时，n表示24小时的周期。否则取整到指定的单位(smhdw)。
+                    <ul style="font-family:monospace; font-size: 1.1em;">
+                        <li>s: second</li>
+                        <li>m: minute</li>
+                        <li>h: hour</li>
+                        <li>d: day</li>
+                        <li>w: week</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td class="time">
+                    -newer file
+                </td>
+                <td>
+                    如果当前文件被file文件的最后修改时间更新则求值为true
+                </td>
+            </tr>
+            <tr>
+                <td class="time">
+                    newerXY file
+                </td>
+                <td>
+                    如果当前文件的X时间被file文件的Y时间更新则求值为true<br />
+                    X/Y都可以是B、a、c、m<br />
+                    newer == newermm
+                </td>
+            </tr>
+            <tr>
+                <td class="depth">
+                    -depth n
+                </td>
+                <td>
+                    如果文件相对于遍历起始入口的深度等于n则求值为true。可以使用+/-n指示小于或大于这个深度
+                </td>
+            </tr>
+            <tr>
+                <td class="depth">
+                    -maxdepth n
+                </td>
+                <td>
+                    总是求值为true，但是指示find从命令行参数指定的入口最多向下遍历n层。应用于全部表达式。-maxdepth 0限制整个search在命令行参数中
+                </td>
+            </tr>
+            <tr>
+                <td class="depth">
+                    -mindepth n
+                </td>
+                <td>
+                    总是求值为true，但是指示find不对深度小于n的文件执行测试test。应用于全部表达式。-mindepth 1使search处理除了命令行入口文件（level=0）之外的所有下游文件
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    -empty
+                </td>
+                <td>
+                    如果当前文件或目录为空则求值为true
+                </td>
+            </tr>
+            <tr>
+                <td class="custom">
+                    -exec utility [argument ...] <code>;</code>
+                </td>
+                <td>
+                    如果执行程序utility的退出状态为0则求值为true。可选参数可以被传递进utility。表达式必须被分号;结束，分号是一个单独的token。如果在shell中执行find，需要将分号引用或转义起来，否则shell会将其当作控制操作符。如果字符串"{}"出现在utility名字或者参数的任何地方，它将被当前文件的路径替换。utility将在find命令执行的目录中执行。Utility和argumes不会执行shell的任何扩展
+                </td>
+            </tr>
+            <tr>
+                <td class="custom">
+                    -exec utility [arguemnt ...] <code>+</code>
+                </td>
+                <td>
+                    ~= exec; 对于每次utility调用，{}被尽可能多的文件路径替换。对于exec;每个文件执行一次utility，对于exec+一组文件执行一次utility，这些文件名被一起传递给utility，类似xargs
+                </td>
+            </tr>
+            <tr>
+                <td class="custom">
+                    -execdir utility [arguemnt ...] <code>;</code>
+                </td>
+                <td>
+                    utility在当前文件所在的路径中执行。{}替换不包含路径，只有文件名（not qualified）
+                </td>
+            </tr>
+            <tr>
+                <td class="custom">
+                    -execdir utility [arguemnt ...] <code>+</code>
+                </td>
+                <td>
+                    ~= execdir ~=exec +
+                </td>
+            </tr>
+            <tr>
+                <td class="custom">
+                    -ok utility [argument ...] <code>;</code><br />
+                    -okdir utility [argument ...] <code>+</code><br />
+                </td>
+                <td>
+                    ~= exec，但是find对每个utility执行前显示一条信息并读取输入(y/n)以获得用户确认。如果是否定n，则不执行utility，并且求值为false
+                </td>
+            </tr>
+            <tr>
+                <td class="pattern">
+                    -name pattern<br />
+                    -iname pattern
+                </td>
+                <td>
+                    如果pathname最后一个组件匹配pattern。可以使用shell glob匹配，元字符包括"[", "]", "*", "?"。通过\转义匹配元字符自身<br />
+                    -iname不区分大小写
+                </td>
+            </tr>
+            <tr>
+                <td class="pattern">
+                    -regex pattern<br />
+                    -lregex pattern
+                </td>
+                <td>
+                    如果全路径和pattern正则匹配则求值为true
+                </td>
+            </tr>
+            <tr>
+                <td class="pattern">
+                    -path pattern<br />
+                    -ipath pattern
+                </td>
+                <td>
+                    全路径glob匹配
+                </td>
+            </tr>
+            <tr>
+                <td class="info">
+                    -size n[ckMGTP]
+                </td>
+                <td>
+                    如果没有指定单位，默认为512字节的block。文件尺寸取整到指定单位，如果正好等于n则求值为true。可以通过+/-选择更大或更小的文件。可用单位
+                    <ul style="font-family: monospace;">
+                        <li>c: byte</li>
+                        <li>k: 1024 byte</li>
+                        <li>M: 1024 k</li>
+                        <li>G: 1024 M</li>
+                        <li>T: 1024 G</li>
+                        <li>P: 1024 T</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td class="info">
+                    -user uname
+                </td>
+                <td>
+                    如果当前文件属于指定的user则求值为true。如果uname是一个数值，而且没有这个名字的用户名，则其被当作uid
+                </td>
+            </tr>
+            <tr>
+                <td class="flag">
+                    -ls
+                </td>
+                <td>
+                    总是求值为true，指示find输出每个文件的信息到stdout中，输出信息等价与ls -dgils的输出
+                </td>
+            </tr>
+            <tr>
+                <td class="flag">
+                    -print
+                </td>
+                <td>
+                    总是求值为true。指示find打印当前文件的pathname到stdout。如果没有指定-exec, -ls, -print, -print0, -ok的任何一个，find默认执行-print
+                </td>
+            </tr>
+            <tr>
+                <td class="flag">
+                    -print0
+                </td>
+                <td>
+                    ~= -print，但是在最后打印一个ASCII NULL(code 0)
+                </td>
+            </tr>
+        </table>
+        </div>
+
+        <p>
+            基元primaries可以被操作符operators组合。以下按照优先级递降的顺序列出操作符
+        </p>
+        <div style="display: flex; justify-content: center;">
+            <table>
+                <caption>操作符</caption>
+                <tr>
+                    <th style="width: 30%;">
+                        操作符
+                    </th>
+                    <th>
+                        描述
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        ( expression )
+                    </td>
+                    <td>
+                        如果expression=true，则(expression) = true
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        ! expression<br />
+                        not expression
+                    </td>
+                    <td>
+                        取反
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        -false
+                    </td>
+                    <td>
+                        == false
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        -true
+                    </td>
+                    <td>
+                        == true
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        expression -and expression
+                    </td>
+                    <td>
+                        逻辑与
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        expression -or expression
+                    </td>
+                    <td>
+                        逻辑或
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <p>
+            所有的操作符和基元都必须通过空白分开。使用参数的primaries的参数必须通过空白分开
+        </p>
+
+    </body>
+</html>
+

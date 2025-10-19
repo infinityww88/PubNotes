@@ -1,0 +1,345 @@
+Render Alignment
+Billboard依然是一个mesh，是一个quad mesh。Render Alignment不只应用于Billboard，而是应用于所有mesh。它定义了mesh（billboard）的forward向量的朝向。
+View／Facing：总是朝向Camera，View mode下billboard总是平行摄像机的平面无论粒子在那个位置，Facing mode下粒子billboard不是平行于摄像机平面而是billboard的法向量总是指向摄像机
+Local：总是朝向粒子系统的forward
+World：总是朝向world的forward，即Z轴的forward
+Render Alignment定义的是particle的forward朝向，不是particle的运动方向，运动方向有shape模块定义
+Render模块定义的是整个粒子系统的render属性，因此粒子系统所有其他模块中的rotation属性都参照Render Alignment的设置，例如main module的start rotation／3D start rotation
+Render Alignment定义了整个粒子系统生成粒子的参考坐标系，所有需要参考坐标系的粒子属性都参考这个坐标系
+
+Min Particle Size：无视其他设置，最小粒子大小，相当于MaxSize函数，相对于viewport size的缩放值，0表示size最小可以为0，0.5表示size最小是viewport大小的一半，3表示size最小是viewpoint大小的3倍
+Min Particle Size：无视其他设置，最大粒子大小，相当于MinSize函数
+两者只对Billboard Render粒子有效
+
+Rotation Over Lifetime module
+无论particle定义了哪种Alignment，都定义了particle自己的局部坐标系
+Rotation Over Lifetime module定义particle在这个局部坐标系中的旋转
+Separate Axes：enable时，定义particle沿局部坐标系x／y／z轴的旋转速度；disable时，定义particle沿局部坐标系z轴的旋转速度
+
+Main moudule
+Prewarm：粒子系统预热。不遇热的话，每次粒子系统启动，系统总是从0开始一个一个释放例子知道到达max particles，能够明显看到粒子系统的启动阶段。预热之后，粒子系统启动是就想已经运行了一个周期Duration，这样一开始粒子系统就有一堆粒子，而不用一个一个生成。只在Loop模式下有效。
+Duration：系统运行时间。不开启loop时，duration之后不再生成粒子，但是已经生成的粒子仍然会经历完整的lifetime；开启loop时，一个周期的运行时间
+
+Start Delay：定义整个系统的延迟，而不是每个生成粒子的延迟。系统启动后经历完这个延迟就开始正常的生成粒子
+
+Start Lifetime: 定义生成粒子的生命周期。在系统运行时，即使过了非loop模式的duration，粒子仍然经历完整的lifetime才结束；但是关掉整个粒子系统，仍在运行粒子应该会立刻结束，因为粒子系统，顾名思义，就是管理所有粒子的，系统一旦关闭，就没有什么可以管理运行的粒子了，因此粒子必须立刻结束。但是Duration结束不是系统结束，只是不再生成粒子，系统仍然在运行，仍然在管理正在运行的粒子
+
+3D Start Size：和3D start rotation一样，同样参考Render Alignment定义的局部坐标系
+Start Size：和start rotation一样，同样参考Render Alignment定义的局部坐标系，定义垂直forward平面的size（x和y的size）
+
+Flip rotation：0～1。使一定比例的粒子反向旋转，影响所有的rotation相关的属性，包括（3D）start rotation，rotation over lifetime。猜测其逻辑是每生成一个粒子计算概率是否落在这个区间内，付给这个粒子一个rotation的modify value，1或者-1，1为正常旋转，-1为反向旋转，每当粒子最终render时，将这个modify value乘以rotation作为最终的rotation
+
+Simulation Speed：缩放粒子系统模拟时间，快进／慢放
+
+Max Particles：控制整个粒子系统最大的同时存在的粒子数量，不管其他属性如何设置，最终粒子系统准备生成一个粒子时都要判断当前粒子数是否已经达到最大上限，之后没有到达上限才可生成粒子
+
+Emission module
+Rate over Time：Duration期间每秒生成的粒子数，可以是常数，可以是曲线，或者常数／曲线之间的随机数值
+Rate over Distance：粒子系统运动时，每移动一个unit，生成的粒子数量，用于移动的物体生成粒子的情形
+Rate over time优先于Rate over Distance，按照docs描述，如果定义了over time，则忽略over Distance
+
+粒子系统不同模块之间，甚至一个模块的不同属性之间，发挥作用是平行（正交）的，就像layer一样，相互之间没有影响，每个funciton计算时不会考虑其他funciton，除非docs明确说明，就像Rate over time和Rate over distance一样。最终粒子系统的效果是所有function的叠加而成的。
+
+Bursts：在特定的时间／周期爆发一组粒子，可以模拟蒸汽火车的smoke，每个周期迸发一组smoke粒子。Bursts于Rate over time／Distance是平行的，互不影响。Bursts是定义在Duration中的事件，没有定义在整个粒子系统的时间中。如果loop enabled，每次duration周期重新开始时，bursts计算也会重置；如果loop disabled，bursts只在duration期间emit
+Time：相对于duration周期开始的时间，从此刻起开始发射粒子
+Count：每次burst事件发射的粒子数量
+Cycles：Duration时间内，事件发射多少次，指定数量或者无限次数
+Interval：burst事件的周期，每经过这个周期发射一次burst事件。初始到达Time时会立即执行一个burst事件
+Probability：burst事件发射的概率，0～1，定义整个事件的概率，而不是一个事件内发射粒子的概率，或者不发射，或者发射全部粒子
+
+All particle properties are accessible by the Animation system, meaning you can keyframe
+ them in and control them from your animations.
+
+Animator.Controller -> particle system
+
+
+Particle effect panel
+Simulate Layers可以自动播放指定layer的粒子系统而不用选中它们，但是需要在Scene面板的工具栏中勾选toggle particle system
+Resimulate：当有系统属性修改时，立即更新当前所有粒子的对应属性还是只把修改后的属性应用到新生成的粒子，既有粒子保持不变
+
+Perlin噪声可以用来模拟自然界中的噪声现象。由于它的连续性，如果将二维噪声中的一个轴作为时间轴，得到的就是一个连续变化的一维函数。同样的也可以得到连续变化的二维图像。该噪声可以用来模拟人体的随机运动，蚂蚁行进的线路等。同上，将三维分形噪声中的一个轴作为时间轴，可以构造连续动态的噪声效果。
+
+What is the basic idea behind implementing noise turbulence?
+Edit: My main question would be, how do you get a turbulent velocity from noise values?
+
+A floating island? You don't really need 3D noise for that, just get two layers of 2D noise, then overlay them. One layer is the "ground" layer, then the next layer is the "floating islands" layer, and you could even go for a 3rd layer that you consider the "clouds" layer. There really should be no correlation between the ground layer and the "floating islands" layer.
+
+3D perlin noise is basically for animations. Say you had a pool of molten lava that you generated with 2D perlin noise, and you want it to appear flowing. Well you'd use 3D perlin noise for that, and create an animation by selecting "sheets" from the cube of 3D perlin noise. The beauty of it is the noise would appear continuous throughout the animation, because the Perlin noise would be smooth in the 3 dimensions.
+
+But for what you're doing you don't really need 3D perlin noise, just 2 layers of 2D noise will do.
+
+柏林噪声
+原理（以2D噪声为例），整个2D空间均等划分为grid，为每个grid交点生成一个2d随机单位向量，对2D空间中对任何一点，使用其到周围4个grid点到向量和对应顶点到随机向量，使用一个连续函数，计算一个标量，作为这个点的噪声值。
+柏林噪声的特点是随机连续性，从一个点到任意临近到点到变化都是连续的，如果将噪声值输入到另一个连续函数，仍然能得到连续变化到函数，对于n维噪声，确定n-1维到输入，使最后一维连续变化，能得到一个连续变化到1D噪声，若要使用柏林噪声驱动动画，使其中一维输入时间，其他维度输入应用程序数据
+无论是1D、2D还是3D噪声，输出值都是一个标量，要将其应用到一个向量到游戏数据中的话，只需要对向量中的每个分量应用不同的连续函数，这样输入同一个噪声值，就会得到不同的向量分量，因为柏林噪声是连续变化的，因为生成向量的各个分量也是连续变化的
+
+以粒子系统为例，噪声模块以粒子的position的x，y，z分量作为输入（3D噪声）或者再加上系统时间（4D噪声），得到一个噪声值，然后将其输入到3个不同的连续函数，得到3个分量不同的向量，作为粒子的位置或者速度，这样就可以使粒子向自然的湍流一样变化
+v(x) = sin(noise)
+v(y) = cos(noise)
+v(z) = sin(noise/2) + cos(noise/2)
+
+Velocity over Lifetime module
+Space: Local/World, 约束应用到局部坐标系到坐标轴还是全局坐标系到坐标轴，粒子系统中很多模块都是约束到坐标轴上到的，约束相对于x轴上的变化，约束相对于y轴上的变化，约束相对于z轴上的变化。
+Orbital：轨道旋转，x／y／z分别约束粒子绕各自坐标轴（局部或全局）的环绕速度，不清楚是线速度还是角速度
+Offset：偏移旋转中心，旋转围绕以这个点为原点的坐标系（局部或全局）的坐标轴
+Radial：相对于旋转中心点的径向速度，可以控制粒子接近中心还是远离中心，因为是径向速度，只要不是0，粒子总是呈现旋涡状（因为径向距离越来越大或者越来越小），同时如果旋转中心不在粒子的旋转平面上，粒子运动将会呈现立体的漩涡状，原因同上
+Speed Modifier：调整粒子当前方向的速度大小，可以只使用此属性调整粒子的速度，只需要将上述所有属性设置为0
+Orbital定义了一个向量，Offset定义了一个center，粒子围绕经过center的orbital向量旋转，radial控制粒子远离center的速率
+
+Noise module
+Separate Axes：分别控制每个沿每个轴的strength和remapping
+Strength：定义粒子噪声运动的强度，值越大，粒子运动的越快越远
+Frequency：控制粒子改变运动方向的频率和强度，高频率使粒子更快更突然的改变速度，低频率使粒子更慢更柔和的改变速度
+Scroll Speed：将时间作为噪声输入，得到更加随机的变化（4D噪声）
+Damping：strength于frequency正相关，频率越大，强度越大，得到一致的噪声行为
+Octaves：curl噪声是由多层perlin噪声叠加合成的，octaves控制多少层perlin噪声，更多的层次产生更有趣的噪声图像，同时也消耗更多的性能
+Octave Multiplier：对于更多的噪声层（1层以上），使用此数值（0-1）作为比例降低强度strength（即用multiplier乘以每层的strength），只有一个octave multiplier，应用到每个噪声层上
+Octave Scale：类似octave multiplier，只是调整的是frequency而不是strength
+Octave Multiplier／Scale对噪声层的调整可能是指数递乘的，即第一层只是用strength／frequency，第二层使用(multiplier * strength)/(scale * strength)，第三层使用(multiplier * multiplier * strength)/(scale * scale * strength)，即分形自相似噪声
+Quality：指定1D、2D还是3D噪声，噪声只需要随机连续变化的直觉，不必须和粒子哪些状态绑定，1D噪声可能只是用粒子的position或velocity的x分量，2D噪声使用xy分量，3D噪声则使用xyz分量，无论那一个都能得到一个连续变化的噪声值，不一定必须全部使用3个分量作为输入，但是使用分量越多，噪声图像越自然
+Remap：将得到的噪声值再输入到一个curve函数，即再次映射，为editor提供一个额外的控制层
+Remap Curve：remap使用的curve函数
+噪声模块提供了3个属性控制如何最终的噪声值如何影响粒子的transform
+Position Amount：控制噪声值如何影响position的multiplier
+Rotation Amount：控制噪声值如何影响rotation的multiplier，degrees per second
+Size Amount：A multiplier to control how much the noise affects particle sizes
+
+Limit Velocity Over Lifetime module
+Control speed reduced over their lifetime.
+Separate Axes：分别限制每个轴方向的速度分量
+Speed：速度限制
+Space：局部坐标系／全局坐标系，粒子系统中涉及区别局部坐标系和全局坐标系的属性都需要分别控制沿3个坐标轴的分量，因此space只有在开启Separate Axes时有效
+Dampen：当粒子速度超过speed限制时的衰减因子
+Drag：不考虑speed限制的线性衰减因子
+Multiply by Size：Drag系数乘以粒子大小
+Multiply by Velocity：Drag系数乘以粒子速率
+
+Inherit Velocity module
+粒子发射器的速度如何影响粒子的速度，此模块只在particle模拟空间是world时生效，因为粒子的速度独立于发射器的速度
+Current Mode：发射器的当前速度应用到所有当前的粒子上，如果Multiplier=1，就像粒子是在local空间模拟的一样
+Initial Mode：发射器的速度只在粒子生成时应用到粒子上，之后粒子的运动仍然独立于发射器运动
+Multiplier：调整发射器速度应用到粒子上的比例系数，可以使用over lifetime曲线调整影响程度
+
+Force Over Lifetime module
+X, Y, Z：粒子沿着每个轴的受力，定义了一个力的向量(x, y, z)，这个力影响每个粒子
+Space：(x, y, z)是相对于发射器局部坐标系还是全局坐标系
+
+Color By Speed module
+Speed Range: The low and high ends of the speed range to which the color gradient is mapped (speeds outside the range will map to the end points of the gradient).
+
+Size over Lifetime module
+Z will only be used for Mesh particles.
+
+Rotation By Speed module
+控制角速度，degrees per second
+
+External Forces module
+Wind zones and Particle System Force Fields的影响系数
+
+Sub Emitters module
+子发射模块是正常的粒子系统，但是必须是prefab或者使用它的系统的child
+子发射模块为使用它的粒子系统生成的每个粒子创建了一个粒子系统，这个发射模块是创建粒子系统的模板
+Unity并没有在场景中真正创建粒子系统对象，可能是只使用粒子系统模板在内部创建了不可见的副本，但是所有使用相同模板创建的副本共享max particles数量
+一个子发射模块可以被多次引用，例如作为一个粒子系统的birth发射模块，同时作为另一个粒子系统的collision模块，还作为另一个粒子系统的death模块，它只是个模板
+子发射模块可以从创建它的粒子继承一些属性，size, rotation, color and lifetime
+子发射模块的Inherit Velocity模块控制如何从创建它的粒子继承速度
+子发射模块还可以有自己的子发射模块
+子发射模块在触发它的粒子的当前位置上创建
+粒子系统触发子发射模块的条件：
+Birth：当生成粒子时，创建子发射模块
+Collision：当粒子碰撞场景中的碰撞体时，创建子发射模块
+Death：当粒子destroy时，创建子发射模块
+Trigger：当粒子碰撞到Trigger模块中配置的触发体时，创建子发射模块
+Manual：通过脚本创建
+
+Collision, Trigger, Death and Manual只使用子发射模块的emission模块中的burst配置，只有Birth可以使用emision模块的Rate Over Time配置
+Emit Probability控制触发子发射模块的概率
+
+
+Trails module
+Texture Mode：
+    Stretch：纹理一次映射到trails整体长度上，trails随着长度变长，对应更新每个vertex的uv坐标，使得所有vertex的uv坐标缩放在0-1之间
+    DistributePerSegment：与Stretch相似，但是不考虑每个segment的长度的差别，而是认为所有segment的长度相同，也即是vertex的uv坐标计算只是简单的以vertex的顺序索引除以当前trails的segment的数量
+    Tile：纹理在整个trails上堆叠，在material的tile属性控制堆叠频率
+    RepeatPerSegment：每个segment的四个vertex的uv坐标构成一个完整的0-1uv矩形，即每个线段显示一个完成的tile，tile如果是1，则segment显示完整的texture，tile如果是0.5，每2个segment显示一个完整的texture，tile如果是2，每个segment显示两个texture
+    Material的tile的作用相当于把模型（billboard／mesh）顶点的uv纹理在纹理空间进行来缩放，进行纹理采样时将顶点的纹理坐标乘以tile系数
+    offset则是加在tile之后的纹理坐标上，真正采样的纹理坐标=uv * tile + offset
+
+Size affects Width：trail宽度乘以粒子size
+Size affects Lifetime：trail顶点lifetime乘以粒子size
+Inherit Particle Color：粒子颜色blend到trail颜色中
+Color over Lifetime：控制整个trail颜色，over所在粒子的lifetime
+Width over Trail：控制trail的width，over trail的整体长度
+Color over Trail：控制trail的颜色，over trail的整体长度
+Generate Lighting Data：为trail顶点生成normal向量和tangent向量，以应用接受光源的材质
+
+
+Renderer module
+决定粒子图像或mesh如何transform，shade，overdrawn by other particles
+
+Stretched Billboard：类似Billboard，但包括一组缩放属性可调整
+    Camera Scale：根据camera运动拉伸粒子
+    Velocity Scale：根据粒子速度拉伸粒子比例系数
+    Length Scale：根据粒子沿着速度方向的当前size拉伸粒子比例系数
+
+Horizontal Billboard：粒子平行XZ平面
+Vertical Billboard：粒子平行Y轴，转向面对camera
+Mesh：粒子rendered from 3D mesh
+None：不渲染粒子，可用于只渲染trails的情景
+Sort Mode：粒子绘制顺序
+    ByDistance（from the camera）：按到camera距离的远近绘制
+    Oldest in front：最久的粒子在最前面
+    Youngest in front：最新的粒子在最前面
+Sort fudge：粒子系统本身sort ordering模糊处理，不针对单个粒子，low value增加粒子系统绘制于其他transparent gameobject其上的机会，包括其他粒子系统
+Min/Max Particle Size：The smallest particle size (regardless of other settings), expressed as a fraction of viewport size，Note that this setting is only applied when the Rendering Mode is set to Billboard 
+
+Flip：对每个粒子相对于当前alignment对坐标系对坐标轴反转图像，但并不是相对粒子系统，flip对中心是粒子本身。当粒子是mesh时，将mesh对每个平面都反转来，就好像反转来法向量一样，看起来只应该应用于billboard。感觉像是遗留对属性，3D start rotation已经可以随机旋转粒子了
+
+Pivot：相对于粒子size的系数，作为offset偏移粒子，相当于粒子的povit反向偏移，粒子所有的transform都基于偏移之后的povit，例如1x1的粒子，默认基于粒子中心移动／旋转／缩放，指定pivot=（1，1）之后，粒子pivot偏移到（-1，-1），即使不旋转，粒子静止情况下，仍然相对于出生位置偏移了（1，1）
+Visualize Pivot：显示粒子的pivot
+Masking：粒子系统和Sprite Mask组件交互，使用sprite mask只显示一部分粒子效果
+
+Using 3D Meshes gives particles extra authenticity when they represent solid GameObjects, such as rocks, and can also improve the sense of volume for clouds, fireballs and liquids.
+
+Particle System Force Field
+为粒子系统中的粒子施加力效果
+在单独的gameobject添加此模块，在particle system开启External Forces Module，通过Layer Mask或者Force Field指定
+All forces are applied in the local space of the Force Field
+
+Shape
+    Start Range：力场开始影响的内部起始点
+    End Range：力场结束影响的外部终点
+    在Start Range内部和End Range外部，力场不影响粒子，粒子可能又力场加速而离开影响区域，之后则不受力场影响，除非重新进入力场
+    Direction x/y/z：指定粒子在力场中所受的常量力，或者force over particle lifetime
+Gravity
+    Gravity Focus：设置引力焦点gravity focal point，类似Start／End Range，是一个和Shape相似的形状，0表示焦点位于shape中心，1表示焦点位于shape表面，力场总是将粒子吸引到焦点shape表面
+    Strength：引力系数G，和Direction常量力不同，常量力保持不变，引力则遵循平方反比定律，粒子越接近焦点，受力越大
+Rotation
+    力场使粒子围绕Shape中心旋转，形成漩涡
+    Speed：力场使粒子旋转的目标速度
+    Attraction：使粒子达到Speed的drag系数，attraction越大，粒子越快达到漩涡速度
+    Randomness：在粒子涡旋时在X／Y轴上产生随机扰动，只需要两个轴的旋转就可以得到3D空间中的任意旋转
+Drag
+    Strength：粒子在力场中运动时所受的drag系数
+    MultiplyBySize：Drag乘以粒子size
+    MultiplyByVelocity：Drag乘以粒子速度
+Vector Field
+    Volume Texture：3D力场纹理（texture3D）
+    就像texture2D是一个2D数组，texture3D是一个3D数组，表示一个3D空间中的点（x，y，z）对应的颜色值，力场纹理中颜色值表示在该点的所受的力（fx，fy，fz），和texture2D一样，左下角和右上角的uv坐标标准化到（0，0，0）和（1，1，1），获取空间中某个点的受力时先得到这个点在texture3D中的uv坐标，然后在其中采样得到力向量
+    Speed：粒子经过力场时修正speed的系数
+    Attraction：力场吸引粒子的强度系数，值越高，力场对粒子影响力越大
+
+粒子系统两种经典使用方法：
+1）每个粒子作为一个独立的粒子模拟由一群独立粒子组成实体
+2）每个粒子作为一个实体的一个呈现面，由一组呈现面共同呈现这个实体
+一个效果可由多个粒子系统共同呈现，每个粒子系统呈现最终效果的一个方面
+游戏视觉就像烹饪／图像处理，由许多layer叠加呈现，每个layer只需呈现最终结果的一个方面
+高级效果还可能需要使用脚本辅助，例如transform粒子发射器本身，使用更复杂的算法修改粒子系统的各种属性
+
+Velocity over lifetime
+Orbital的单位仍然不清楚是什么，旋转的中心不是发射器，而是根据粒子速度，orbital，offset计算出来的，orbital看起来像是弧度，只要orbital确定，无论如何修改例子速度和offset，改变的只是center和radius，粒子经过的弧度是固定的。调整粒子速度和offset具有类似的效果，即改变center和旋转半径
+
+Collision module
+控制粒子如何于场景中的碰撞体交互
+两种碰撞模式：World/Planes
+Planes模式：可以定义一组空间中的无限平面，平面只有transform（empty gameobject）定义，transform的xz平面，transform的y轴是平面的法向量
+Dampen：当粒子碰撞到平面时速度的衰减，相对于粒子碰撞时速度的系数，粒子将失去这些速度，1表示完全失去速度
+Bounce：粒子经过Dampen衰减之后的速度分解为垂直碰撞平面的速度分量和平行碰撞平面的速度分量，Bounce系数乘以垂直平面的速度分量的反向向量作为反弹之后的垂直分量，和之前的平行分量合成最终粒子反弹之后的速度
+Lifetime Loss：粒子完全生命周期的系数，粒子碰撞之后失去的lifetime
+Min/Max Kill Speed：粒子碰撞之后的速率如果超过这个区间则销毁
+Radius Scale：缩放粒子碰撞体以更接近视觉碰撞
+Send Collision Messages：如果enable，发射器对象和碰撞体对象上的脚本都会收到OnParticleCollision回调函数
+
+World模式：粒子可以和空间中任意碰撞体交互
+Collision Mode：2D/3D，分别对应2D物理和3D物理
+Collides With：粒子可以碰撞的layer mask
+Max Collision Shapes：粒子最多可以交互的碰撞体数量上限，超过限制的碰撞体不再计算碰撞
+Enable Dynamic Colliders：enable时粒子可以和非kinematic的刚体碰撞体交互，否则只和静态碰撞体交互
+Collider Force：碰撞时粒子施加给碰撞体的力
+MultiplyByCollisionAngle：对应碰撞角度缩放ColliderForce，越是垂直碰撞，Force越大
+MultiplyByParticleSpeed：对应粒子速率缩放ColliderForce，速率越大，Force越大
+MultiplyByParticleSize：对应粒子大小缩放ColliderForce，粒子越大，Force越大
+
+World Collision Quality
+High：总是使用物理系统检测碰撞
+Medium/Low：使用体素缓存检测碰撞，只能应用到静态碰撞体，Medium和Low的区别时每帧粒子系统查询物理系统的次数，Medium每帧比Low更多地查询，一旦允许查询的次数用完，则开始使用体素缓存
+体素缓存逻辑上是3D空间无限的grid，但是粒子系统只记录真正发生碰撞的体素，每个体素包括一个平面plane，这个平面近似模拟碰撞体在这个位置的表面，相当于将碰撞体lowpoly化了。每一帧，Unity检查粒子所在体素的那个平面，如果存在，就是用这个平面检测碰撞，否则则查询物理系统，返回的结果被记录在体素中作为之后在这个体素检测碰撞的平面。因为这只是近似模拟，所以会有一些错误的碰撞检测导致粒子无故反弹或者穿越碰撞体，Voxel Size属性可以调整体素的大小，但是体素越小，占据的存储空间越大。
+Medium和Low的区别是每一帧系统允许使用真实物理系统查询的次数，一旦查询次数用完，则退化到使用缓存查询。但考虑到碰撞体本身也是model的近似，错误通常只发生在边缘，而边缘的碰撞检测错误容忍度很高，所以缓存应该是可以接受的
+
+Triggers module
+类似物理系统中同时存在collision检测和trigger检测，粒子系统中也同时存在collision检测和trigger检测
+triggers module允许粒子经过碰撞体时收到通知但不发生物理碰撞
+Colliders：可以配置一组碰撞体，粒子只于这些碰撞体交互
+触发条件：
+Inside：粒子位于Colliders内时触发
+Outside：粒子位于Colliders外时触发
+Entering：粒子进入Colliders时触发
+Exiting：粒子离开Colliders时触发
+对于每种条件，可以选择不同的行为：
+Callback：触发脚本回调
+Ignore：不触发事件
+Kill：销毁粒子
+
+Radius Scale：缩放粒子碰撞体以更接近视觉碰撞
+
+trigger回调函数：OnParticleTrigger
+测试显示OnParticleTrigger总是调用，几乎是每帧调用，而无论是否真正有满足触发条件的事件，只能在其中使用ParticlePhysicsExtensions.GetTriggerParticles(ParticleSystemTriggerEventType)查询哪些粒子满足哪些事件，而且如果修改了粒子属性，需要调用 ps.SetTriggerParticles(ParticleSystemTriggerEventType, List<Particle>)将修改后的粒子放回去，奇怪，只需记得粒子系统允许查询粒子和碰撞的trigger检测，具体应用时在调研。
+
+Texture Sheet Animation module
+粒子图像不一定是静态图像，这个模块允许粒子每一帧有不同的图像，以对每个粒子创建精灵动画
+Gird Mode
+Tiles：Gird维度
+Animation：
+    Whole Sheet：全部Grid是一个动画
+    Single Row：每一行是一个动画
+Time Mode：
+    LifeTime：使用Frame LifeTime Curve采样精灵
+    Speed：指定speed范围，映射到0-1区间，再映射到精灵索引区间，不同的速度对应不同的精灵
+    Fps：以固定的Fps播放动画，每一帧赋予粒子一个图像
+    LifeTime和Speed都具有Cycle属性，指定动画在粒子lifetime期间播放多少次，播放n次，相当于将Frame over Time和Speed的水平区间缩小为0-1/n，Fps没有cycle，但可以通过计算得到可以循环n次的fps
+Single Mode下的Row Mode：
+    Custom：指定特定的row作为粒子帧动画
+    Random：每个粒子产生时随机选择一个row作为帧动画
+    Mesh Index：Renderer模块粒子使用Mesh Render Mode时，可以选择一组mesh作为粒子的shape，当粒子选择特定index的mesh时，精灵动画也同样选择相同索引的row
+Start Frame：指定粒子动画从哪一帧开始，可以指定一个常数或者两个常数之间的随机值，这样即使只有一个动画，不同的粒子也可以从不同阶段开始，强化粒子之间不同表现
+Affected UV channels：指定精灵动画应用到哪个uv坐标（uv0-uv4），精灵图像最终要应用到material的texture上，只要material支持main texture。因此不止可以使用billboard播放精灵动画，任何支持main texture的材质都可以播放精灵动画，可以将精灵图像作为mesh的纹理，这就是为什么有Mesh Index匹配Render模块中的Mesh索引的原因
+
+Sprite Mode
+Gird模式是提前将所有图像打包到网格中，Sprite Mode允许手工指定使用的一组sprite，但是需要这组sprite被pack到相同的atlas中，在sprite importer面板中指定相同的pack tag，使用sprite packer打包。Sprite Mode相当于Grid的Whole Sheet模式。
+
+粒子动画通常比角色动画更简单更少细节。
+在每个粒子看起来比较独立的系统中，粒子动画用于传达动作或运动的感觉。
+当所有粒子用于形成单一连续的实体时，例如云，粒子动画用于帮助添加能量和运动的感觉。
+
+Single Mode每个row可以只有一帧，用来给每个粒子随机赋予不同的图像，而不是用于粒子动画，粒子动画是选择一组图像用于活动一个粒子，当只有一个图像时，就是静态的粒子，但是每个粒子可以拥有不同的图像
+
+Lights module
+为一定比例的粒子添加real-time Lights
+和sub emitter一样，需要提供一个light prefab作为模板，当需要为一个粒子添加real-time lights时，使用此模板创建光源
+Ratio：创建实时光源的粒子比例
+Random Distribution：决定光源随机分配还是周期分配
+    true：随机分配，Ratio表示一个概率，每个粒子都有这样的概率创建一个光源
+    false：周期分配，Ratio表示一个频率，每1/Ratio个粒子生成一个光源
+Use Particle Color：粒子颜色影响光源颜色
+Size Affects Range：光源的Range乘以粒子size
+Alpha Affects Intensity：光源的Intensity乘以粒子的alpha
+Range Multiplier：修改光源Range系数
+Intensity Multiplier：修改光源Intensity系数
+Maximum Lights：最大光源数限制，超过Maximum不再创建光源，除此以外光源数量还受系统支持数量限制，超过系统支持的光源数量也不再创建
+和子发射器模块一样，实时光源并不作为场景中的gameobject生成，而是在系统内部生成
+
+Trails module
+为一定比例的粒子添加trails，此模块于Trail Renderer组件共享许多属性
+可以使许多trails属性继承粒子的相关属性
+Partcle Mode：每个粒子创建各自的尾迹
+Ratio：每个粒子生成trails的概率
+Lifetime：添加到trails的vertex的生命周期，超过生命周期后vertex从trails消失，相对于粒子lifetime的系数
+Minimum vertex distance：trails上vertex之间最小间距，只有粒子移动超过这个距离才添加新的vertex，可以调整trails的分辨率
+World Space：trails上的顶点在粒子坐标系中还是world坐标系中，如果enable，即使粒子是在发射器的local space模拟的，trails的vertics仍然在world space中，并不随粒子而运动
+Die With Particles：trails随粒子销毁而消失，否则trails自然经过所有vertics的lifetime，然后销毁
+Ribbon Mode：创建n条丝带，每条丝带连接相距n个位置生成的粒子
+Ribbon Count：创建多少条丝带
+    1：创建1条丝带，连接所有粒子
+    2：创建2条丝带，第一条连接粒子1，3，5，7...，第二条粒子连接2，4，6，8...
+    n：创建n条丝带，系统先生成n个粒子作为n条丝带各自的起始粒子，之后每个粒子连接其各自后面的k*n的粒子，k=1，2，3，4...
+Split Sub Emitter Ribbons：如果粒子系统被作为子发射器，从同一个parent粒子系统以这个发射器为模板创建的子发射器生成的所有粒子共享同一个ribbon

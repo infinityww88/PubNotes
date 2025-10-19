@@ -1,0 +1,95 @@
+# Shader Note
+
+- Learn AmplifyShaderEditor with UnityDocs, \<Unity Shader introduction essential>, Google, and Experimentation, to get shader idea totally
+- When get the whole picture of shader, it's easy to use other shader editor like ShaderGraph
+- GrabPass is a special pass type
+- Grab(Capture) the contents of the screen when the object is about to be drawn into a texture
+- This texture can be used in subsequent passes to do advanced image based effects
+- Syntax
+  - GrabPass {}
+    - Grabs the current screen contents into a texture
+    - The texture can be accessed in further passes by _GrabTexture name
+    - do time-consuming screen grabing operation for **each object** that uses it
+  - GrabPass { "TextureName" }
+    - only do grab once per frame
+    - for the object that **uses the given texture name**
+    - The texture can be accessed in further passes by the given texture name
+    - More performant
+- Shader语义
+  - Shader程序本质是嵌入和Render Pipeline中的hack程序，因此Shader与pipeline需要确定一些约定以完成数据交互，pipeline如何将数据传递给shader，shader如何将数据传递给pipeline
+  - 这和函数调用的约定没有区别：stack上第几个参数传递的是什么数据，第几个参数是函数返回地址，第几个参数或者哪个寄存器是返回值，只不过shader语义约定的是与系统（pipeline）的交互，但这也不罕见，例如C语言程序与链接器约定以main函数作为入口函数
+  - pipeline需要传递模型数据到vertex shader中，vertex shader custom计算相应的数据，传出给pipeline，pipeline将这些数据进一步处理，然后传递给fragment shader，fragment shader custom计算出最终fragment的颜色，传出给pipeline，pipeline将颜色进一步处理（ZTest/Blend），最终输出到VBuffer中
+  - Semantic Singifier communicate the "meaning" of these variables to GPU(Register)
+  - 语义就是pipeline和shader传递数据的约定
+    - pipeline和shader传递的数据分为两种，模型自身数据/pipeline系统数据
+    - SV_: System Value，pipeline系统数据语义前以SV_前缀，模型数据语义前没有前缀
+    - POSITION：pipeline在此变量中传入模型顶点坐标数据给vertex shader
+    - SV_POSITION：剪裁空间中的顶点坐标数据，由vertex shader产生并输出给pipeline，pipeline将其输入给fragment shader，这就是为什么shader程序中vertex shader输出的顶点坐标和fragment shader输入的顶点坐标语义是SV_Position而不是Position，position是模型空间顶点坐标而不是剪裁空间顶点坐标，而剪裁空间顶点坐标是系统产生（不是模型自带）因此以SV_前缀
+    - SV_Target：frag shader输出语义，告诉pipeline把用户的输出颜色存储到一个渲染目标中（默认帧缓存或者自定义帧缓存，VBuffer or RendererTexture）
+- 从pipeline传递模型数据给vert时常用的语义
+  - POSITION：模型空间中的顶点位置
+  - NORMAL：顶点法线
+  - TANGENT：顶点切线
+  - TEXCOORD0~n：顶点的纹理坐标，TEXTCOORD0表示第一组纹理坐标，一次类推
+  - COLOR：顶点颜色
+- 从vert传递给frag时常用的语义
+  - SV_POSITION：剪裁空间中的顶点坐标
+  - COLOR0：第一组顶点颜色，optional
+  - COLOR1：第二组顶点颜色，optional
+  - TEXCOORD0~TEXCOORD7：纹理坐标，optional
+  - 除了SV_POSITION具有特别语义，其他语义对变量的含义没有明确的需求，vert可以存储任意值到这些语义描述的变量中，pipeline只是简单的将它们插值传递给frag，不会影响pipeline的任何部分，如何使用它们是frag的工作
+- frag输出时常用的语义
+  - SV_Target：颜色值存储到渲染目标render target中
+  
+- frag shader得到的是vert shader插值之后的结果
+- UnitCG.cginc
+  - structure
+    - appdata_base(vert input): position, normal, texcoord0
+    - appdata_tan(vert input): position, tangent, normal, texcoord0
+    - v2f_img(vert output): sv_position, texcoord0
+  - function
+    - float3 WordSpaceViewDir(float4 v)
+    - float3 ObjSpaceViewDir(float4 v)
+    - float3 WorldSpaceLightDir(float4 v): forward render only, 输入模型空间中的顶点位置，返回世界空间中从该顶点到光源的光照方向，non-normalized
+    - float3 ObjSpaceLightDir(float 4 v)
+    - float3 UnityObjectToWorldNormal(float3 norm): 法线方向从模型空间转换到世界空间
+    - float3 UnityObjectToWorldDir(float3 dir)
+    - float3 UnityObjectToWorldDir(float3 dir)
+- 坐标空间
+  - 顶点着色器最基本的作用就是把模型的顶点坐标从模型空间转换到剪裁空间
+  - Unity将剪裁空间标准化为NDC，然后投影到屏幕空间（screen space）
+    - 齐次除法（透视除法）
+      - 剪裁空间->NDC（立方体）
+      - w分量除以x、y、z分量
+  - Unity中，剪裁空间到屏幕空间的转换是由Unity自动完成的，顶点着色器只需要把顶点转换到剪裁空间即可
+    - o.pos = mul(UNITY_MATRIX_MVP, vertex)
+    - o.pos = UnityObjectToClipPos(vertex)
+      - UnityObjectToClipPos就对应ASE的ObjectToClipPos node
+  - 3大矩阵MVP(Model, View, Projection)
+  - Unity Shader提供了各种对3大矩阵的访问方法以及坐标空间转换函数
+    - UNITY_MATRIX_MVP
+    - UNITY_MATRIX_MV
+    - UNITY_MATRIX_V
+    - UNITY_MATRIX_P
+    - UNITY_MATRIX_VP
+    - UNITY_MATRIX_T_MV
+    - UNITY_MATRIX_IT_MV
+    - _Object2World
+    - _World2Object
+- 模型空间（model space）
+  - 对象空间（object space）
+  - 局部空间（local space）
+  - space for itself and children
+- ASE很多node只是UnityCG.cginc提供的shader函数，理解这些node的用法根本在于理解这些Shader函数
+
+- ComputeScreenPos
+  - 一些effect的shader需要获得frag在屏幕空间的坐标
+  - 在vert中，o.texcoord0 = ComputeScreenPos(UnityObjectToClipPos(v.position))
+  - 在frag中，vcoord = (i.texcoord0.xy / i.texcoord0.w) -> (0~1)
+  - ComputeScreenPos得到的并不是真正的视口空间坐标，需要在fragshader中进一步处理，即齐次除法，使用w分量除以x、y、z分量
+  - 为什么不再ComputeScreenPos中直接进行齐次除法？
+    - 会破坏插值
+    - ComputeScreenPos在vert中执行
+    - 不可以在投影空间中进行插值，因为投影空间不是线性空间，而插值是线性的
+  - ComputeScreenPos() will not divide input's xy by w, because ComputeScreenPos() expect you sample texture in fragment shader using tex2DProj(float4). tex2DProj is similar to tex2D(), it just divide input's xy by w in before sampling.
+  - ComputeScreenPos() will just transform input from clip coordinate vertex position [-w, w] into [0, w], then calling tex2DProj() will transform [0, w] into [0, 1], which is a valid texture sampling value. You can divide input's xy by w manually instead of using tex2DProj, both ways are identical. No matter which way to get screen pos, the final result is normalized coordinate in screen space(viewport) [0, 1]

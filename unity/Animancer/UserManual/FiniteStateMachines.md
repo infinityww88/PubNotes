@@ -1,0 +1,37 @@
+# Finite State Machines
+
+- Animancer is not tied to a specific FSM implementation, you can use any system you like
+- Animancer does include a general purpose FSM system which is entirely separate from animation system
+  - Flexible: states can be MonoBehaviour components, ScriptableObjects, or regular C# class
+  - Generic
+    - define your own base state type to suit your needs
+    - it doesn't automatically give every state an Update function
+    - call stateMachine.CurrentState.Update as necessary
+  - Simple
+    - Donot need configure state machine structure upfont. Base StateMachine\<TState> class is just a single CurrentState property with some rules about when it is allowed to be changed
+    - To configure states upfront, StateMachine\<TKey, TState> class adds a Dictionary to allow states to be registered and accessed using a chosen type of key
+- Base State Types
+  - IState\<TState>: base type of all states
+    - methods to check if a state is allowed to be entered/exited at the moment
+    - methods to indicate when it is actually entered/exited
+    - StateMachine.TrySetState
+      - it checks to make sure the current state can be exited and the new state can be entered
+      - notifies them both of the change
+    - StateMachine.ForceSetState
+      - skip the check and force the chagne
+    - CanEnterState: check whether machine can enter this state
+    - CanExitState: check whether machine can exit this state
+- Owned States
+  - By default, states do not refer the StateMachine they are used in
+  - Implement IOwnedState\<TState>(inherits from IState\<TState>)
+    - OwnerStateMachine property to reference the StateMachine that owns it
+    - Allows the extension methods in the StateExtensions class to be used on those states
+- State Behaviours
+  - StateBehaviour\<TState> inherits from MonoBehaviour and implements IState\<TState>
+    - act as the base class for states that attached as components to GameObjects
+    - it implements OnEnterState and OnExitState methods to enable and disable itself respectively
+      - allow to use the regular event messages like OnEnable and OnDisable to implement your state transition logic
+    - allow to use normal MonoBehaviour event like Update/FixedUpdate/OnCollisionEnter
+- Delegate State
+  - DelegateState\<TState> implements IState\<TState>
+  - simply has a delegate for each of the methods in the interface so you can assign them when creating the state

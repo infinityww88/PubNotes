@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <title>sed</title>
+    </head>
+    <body>
+        <h2 style="text-align: center;">sed</h2>
+
+        <h3>
+            Tips
+        </h3>
+        <p>
+            sed 语句格式：[address][cmd]。cmd：s，p
+        </p>
+        <p>
+            -E: 使sed使用现代正则表达式。默认sed对正则表达式只是贪婪的
+        </p>
+        <p>
+            -i: 原地修改文件行，而不是输出到stdou
+        </p>
+        <p>
+            addresses: 指定sed操作哪些行
+            <ul>
+                <li>
+                    不指定address时: sed操作所有行。
+                </li>
+                <li>
+                    number: 只操作对应number的行。
+                </li>
+                <li>
+                    first~step: 从first行开始，每step行执行一次sed。
+                </li>
+                <li>
+                    $: 只操作最后一行
+                </li>
+                <li>
+                    /regexp/: 只操作和regexp匹配的行
+                </li>
+                <li>
+                    0, addr2: 从第一个匹配的address开始，直到遇到addr2
+                </li>
+                <li>
+                    addr1, +N: 匹配第一个addr1和之后的N行
+                </li>
+            </ul>
+        </p>
+    </body>
+</html>

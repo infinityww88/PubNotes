@@ -1,0 +1,170 @@
+<html>
+    <head>
+        <title>Grep</title>
+    </head>
+    <body>
+        <h2 style="text-align: center;">文件模式搜索器</h2>
+        <h3>描述</h3>
+        <p>
+            grep/egrep/fgrep/zgrep/zegrep/zfgrep工具搜索任何给定的一个或多个文件，选择和模式匹配的行。默认的，如果一个模式匹配除去末尾newline的一行文本，则模式匹配成功。空expression匹配任何文本行。每个匹配至少一个模式的文本行被输出到stdout。
+        </p>
+        <p>
+            grep用于简单模式和基本正则表达式（BREs）。egrep可以处理现代正则表达式，因此应该使用egrep，而不是grep。
+        </p>
+        <p>
+            zgrep、zegrep类似grep和egre，但是接收使用compress或者gzip压缩过的文件作为输入
+        </p>
+
+        <h3>格式</h3>
+        <p>
+            <code>grep [选项] pattern files</code><br />
+            files可以指定多个文件<br />
+            使用pattern只能指定一个pattern<br />
+            可以在选项中通过-e指定多个pattern<br />
+        </p>
+
+        <h3>选项</h3>
+
+        <h4>上下文相关</h4>
+        <p>
+            -A num, --after-context=num<br />
+            打印每个匹配行之后的num行
+        </p>
+        <p>
+            -B num, --before-context=num<br />
+            打印每个匹配行之前的num行
+        </p>
+        <p>
+            -C num, --context=num<br />
+            打印每个匹配行之前之后的num行，默认是2，等价于-A 2 -B 2
+        </p>
+        <p>
+            --context[=num]<br />
+            指定上下文默认数量。默认是2
+        </p>
+
+        <h4>匹配目标相关</h4>
+        <p>
+            --exclude [pattern]<br />
+            排除所有和给定文件名模式匹配当文件。--exclude pattern比--include pattern优先级更高，而且如果没有指定--include pattern，默认所有文件都被用于搜索。文件名模式为全路径，不仅仅是文件名。匹配使用glob模式
+        </p>
+        <p>
+            --exclude-dir [pattern]<br />
+            在指定-R选项时，和--exclude相似，用于排除目录，相关选项--include-dir
+        </p>
+        <p>
+            --include [pattern]<br />
+            如果指定，只有匹配给定文件名模式的文件被搜索。文件名模式为全路径
+        </p>
+        <p>
+            --include-dir [pattern]<br />
+            见--exclude-dir
+        </p>
+        <p>
+            -I<br />
+            忽略二进制文件，等价于--binary-file=without-match选项
+        </p>
+        <p>
+            -J, --bz2decompress<br />
+            搜索之前解压缩bzip2压缩文件
+        </p>
+        <p>
+            强制grep执行zgrep行为
+        </p>
+        <p>
+            -O<br />
+            如果指定-R，仅当被列出在命令中时跟踪符号链接，默认不跟踪符号链接
+        </p>
+        <p>
+            -p<br />
+            如果指定-R，不会跟踪符号链接。这是默认行为
+        </p>
+        <p>
+            -R, --recursive<br />
+            递归搜索列出的子目录
+        </p>
+        <p>
+            -S symbol<br />
+            如果指定-R，跟踪所有的符号链接
+        </p>
+
+        <h4>输出相关</h4>
+        <p>
+            -c, --count<br />
+            只有输出匹配行数的数量，而不输出行
+        </p>
+        <p>
+            --color=[when, --color=[when]]<br />
+            使用环境变量GREP_COLOR的颜色标记匹配的文本。可选值为never、always、auto（应该是针对输出是否是stdout：never总不输出颜色转义序列；always总是输出颜色转义序列；auto自动根据输出是否是stdout确定是否输出颜色转义序列）
+        </p>
+        <p>
+            -H<br />
+            总是在输出lines前面打印文件头
+        </p>
+        <p>
+            -h<br />
+            输出lines前面不输出文件头
+        </p>
+        <p>
+            -L<br />
+            输出文件名而不是匹配行。只输出没有任何一行和模式匹配的文件名。grep匹配到一行就返回。如果搜索的是stdin，则输出(standard input)
+        </p>
+        <p>
+            -l<br />
+            输出文件名而不是匹配行。只输出存在至少一行和模式匹配的文件名。grep匹配到一行就返回。如果搜索的是stdin，则输出(standard input)
+        </p>
+        <p>
+            -m num, --max-count=num<br />
+            发生num个匹配之后停止读取文件
+        </p>
+        <p>
+            -n, --line-number<br />
+            在每个输出行前面输出在文件的行数，从1开始。文件行对每个文件重置
+        </p>
+        <p>
+            --null<br />
+            打印文件名时，在每个文件名后面的后面输出一个zero-byte。默认打印newline。用于和xargs -0协作，将包含空白的一行作为xargs中的一个参数
+        </p>
+        <p>
+            -o, --only-matching<br />
+            只打印lines中匹配的部分，而不是输出整行
+        </p>
+        <p>
+            -q, --quite<br />
+            抑制正常输出，只用来获得grep退出状态
+        </p>
+
+        <h4>匹配模式相关</h4>
+        <p>
+            -E, --extended-regexp<br />
+            将pattern解释为扩展（现代）正则表达式，即执行egrep行为
+        </p>
+        <p>
+            -e pattern, --regexp=pattern<br />
+            指定一个pattern用于匹配输入行。通常用于使用多个-e选项指定多个模式，或者在模式以-开始
+        </p>
+        <p>
+            -f file, --file=file<br />
+            总一个文件中读取newline分隔当多个pattern用于匹配，相当于用-e指定多个pattern。至少匹配其中一个pattern当input line被选择输出。newline不认为是pattern当一部分。如果file为空，不会匹配任何line
+        </p>
+        <p>
+            -i, --ignore-case<br />
+            执行非大小写敏感匹配。默认是大小写敏感的
+        </p>
+        <p>
+            -v, --invert-match<br />
+            反转匹配结果，如果一行不与指定模式的任何一个匹配则匹配
+        </p>
+        <p>
+            -w, --word-regexp<br />
+            expression作为一个word被搜索\Wpattern\W
+        </p>
+
+        <h3>退出状态</h3>
+        <p>
+            0:一个或多个lines被选中<br />
+            1:没有lines被选中<br />
+            >1:有错误发生
+        </p>
+    </body>
+</html>

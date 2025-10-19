@@ -1,0 +1,9 @@
+Blender中一切资源（mesh，texture，material）都是对象，对象之间的使用关系只是引用，被blender成为user，类似编程语言中的使用计数。所有的资源都是独立的，可以被任何其他对象引用。引用为0的对象在Blender下次打开的时候被清理。在Blender中创建一个资源，就像在内存堆上创建一个对象，在系统范围内可被访问。
+
+Blender UV贴图的工作流程：
+进入Shading Tab
+左边面板是图像面板，可以在这里创建一个图像（从文件浏览器中将图像拖拽到图像面板）
+在shader canvas面板创建一个Image Texture Node，将Color/Alpha连接到输出Node的对应槽口，在Image中选择对应的纹理图片
+进入UV Editing Tab
+左边是uv editing面板，右边Mesh操作面板。左边可以显示材质和使用的纹理，基于此纹理就可以进行uv调整
+uv editing面板有两种显示和编辑模式：只有在mesh中选择的face才在uv editing中显示；全部uv都在editing面板中显示。这可以通过左上角两个箭头进行切换。这个功能称为“Keep UV and edit mode mesh selection in sync”。但是当打开这个功能时，移动顶点和边的时候，所有共享的顶点和边都一切移动，很容易将其他以及布局好的uv弄乱。当关闭sync时，每个face的顶点和边都可以独立移动，这样可以为每个uv island进行独立的调整而相互不影响

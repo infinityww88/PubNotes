@@ -1,0 +1,468 @@
+# IMGUI crash course
+
+- Inspector GUI部分全部由Odin/UIElements取代，因此IMGUI 2D控件部分可以完全忽略了，但是Handles部分仍然使用IMGUI的其他基础设施
+- Odin Roadmap指出Odin可能在未来包含SceneView attribute，如此全部的IMGUI就真的可以放弃了
+- Event pass OnGUI
+- GUI
+  - matrix：GUI绘制用的4x4矩阵，可以用来移动/旋转/缩放GUI元素
+  - changed：控件设置这个字段向上层控件包括这个控件操作的数据有所修改，使上层控件有所行动（记录Undo，更新游戏状态等等）
+- EditorGUI
+  - actionKey：bool，控制键是否按下（Ctrl/Command），只读
+  - BeginEndChangeCheck：创建一个检测GUI.changed的运行时作用域，只有在这个作用域中changed被设置，End才会返回true，通过堆栈实现
+- GUIUtility
+  - hotControl
+  - keyboardControl
+  - systemCopyBuffer：系统剪贴板
+  - GetControlID
+- EditorGUIUtility extends GUIUtility
+  - FindTexture：从文件加载一个Texture2D
+  - LoadRequired：在Assets/Editor Default Resources/目录下加载一个内置的资源
+  - PingObject：在Inspector中ping一个scene中的object，就像是点击了它一样，同时Hierarchy将高亮这个object。被ping的object不一定需要被选中
+- EditorUtility
+  - 与IMGUI无关，提供了Editor本身相关一组工具
+- SerializedObject
+  - SerializedObject和SerialziedProperty用于以Editor通用的方式编辑Unity Objects上的可序列化属性，它们自动处理dirty flag，undo/redo，以及Inspector上Prefab overrides的正确style
+  - 总之一句话，如果是修改Object上的可序列化属性，直接使用这两个类就可以，而完全不用在调用其他繁琐而必要的api了
+  - 多数情况下，你创建工具来修改你项目中的objects的属性
+  - SerialzieObject一次为一个或者多个Unity Objecs打开data stream，这允许你可以同时编辑这些objects共享的serialized data。例如你在data stream有一些不同类型的Behaviour，它们唯一共有的属性就是m_Enabled，而这个属性就可以通过data stream同时为所有objects修改（Multiple-objects editing）
+  - 当你首次创建一个SerializedObject实例它是最新的。任何对SerializedProperty访问data stream进行的修改，都必须通过SerializedObject.ApplyModifiedProperties进行刷新。如果你在多个frame中间保存了一个SerializedObject的引用，你必须确保在读取它的任何数据之前手动调用SerializedObject.Update方法，因为一个或者多个target objects（Multiple-objects editing）可能在别的地方被修改了，例如在另一个SerializedObject stream
+    - 一个SerializedObject可能包含多个Objects
+    - 通常的使用模式是在修改属性的地方现场生成SerializedObject并用完销毁
+    - 因为Editor是单线程的，因此使用阅后即焚的方式使用SerializedObject不需要调用Update
+    - SerializedObject只是引用target，但是还可能有其他的地方引用这些对象，当跨越多个frames，target就有可能在其他的地方被修改，例如另一个引用相同target的SerializedObject。Update就是让SerializedObject同步target的数据
+  - SerializedObject/SerializedProperty最常用的用途就是创建自定义Editors，这时使用SerializedObject是最好的方式，而不是直接修改object然后调用其他的EditorAPI使得修改兼容Dirty flags，Undo/Redo，Prefab
+  - Editor类有一个serializedObject属性，为所有被检视inspected的targets提供了一个data stream，这使得同时编辑多个对象变得轻松。因为SerializedObject实例在Editor实列的生命周期始终存在，OnInspectorGUI的基本实现在绘制任何控件之前调用Update来同步targets的数据，在任何用户交互之后调用ApplyModifiedProperties应用修改，否则所有的修改在下一次调用Update时都会丢失
+  - 通过ApplyModifiedProperties更新数据到objects中将不会考虑property setters中的任何数据校验逻辑，因为数据更新是通过序列化直接写入到内存中，而不是通过setter方法。可以通过MonoBehaviour.OnValidate消息重新验证数据，OnValidate应该是重新将所有setter/属性（RangeAttribute）为当前值调用一次。OnValidate只用在Editor中
+  - 尽管SerializedObject设计用来操作多个target，SerializedProperty并不是multi-select友好的。通过SerializedProperty设置属性会将属性写入到所有objects中，而读取时只会返回第一个targets对应的属性值
+  - 属性
+    - hasModifiedProperties：如果SerializedObject有修改而未应用的属性返回true
+    - isEditingMultipleObjects：serializedObject是否表示多个objects（read only）
+    - maxArraySizeForMultiEditing：multi-select最多可选择的objects数量
+    - targetObject：the inspected object（RO）
+    - targetObjects：the inspected object list（RO）
+  - 构造函数
+    - SerializedObject
+    - 可以通过构造函数直接生成SerializedObject，可以传递一个或者一组objects
+    - 多数情况下，SerializedObject用于自定义Editor，而Editor中已经包含了inspected objects的SerializedObject。EditorWindow中可以通过直接new SerializedObject生成指定objects的data stream，然后以标准方式操作它。SerialziedObject中记录了这个object是否是来自prefab
+  - 方法
+    - ApplyModifiedProperties
+    - ApplyModifiedPropertiesWithoutUndo：应用修改但是不注册undo
+    - CopyFromSerialziedProperty：从一个SerializedProperty中复制对应的属性到这个SerializedObject中
+    - CopyFromSerializedPropertyIfDifferent：只在对应的属性值不相同时才调用CopyFromSerializedPropertyIfDifferent
+    - FindProperty：获取指定propertyPath对应SerializedProperty
+    - GetIterator：获得第一个SerializedProperty，可以用于遍历target object上的所有属性，来知道有哪些属性以及它们的名字/路径是什么
+    - SetIsDirrerentCacheDirty：在下一次Update前更新hasMultipleDifferentValues cache。通常你不需要调用它，SerializedProperty setters自动处理它，除非你绕过SerializedProperty修改对象，你需要手工调用这个函数来更新difference cache
+    - Update：更新对象表示
+- SerialziedProperty
+  - 属性
+    - Value属性
+      - animationCurveValue
+      - boundsIntValue
+      - boundsValue
+      - boolValue
+      - colorValue
+      - exposedReferenceValue
+      - floatValue
+      - intValue
+      - longValue
+      - objectReferenceValue
+      - quaternionValue
+      - rectIntValue
+      - rectValue
+      - stringValue
+      - vector2IntValue
+      - vector2Value
+      - vector3IntValue
+      - vector3Value
+      - vector4Value
+      - enumDisplayNames：Display-friendly name of enumeration of an enum property（展示名字应该是将驼峰式命名法改为空格分隔的名字）
+      - enumNames：一个enum属性的所有枚举值名字
+      - enumValueIndex：枚举属性的索引
+    - 元信息
+      - arrayElementType：如果属性是一个数组，其是数组元素的类型名字；否则返回属性的类型
+      - arraySize：如果属性是数组，返回数组长度。如果SerializedObject包含多个targets，它返回数量最少的数组长度
+      - depth：属性嵌套深度（RO）
+      - displayName：Nice display name of the property（RO）
+      - editable：属性是否可编辑（RO）
+      - hasChildren：属性是否有子属性（RO），遍历属性树
+      - hasMultipleDifferentValues：属性是否在multi-object编辑期间表示多个不同的值（RO）
+      - hasVisibleChildren：是否有可见的子属性（？）
+      - isArray：属性是否是数组（RO）
+      - isDefaultOverride：属性是否是一个prefab的default override
+      - isExpanded：属性是否在Inspector中展开
+      - isInstantiatedPrefab：属性是否是一个Prefab实例的部分
+      - name：属性名字
+      - prefabOverride：属性是否是prefab的属性并且与prefab属性不同
+      - propertyPath：Full path of the property（RO）
+      - propertyType：属性类型，SerializedPropertyType（enum）
+      - serializedObject：属性所属的SerializeObject
+      - tooltip：属性的tooltip（RO）
+  - 方法
+    - 数组方法
+      - ClearArray：移除数组中的所有元素
+      - DeleteArrayElementAtIndex
+      - GetArrayElementArrayAtIndex
+      - InsertArrayElementAtIndex
+      - MoveArrayElement
+    - 遍历方法
+      - FindPropertyRelative：以相对路径获取相对于当前属性的SerializedProperty，可以用于遍历属性树
+      - GetEndProperty：获取表示这个属性以及所有子属性结束的SerializedProperty，通常就是这个属性的下一个兄弟属性，这可以用来在遍历属性时确定子属性结束的位置
+      - Next：bool (bool enterChildren)，移动到下一个属性
+      - GetEnumerator：返回一个IEnumerator，可以用来遍历接下来的属性
+      - Reset：重置到这个SerializedObject的第一个属性
+    - Copy：复制一份SerializedProperty interator，并保持它的当前状态，这在你想遍历所有的SerializedProperty但仍然保持当前SerializedProperty的引用是非常有用
+  - 静态方法
+    - DataEquals：比较两个属性中的数据是否相同，忽略属性所属的SerializedObject和path
+    - EqualContents：两个属性是否是相同SerialziedObject上的相同路径的属性
+- Handles.matrix, GUI.matrix, OpenGL等所有图形库中使用矩阵都是累积矩阵
+- OpenGL中的矩阵堆栈只是用来保存之前的状态，设置运行时矩阵的作用域，在进入作用域时复制当前栈顶为新的栈顶，退出作用域时弹出当前栈顶，栈顶恢复为之前的状态。绘制图元时只会使用当前栈顶的矩阵对顶点进行变化，绝不会从栈顶向栈底进行矩阵乘法，因为矩阵堆栈中存储的根本就不是父子矩阵关系。当然你可以将它用作父子矩阵关系，例如开始绘制子对象时，先复制当前栈顶堆栈，然后将父对象的局部坐标系矩阵乘以到栈顶，那么当前栈顶保存的就是从父对象局部坐标系到世界空间的累积矩阵乘积，但是这个矩阵已经是累积矩阵了，而且它之所以成为累积矩阵是因为你这样使用它的结果，而不是opengl自动执行的结果。矩阵堆栈仅仅是让你实现运行时作用域。至于绘制具有层次的对象时，如何实现累积矩阵完全由框架来决定，但最终OpenGL只使用栈顶矩阵变化图元顶点
+- GL
+  - GL类是Unity提供的底层图形库
+  - 使用这个class来操作当前active的变换矩阵，像OpenGL立即模式一样发出绘制命令，以及实现其他的底层graphics任务
+  - 通常对象的绘制都是通过在场景中创建一个GameObject，在其上添加MeshRenderer和MeshFilter组件实现
+  - 但是还可以不生成GameObject而直接在场景中绘制geometry
+    - GL底层api
+    - Graphics.DrawMesh
+    - CommandBuffer
+  - GL立即绘制功能使用任何当前设置的material。matrerial控制着绘制如何完成（blending，textures，etc.），因此除非你在调用GL绘制函数之前显式设置material，否则当前material可能是任何状态
+  - GL绘制命令立即执行。这意味着如果你在Update中调用它们，它们会在Camera渲染之前被绘制，而camera渲染时首先清楚当前颜色/深度缓冲区，因此这些GL绘制将是不可见的
+  - 通常在OnPostRenderer或者OnRenderImage中调用GL绘制命令
+  - 通过调用一个material的SetPass将其设置为当前渲染管线的状态，setpass指定使用material shader的哪个pass，同时绑定material到渲染管线
+  - GL几乎总是用于绘制一组lines或者triangles，而且并不需要操作mesh。如果你想避免任何出人意料的情况，使用一下模式
+  void OnPostRender() {
+    GL.PushMatrix();
+    // material.SetPass(0);
+    // Draw your stuff;
+    GL.PopMatrix();
+  }
+  - OpenGL矩阵
+    - model矩阵：将局部坐标系中的顶点转换到世界坐标系中
+    - view矩阵：将世界坐标系中的顶点转换到视图（眼睛/相机）坐标系中
+    - projection矩阵：将视图坐标系中的顶点变换到NDC规范立方体中
+    - 为了保证每一次渲染的独立性，需要在每一次渲染前保存当前状态（PushMatrix），并在渲染结束后恢复这个状态（PopMatrix），即为当前渲染的矩阵创建一个运行时作用域
+    - OpenGLyou有3个矩阵堆栈
+      - model-view是一个矩阵堆栈，因为它们都将是用来确定顶点最终在摄像机空间中的位置的
+      - projection是一个矩阵堆栈
+      - texture堆栈
+      - 但是push/pop只有一个，OpenGL通过glMatrixMode设置当前push/pop操作的是哪个矩阵堆栈。所有矩阵操作都是针对当前矩阵堆栈的，例如glLoadIdentity，glPushMatrix，glPopMatrix
+      - 最终OpenGL绘制图元的时候将model-view堆栈栈顶的矩阵与projection堆栈栈顶的矩阵相乘得到最终的变换矩阵MVP，然后用它来变换顶点
+      - OpenGL初始时，每个矩阵堆栈都只有一个单位矩阵，需要通过glMatrixMode设置当前操作哪个矩阵
+  - 静态属性
+    - invertCulling：bool，是否反转backface culling（true）or not（false）；这个flag可以反转所有渲染的物体的culling mode；主要用于绘制镜面或水的反射效果
+    - 图元模式：
+      - LINE_STRIP
+      - LINES
+      - QUADS
+      - TRANGLE_STRIP
+      - TRANGLES
+    - modelview：读取/设置modelview矩阵；getter返回model和view矩阵的乘积；setter将model matrix设置为单位矩阵，将view matrix设置为参数矩阵
+    - wireframe：渲染是否以线框的方式完成。影响turn on之后所有被渲染的物体，直到将其turn off；在Unity Editor中，wireframe mode总是在绘制任何widnow之前将其turn off；一些平台例如OpenGL ES不支持线框渲染
+  - 静态方法
+    - 绘制命令
+      - Begin/End：开始绘制3D图元；==OpenGL.glBegin/glEnd；在GL.Begin和GL.End之间调用GL.Vertex, GL.Color, GL.TexCoord以及其他立即模式绘制命令
+      - Clear：清除当前render buffer，clearDepth & clearColor，screen or active RenderTexture；绝大多数情况下，Camera将会正确的clear屏幕或者RenderTexture，而GL绘制时在OnPostRender即Camera clear之后的，因此通常你不需要手工执行这些，只需要在GL.Begin/GL.End之间绘制就可以了
+      - ClearWithSkyBox
+      - Flush：将图形驱动命令缓冲区中排队的commands发送给GPU
+    - 矩阵操作
+      - LoadIdentity：将model-view矩阵堆栈栈顶设置为单位矩阵，其中已经包括调用glMatrixMode(GL_MODELVIEW)
+      - LoadProjectionMatrix：将projection矩阵堆栈栈顶设置为参数矩阵，其中已经包括调用glMatrixMode(GL_PROJECTION)
+      - LoadOrtho：辅助函数，用于设置一个orthograhic投影；加载一个orthograhic投影矩阵到projection matrix，加载identity到模型和视图矩阵
+        - GL.LoadOrtho()等价于
+          GL.LoadIdentity();
+          var proj = Matrix4x4.Ortho(0, 1, 0, 1, -1, 100);
+          GL.LoadProjectionMatrix(proj)
+      - LoadPixelMatrix：为pixel-correct rendering设置矩阵。加载orthographic projection到projection矩阵，加载单位矩阵到model-view矩阵。projection matrix的x/y坐标直接对应像素，就是平行投影的宽度和高度正好是视口的宽度和高度。(0, 0)位于视口的左下角。z坐标近平面为1，远平面为-100
+      - MultMatrix：设置当前模型矩阵为参数矩阵。模型矩阵就是被绘制object的local-to-world矩阵
+      - PushMatrix/PopMatrix：同时对model-view，projection矩阵堆栈进行压栈和弹栈操作
+    - 顶点数据
+      - Color：设置当前顶点颜色，== OpenGL.glColor4f(r, g, b, a)；为了使用顶点颜色，需要shader读取并使用顶点颜色数据（即支持VertexColor）
+      - TexCoord/2/3：为所有纹理单位（就是纹理）设置纹理坐标
+        - Z值在一些两种情况被使用
+          - 纹理是cubemap
+          - projective texturing，将x&y除以z才能得到最终的纹理坐标，最常用于water reflections或类似的效果
+      - MultiTexCoord2/3(int uint, Vector3 v)：多重纹理时，为每个纹理单位可以单独设置纹理坐标
+      - Vertex/3：提交一个顶点
+    - 视口操作：Viewport(Rect pixelRect)，设置渲染视口，所有渲染被限制在pixelRect中。如果视口被修改，其中所有渲染内容都会被拉伸
+- Graphics
+  - Unity绘制功能的原始接口，位于MeshRenderer之下，GL之上
+  - 这是进行mesh drawing功能优化的高层捷径
+  - 静态属性
+    - activeColorBuffer/activeDepthBuffer：当前active的缓冲区
+  - 静态方法
+    - 绘制Mesh
+      - DrawMesh
+        - 为一个frame绘制一个mesh。mesh将被光照影响，可以cast和receive阴影，并且可以被Projector影响，就好像它是一个gameobject。实际上gameobject就是通过它绘制的。它可以为所有camera绘制，或者只为某些特定的camera绘制
+        - 当你想绘制大量meshes而不想创建和管理相应的gameobject时，就可以使用DrawMesh
+        - DrawMesh并不立即绘制，它仅仅是提交渲染请求。mesh将会作为正常渲染过程的一部分被渲染，立刻渲染调用Graphics.DrawMeshNow
+        - 因为DrawMesh不是立刻绘制，因此在多次DrawMesh之间修改material属性以达到使用相同材质但以不同属性绘制多个mesh的效果并不能达成。因为之前已经提交但是还没有绘制的请求仍然引用着这个材质，如果在这个请求被执行之前，材质属性修改了，那么这个请求在执行时就会使用最新的材质属性，而不是请求提交的时候的材质属性。如果想要达到这个目的，可以使用MaterialPropertyBlock参数，这个参数记录记录可以应用在material上的一些修改，因此可以记录请求提交时的部分材质属性，在请求执行时Unity会使用这些属性设定material进而设定渲染管线状态
+        - Mesh mesh：要渲染的mesh
+        - Vector3 position
+        - Quaternion rotation
+        - Material material
+        - int layer
+        - Camera camera：null-绘制到所有camera，否则绘制到指定的camera
+        - int submeshIndex：绘制哪个submesh，只用于多material mesh
+        - MaterialPropertyBlock properties：在mesh被绘制时设置到material上
+        的属性
+        - bool castShadow：mesh是否投射阴影
+        - bool receiveShaders：mesh是否接受阴影
+        - bool useLightProbes：是否使用光线探测
+        - Transform probeAnchor：如果设置，mesh将使用这个transform的位置来采样光线探测，以及寻找匹配的反射探测
+        - Matrix4x4 matrix：mesh的transform matrix（联合position，rotation，以及其他的transform）
+      - DrawMeshNow/DrawMeshInstanced
+    - SetRenderTarget：设置当前默认渲染目标，用于实现特定图像算法。只以一个RenderTexture参数调用SetRenderTarget与设置RenderTexture.active是等价的
+      - DrawMesh的camera参数指定为某个camera渲染，每个camera有自己一个临时的rendertexture，用来保存这个camera渲染的结果，它之后可以被用在camera自己的OnPostRender中，DrawMesh的结果将出现在指定camera的rendertexture中。但是最终的渲染结果需要有一个去处，这就是RenderTexture.active
+    - 绘制纹理
+      - Blit：使用指定的shader复制（绘制）source纹理到目标render texture；绝大多数用于post-processing effects，source是camera渲染的结果，shader是一个处理quad的shader，quad和相机视锥体横截面大小相等
+        - Blit设置dest为render target，设置source为material的_MainTex属性，然后绘制一个和全屏大小相同的quad
+        - Texture source
+        - RenderTexture dest：如果是null，blit直接渲染到屏幕
+        - Material mat：用来渲染quad的材质，输入是一个quad
+        - int pass：-1绘制材质的所有pass，或者指定pass
+        - Vector2 scale：纹理坐标缩放
+        - Vector2 offset：纹理坐标偏移
+      - BlitMultiTap：quad每个顶点有多个纹理坐标针对多个纹理
+      - CopyTexture：高效地将一个纹理数据复制到另一个纹理中。复制不会做任何缩放，因此source和destination必须大小相等。纹理格式应该兼容。
+        - Texture source
+        - Texture destination
+        - srcX/Y/Width/Height
+        - dstX/Y/Width/Height
+      - DrawTexture
+        - 在屏幕坐标系中绘制纹理
+        - 如果你想在OnGUI中绘制texture，你应该只在EventType.Repaint事件中完成。GUI要绘制在整个场景之上，Repaint可能是在所有Camera和PostProcess完成之后才发送的
+        - 最好用使用GUI.DrawTexture绘制GUI
+        - Rect screenRect：屏幕空间中纹理要被绘制的矩形区域
+        - Texture texture：要绘制的纹理
+        - Rect sourceRect：纹理上的区域，标准化坐标，(0, 0)位于左下角
+        - int left/right/top/bottom Border：不被缩放的边界像素数量，九宫格
+        - Material：被用来绘制纹理的texture，如果为null，将使用一个internal-GUITexture.shader的材质
+        - int pass
+        - color：修改output的颜色，正常值是(0.5, 0.5, 0.5, 0.5)，以Vertex color方式发送给shader
+- Handles
+  - 自定义3D GUI控件并绘制SceneView
+  - Handles是3D控件，Unity使用它们在SceneView中操作对象
+  - Unity提供了许多内置的Handle GUI，例如transform相关的handles
+  - 可以自定义Handle GUI用于自定义组件editor。这是编辑程序化生成scene内容的非常有用的方法
+  - SerializedObject记录着Unity Objects的所有信息，因此它知道一个object是不是prefab的一部分，因此可以正确处理prefab override的显式style，即使是现场new的SerializedObject
+  - 可以在SceneView中绘制IMGUI 2D控件，只需要在OnSceneGUI中，将它们放在Handles.BeginGUI和Handles.EndGUI内就可以了
+  - 可以使用GUIPointToWorldRay和WorldToGUIPoint在screen和world之间转换坐标
+  - 静态属性
+    - centerColor：用于表示一些事情中心的颜色
+    - color：handles的颜色
+    - inverseMatrix：所有handle操作的矩阵的逆矩阵
+    - lighting：handle是否开启光照（handles本身就是3D gemoetry绘制，和普通的mesh一样，如果不开启光照是看不出handle的3D效果的，只能看见2维的形状）
+    - matrix：所有handle操作的matrix。通过操作这个matrix来控制handle的绘制和transform。如果需要让handle操作都在某个object的局部坐标系中进行，将其设置为transform.localToWorldMatrix
+    - preselectionColor：鼠标hover未选中的物体时，显示的高亮颜色
+    - secondaryColor：Soft color to use for general things
+    - selectedColor：当前active的handle的颜色
+    - x/y/z AxisColor：操作X/Y/Z坐标的handles使用的颜色
+    - zTest：Rendering.CompareFunction，当前绘制使用的zTest函数
+      - Disabled
+      - Never
+      - Always
+      - Less
+      - Equal
+      - LessEqual
+      - Greater
+      - NotEqual
+      - GreaterEqual
+      - 可以使用不同的zTest将同一个handle绘制执行两次，使得zTest成功和zTest失败的以不同颜色显示，来可视化遮挡效果（即被遮挡的部分以不同颜色显示出来）
+      - Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater
+  - 静态方法
+    - HandleCap函数
+      - 所有的HandleCap函数具有相同的接口 void (int controlId, Vector3 position, Quaternion rotation, float size, EventType eventType)，即用指定位置、旋转、大小绘制一个geometry
+        - controlId与IMGUI 2D控件一样，如果使用就需要在一个GUI循环中（一个frame的所有event pass）保证相同
+        - EventType eventType：告诉cap函数当前的事件类型，cap函数对于Layout和Repaint执行两个逻辑，这说明cap函数不实用Event.current来进行判断，因此需要调用者手工在外面将事件类型传递给它
+          - Layout：报告鼠标位置到当前控件的距离（AddControl）
+          - Repaint：绘制geometry
+        - 调用HandleUtility.GetHandleSize(Vector3 Position)获得一个与相距距离无关的handle大小
+      - Cap函数有两个任务：报告到鼠标的距离；绘制geometry。如果要自定义HandleCap，需要实现Layout和Repaint事件
+      - ArrowHandleCap：箭头cap，移动
+      - CircleHandleCap：圆圈cap，旋转
+      - ConeHandleCap：圆锥cap
+      - CubeHandleCap：立方体cap，缩放
+      - CylinderHandleCap：圆柱体cap
+      - DotHandleCap：方形cap
+      - ReactangleHandleCap：矩形框cap
+      - SphereHandleCap：球形cap
+    - 封装可用的Handle
+      - 这些handle就像IMGUI封装好的2D控件一样，Button/TextField/CheckBox/Tap等等。使用者不需要处理任何输入/绘制，只需要调用它们并使用它们的返回值就可以了，使用模式也是相同的，将操作对象/变量的当前值传递进去，函数返回用户使用handle操作之后的新值，然后可以将新值赋值给当前操作的对象/变量
+      - 使用handle的标准模式是将其放在EditorGUI.BeginChangeCheck和EditorGUI.EndChangeCheck中，handle函数内部会通过GUI.changed报告用户操作是否修改了value，这样外面可以只在真正修改了值的时候再进行处理。BeginChangeCheck/EndChangeCheck(GUI.changed)和SerializedObject是完全没有关系的。SerializedObject只是操作数据，不涉及任何GUI操作，它不管所代理的对象的数据是通过什么方式修改的，只要是有所修改并调用Apply，就开始处理dirty flag，undo/redo，prefab override style相关的事情。BeginChangeCheck/EndChangeCheck则仅仅是GUI的报告，不涉及任何数据的修改，是否利用GUI.changed，如何使用控件返回的数据是自定义Editor脚本的事情。因此即使使用SerializedObject，也需要使用BeginChangeCheck/EndChangeCheck检查GUI.changed报告
+      - 自定义Handle也应该通过GUI.changed向调用者报告返回数据是否与传入的数据有所修改
+      - FreeMoveHandle
+        - 创建一个任意移动的handle，handle可以在任何方向上自由移动
+        - 按下Ctrl/Cmd来对齐到grid，按下Ctrl-Shift/Cmd-Shift来对齐到鼠标下任何collider的表面上
+        - positino/rotation/size
+        - snap：Vector3，每个轴上的snap value，snap激活时，在各个坐标轴上对齐到相应snap的整数倍上
+        - capFunciton：FreeMoveHandle没有内置绘制功能，需要通过capFunction传递一个绘制cap的函数。这就是为什么HandleCap函数需要接收EventType参数，而不是直接判断Event.current。因为在这个Handle里，Handle自己进行事件处理，而只需要capFunction的绘制功能
+        - 返回Handle操作后的新position
+      - FreeRotateHandle
+        - 创建一个任意旋转的handle，handle可以绕所有axes旋转。旋转gizmo没有可见的axes，只是一个简单的circle。用户可以点击并拖动圆形区域内部来提供旋转输入
+        - 返回新的Quaternion
+        - 不需要提供capFunction
+      - PositionHandle
+        - UnityEditor默认的position handle
+      - RadiusHandle
+        - 创建控制半径的handle
+        - 返回新的radius（float）
+      - RotationHandle
+        - UnityEditor默认的rotation handle
+      - ScaleHandle
+        - UnityEditor默认的scale handle
+        - 返回3个axis上的scale，Vector3
+      - ScaleValueHandle
+        - ScaleHandle的单轴版本，返回float
+        - 绘制一个箭头，拖动箭头时，箭头并不移动，而是scale a single float up and down
+      - TransformHandle
+        - UnityEditor默认的transform handle的3合1版本
+        - 通过ref参数进行输出
+        - 具有3个不同的签名，不同签名只创建对应的handles
+      - Disc
+        - 创建一个可以被拖拽的圆环，返回圆盘的方向Quaternion
+        - axis：Vector3，旋转围绕的axis，圆环只绕着这个axis旋转
+        - cutoffPlane：bool，如果为true，只有圆盘的front-facing一面是可以绘制/拖拽的。当有许多相互重叠的rotation axes（就像默认rotate tool具有3个圆环，每个对应一个axis）需要避免混乱时，这个选项非常有用。就像ScaleValueHandle可以视作ScaleHandle的单轴版本，Disc可以视作RotationHandle的单轴版本
+      - Slider
+        - 创建沿一个axis移动的3Dslider，返回移动后新的位置。PositionHandle的单轴版本
+        - 默认cap是一个圆锥cap，可以指定cap函数，snap value
+      - Slider2D
+        - 创建一个沿着由两个axes定义的plane自由移动的3D slider
+        - 返回新的位置Vector3
+        - 就像UnityEditor默认的position handle中，还可以点击一个小平面来在指定的x/y/z平面上自由移动
+        - handlePos：Vector3，当前点在Handles.matrix的位置
+        - offset：在handlePos处绘制Slider2D，但是将handlePos+offset作为Slider2D的原点。用于相对于其他object绘制放置Slider2D的情形，即cap图形远离要操作的对象，但是操作的原点仍然是对象中心
+        - handleDir/slideDir1/slideDir2：在Handles.matrix确定平面
+        - snap：float or Vector2
+        - drawHelper：当拖动时在handle周围绘制一个rectangle
+        - capFunction：用于绘制的cap函数
+    - 绘制函数
+      - 既可以绘制视觉辅助，也可以绘制简单的cap（圆形图，弧线，饼形图等等）
+      - 3Dcap绘制应通过GL/Graphics
+      - DrawAAConvexPolygon
+        - 为一组point（vector3）绘制一个抗锯齿（反走样）anti-aliased凸多边形convex polygon
+      - DrawAAPolyLine
+        - 以指定的宽度和point array绘制抗锯齿线段
+      - DrawBezier
+        - 绘制指定start/end point和对应tangents的纹理映射的贝塞尔曲线，point和tangents可以通过PositionHandle来获得
+      - DrawCamera
+        - 在一个rectangle绘制一个camera，就像sceneview右下角的game preview相机
+        - 这个函数还会将Camera.current设置为参数camera，它设置camera的pixelRect为position，如果你使用的是high DPI显示器，这可能与GUI坐标不同。EditorGUIUtility.pixelsPerPoint(float)记录当前view中GUI的一个point相对于screen pixels的倍数。这个值是interface每个点对应的screen的像素数量。例如retina显示器。这个值可能在不同的view中是不同的，如果不同的view在不同的显示器上
+        - position：Rect，GUI坐标系中相机绘制的区域
+        - camera：要绘制的相机
+        - drawMode：相机如何绘制，textured，wireframe等DrawCameraMode
+      - DrawDottedLine
+        - 绘制两点之间的虚线，screenSpaceSize指定屏幕空间的线段间隙
+      - DrawDottedLines
+        - 绘制一组顶点之间的虚线
+      - DrawGizmos
+      - DrawLine
+      - DrawLines
+      - DrawPolyLine
+      - DrawSelectionFrame
+        - 绘制camera面向的选择框
+      - DrawSolidArc
+        - 饼形图
+      - DrawSolidDisc
+        - 绘制圆盘
+      - DrawSolidRectangleWithOutline
+        - 绘制指定颜色和边框颜色的矩形
+      - DrawWireArc
+        - 绘制弧线
+      - DrawWireCube
+      - DrawWireDisc
+    - 3D GUI控件
+      - Button
+        - 绘制一个3D Button，就像2D button一样返回bool表示是否点击，但是它是在3D空间中绘制并指定一个cap函数作为绘制函数
+      - Label
+        - 在3D空间中绘制一个label，只指定position，总是面向camera
+    - 2D GUI绘制
+      - BeginGUI
+      - EndGUI
+    - 实用函数
+      - MakeBezierPoints
+        - 指定start/end position/tangent，细分线段数量，返回相应贝塞尔曲线上的顶点
+      - SnapToGrid
+        - 将一组Transform对齐到EditorSnapSettings.move最近的整数倍上
+      - SnapValue
+        - 四舍五入value到最近的snap整数倍上，如果snap激活的话（按下ctrl/cmd）
+        - snap只能是正数
+      - GetMainGameViewSize
+        - 返回当前main game view的width/height
+  - 委托类型
+    - delegate void CapFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType.eventType);
+      - 所有提供的HandleCap都是这个类型
+      - 所有需要cap绘制函数的handle都需要这个类型的参数
+      - 自定义cap函数需要是这个类型的
+    - delegate float SizeFunction(Vector3 position)
+      - 基于handle当前位置计算handle大小，在Handles.matrix中
+- HandleUtility
+  - 在SceneView中绘制3D GUI的辅助函数
+  - 基本上都是数学函数，用来辅助在3D Scene空间和2D GUI之间进行转换。这些函数用于Unity Editor的构建，因此使用它们可以很好地使自己定义的Handle GUIs与Unity保持一致
+  - 静态方法
+    - GUI控件操作
+      - void AddControl(int controlId, float distance)
+        - 记录鼠标指针到handle的距离
+        - 所有handles在Layout事件中用controlID调用这个函数，然后在其他事件中使用nearestControl检查它们是否被鼠标按下mouseDown
+      - void AddDefaultControl(int controlId)
+        - 添加默认控件的ID，如果没有任何控件被选中，这个控件ID将是nearestControl
+    - 计算2d/3d空间距离
+      - float CalcLineTranslation(Vector2 src, Vector2 dest, Vector3 srcPosition, Vector3 constraintDir)
+        - src：drag的起始点
+        - dest：drag的目标点
+        - srcPosition：被拖拽的object的在src射线处的3D位置
+        - constraintDir：约束的3D移动方向
+        - 返回沿着constraintDir方向移动的距离
+        - 将一次鼠标拖动映射为3D空间中沿着一条直线的移动
+        - 特定类型的Handles（arrows etc）涉及3D空间中沿直线的移动，例如Transform的position handle。CalcLineTraslation将鼠标的移动转换为沿着3D直线的移动，就像Unity内置的工具一样
+      - Vector3 ClosestPointToArc(Vector3 center, Vector3 normal, Vector3 from, float angle, float radius)
+        - 获得距离3D空间中距离当前鼠标位置最近的point
+        - 这个函数将它参数定义的arc投射到屏幕空间上（flattens）。然后被展平的arc与当前鼠标位置最近的点就可以计算出来，然后将其转换为原始3D空间中弧线上的3D位置。这通常用于那些涉及围绕arc中心旋转一个object的的Handle GUI。2D鼠标移动被以Unity内置工具的方式转换为3D空间中的点，进而转换为3D空间中的旋转
+        - center：arc中心
+        - normal：弧线平面的法向量
+        - from：弧线起始点
+        - angle：弧线角度
+        - radius：弧线半径
+      - Vector3 ClosestPointToDisc(Vector3 center, Vector3 normal, float radius)
+        - see ClosestPointToArc
+      - ClosestPointToPolyLine
+        - 用于使用鼠标操作任意3D shape，不像arc或者disc是规则形状
+        - 如何将arc/disc平铺到screen上？如何计算鼠标指针到变形后的arc/disc的最近距离？只能是把arc/dics细分成直线线段，将直线投射到屏幕上，计算鼠标指针到这些线段的距离，因此arc/disc的最近距离计算应该就是基于ClosestPointToPolyLine实现的
+      - float DistancePointBezier(Vector3 point, Vector3 startPosition, Vector3 endPosition, Vector3 startTangent, Vector3 endTangent)
+      - DistancePointLine
+      - DistancePointToLine：计算2D空间中一点到直线的距离
+      - DistancePointToLineSegment：计算2D空间中一点到线段的最小距离
+      - DistanceToArc：计算鼠标指针位置到3d饼形图（section of a disc）的像素距离（屏幕距离）
+      - DistanceToCircle
+      - DistanceToDisc
+      - DistanceToLine
+      - DistanceToPolyLine
+      - DistanceToRectangle
+    - 实用函数
+      - GetHandleSize
+        - 基于给定handle的3d位置到camera的距离，计算一个常量屏幕大小size
+      - GUIPointToScreenPixelCoordinate
+        - 将一个2DGUI位置转换为screen pixel坐标
+        - screen或者window的左下角为(0, 0)，右上角为(Screen.width, Screen.height)
+        - 应该考虑了high DPI显示器
+      - GUIPointToWorldRay
+        - 从一个2D GUI位置发射一条world射线
+      - WorldToGUIPoint：将一个世界空间坐标转换为2D GUI坐标
+      - WorldToGUIPointWithDepth
+      - WorldPointToSizedRect
+        - 在一个世界位置附近计算一个来展示一个2D GUI元素的矩形
+        - 3D objects需要跟随它们在3D空间中移动的labels或其他2D控件
+      - GameObject PickGameobject(Vector2 position)
+        - 返回距离指定screen位置最近的gameobject
+      - GameObject[] PickRectObjects(Rect rect)
+        - 返回指定scree矩形范围内的gameobjects
+        - 用于实现拖拽矩形的multi-select
+      - float PointOnLineParameter(Vector3 point, Vector3 linePoint, Vector3 lineDirection)
+        - 在3D空间中计算point在从linePoint出发，方向为lineDirection的直线上的投影位置与linePoint的正负距离
+      - Vector3 ProjectPointLine(Vector3 point, Vector3 lineStart, Vector3 lineEnd)
+        - 计算3D空间中一个点在一条直线上的投影位置
+      - PushCamera/PopCamera
+        - 入栈和出栈相机设置到参数相机中
+      - object RaySnap(Ray ray)
+        - 在Scene中投射ray，并报告在它的路径上是否有object
+        - 返回的object是装箱的RaycastHit，或者null如果没有hit任何object
+      - Repaint
+        - 重新绘制当前view

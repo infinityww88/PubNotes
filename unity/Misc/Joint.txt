@@ -1,0 +1,19 @@
+关节用来约束两个刚体的物理运动。没有关节的情况下，两个刚体只在受力和碰撞的情况下完全自由运动。定义关节后，两个刚体不再是完全自由的，而是必须满足关节定义的约束。想象工厂生产出来的机械，每个零部件如果都自由运动没有约束，机械肯定无法正常工作；而通过机械框架上的轨道、轴承、传送带、链条等约束（以及零部件相互之间的约束），各个零部件不再完全自由的运动，而是安装这些关节定义的规则运动，这样机械才能正常发挥作用。在满足关节约束情况下的运动，仍然满足物理规则（力与加速度，能量守恒，动量／冲量，力矩守恒，碰撞检测等等）。
+
+关节由两个刚体确定，Actor0与Actor1。Actor1是关节主体控制的刚体，Actor0是关节挂载到的刚体，用来约束关节受动刚体Actor1。关节定义的约束运动时Actor1相对于Actor0的，而不是相对于世界坐标系的。Actor0可以时Null，此时关节可以认为是挂载到世界空间中的固定点上。
+
+关节锚点（控制刚体的中心）不一定是物体质心，可以通过Anchor和ConnectedAnchor定义锚点在关节链接的两个刚体中各自局部坐标系的位置，anchor定义Actor1的锚点在Actor1局部坐标系的位置，connectedAnchor定义Actor0的锚点在Actor0局部坐标系的位置。
+
+关节约束也不是沿着刚体局部坐标系的坐标轴，可以通过Axis和SecondaryAxis定制。这两个坐标轴分别定义旋转的x轴和y轴，定义在Actor1刚体的局部坐标系中。这个坐标系并没有在两个刚体中各自定义，而是共享的。因为运动约束是Actor1相对于Actor0的运动（平移和旋转），因此只能有一个坐标系，这个坐标系定义在Actor1的局部坐标系中。另外只定义了x轴（Axis）和y轴（SecondaryAxis），z轴通过左手定则确定（左手定则有两种方式：伸开拇指、食指、中指，拇指指向x轴，食指指向y轴，中指指向的方向就是z轴；四指握拳，拇指伸开，四指指尖在x-y平面中从x轴沿90度方向绕到y轴，拇指指向就是z轴）。这个相对于Actor1局部坐标系定义的坐标系下面称之为关节坐标系，所有关节运动都是相对于这个坐标系的。
+
+关节有6个自由度：两种运动（平移／旋转）* 三个坐标轴（关节坐标系）。每个自由的都可以定义为free（自由运动）、limited（受限运动）、locked（锁定）。Unity中定义为x／y／z Motion和Angular x／y／z Motion。
+
+关节约束分为两类：Limit和Drive
+
+Limit分为Linear Limit和AngularLimit
+
+
+重置Rigidbody2D：
+把rigidbody.position，rigidbody.rotation设置为指定的初始值，并将rigidbody.velocity与rigidbody.angularVelocity设置为0，这样好像不能正确的重置rigidbody，每次重置rigidbody会出现不确定的不一致，似乎rigidbody上有多余的动量。
+现在已知可以有效重置的方法是：保持初始的transform.position与transform.rotation，重置时，将simulated设为false，然后直接重置transform而不是rigidbody，最后将simulated设为true，如此可以正确的重置rigidbody，每次物理模拟都有相同的结果。还不知道simulated的关闭重启是否必要。
+

@@ -1,0 +1,55 @@
+同时操作一个目标相同属性的两个tweener，后面的一个会覆盖前面的一个，除非使用blend模式的api
+DoTween只是依次调用列表中的tweener，每个tweener只是修改对应属性的数值
+不同属性的修改则相互独立
+Tween（补间动画）有不同的ease模式，默认的是OutQuad
+Sequence也是一种Tweener
+sequence可以在不同的时间点插入回调函数，实现计时器机制
+sequence.insertCallback(0, () => {...})
+sequence至少在创建后的下一个update才开始执行，即使插入的时间点是0
+
+public static void Canvas.ForceUpdateCanvases();
+Force all canvases to update their content.
+A canvas performs its layout and content generation calculations at the end of a frame, just before rendering, in order to ensure that it's based on all the latest changes that may have happened during that frame. This means that in the Start callback and the first Update callback, the layout and content under the canvas may not be up-to-date.
+Code that relies on up-to-date layout or content can call this method to ensure it before executing code that relies on it.
+
+Slow an enjoy, 欲速则不达，many things to do
+
+Transform.SetSiblingIndex(index)
+设置之后transform的sibling index == index。Target Index，Current Index之间的transform的index都会收到影响+1或-1。如果current index < target index，(current index, target index]之间的所有transform全部前移一位，然后transform放在target index位置上；如果current index > target index，[target index, current index)之间的所有transform全部后移一位，然后transform放在target index位置上。如果target index大于当前最大的sibling index，target index裁剪到最大的sibling index上。
+
+Destroy(gameObject)不会立刻导致其sibling节点更新siblingIndex，必须强制调用SetParent(null)才会使父节点和所有兄弟节点更新这个index。
+
+使用迭代器yield return／yield break实现复杂的迭代，这样可以简化代码，使用代码作为状态机而不必在使用迭代器的环境保存一堆状态机状态，不仅会使上层环境混乱，而且实现起来复杂。迭代器本质上就是状态机，只不过状态由代码和局部变量表达，如此将状态封装在一个独立的单元中符合封装原则。
+yiled return迭代器还具有性能优势。
+C#的yield return没有python中yield from类似的嵌入迭代方法，C#的yield return只相当于python yield，只能迭代一层，对于每个需要嵌入迭代的都需要手工去展开需要嵌入的迭代器
+
+yiled from NestedEnumetor(); => foreac (var e in NestedEnumetor()) { yield return e; }
+
+IEnumetor：迭代器接口，具有MoveNext／Current方法，用来实现迭代
+IEnumerable：可迭代接口，具有GetEnumetor方法，其返回IEnumetor，表示对象包含一个迭代器，是可迭代的
+foreach协议需要IEnumetable接口
+yield return必须用在返回IEnumetor<T>，IEnumerable<T>的方法中，T是yield return返回的类型，如果不指定模板参数，默认是object，在迭代展开时需要强制转换，且没有编译检查，因此还是在函数接口中明确指定模板参数。
+
+每次迭代器函数调用都建立了一个新的迭代上下文。
+
+框架化（抽象）至关重要
+减少不必要的重复
+约定俗成，主观->下意识
+基于更高层次设计
+
+当组件脚本中没有定义Start函数时，Inspector面板中没有enable/disable的checkbox，即无法在Inspector中设置disable
+
+Scrollbar(Slider)设置的value只有和当前的值不同，onValueChange才会调用，否则不会调用
+
+Gameobject（component）disabled只对unity有意义
+如果组件引用着被disabled的组件，仍然可以正常操作，因为disabled本质上只是component的一个数据属性而已，只对解释其的系统有意义。
+
+EasyTouch（EventEmitter）事件系统中OnTouchDown，OnDrag，OnSwipe等是持续性的事件，只要手势保持，每一帧都会发送事件，而对应的start／end事件则只会发送一次，如果对一个手势只想触发一次事件，确保使用start／end事件，否则手指即使轻轻一按也会持续多个帧，相应地触发多次事件
+
+uGUI所有UI元素的都是Graphic，Graphic的raycastTarget可以控制UI是否被射线投射选中，进而响应事件。如果raycastTarget为false，则GraphicRaycaster不会选中UI元素，相应的EventTrigger，IPointerClickHandler等事件接口，EasyTouch都不会为UI元素发送事件，相当于UI元素是事件透明的。这可以用于一些本来不想作为事件响应目标的元素，例如一个自定义button，只需要最底层的background相应输入事件即可，而上面的各种装饰元素如果不设置raycastTarget=false，就会阻挡截获输入事件。
+
+Tweener.PlayBackwards()只能在当前动画结束之前调用，才会将动画倒放至起始位置，否则当前动画播放完毕，此函数调用没有效果。
+
+Animation组件是Unity遗留系统组件，不建议再使用，新动画系统请使用Animator组件，其包含一个Animator Controller，controller包含一个状态机，状态机由一组状态和迁移组成，每个状态引用一个动画片段animation clip，可以设置状态应用的动画片段的播放速度，speed为负数时，动画倒序播放。因此可以两个state应用同一个clip，一个speed=1，正向播放动画，一个speed=-1，反向播放动画，可用于开关动画。
+controller的parameter中trigger时一个bool变量，每次设置其为true时，触发状态迁移，但是每次有状态迁移消耗被set的trigger时，将自动将其reset（trigger=false），因此每次SetTrigger只会调用触发一次。另外，只有Transition所有条件都满足开始迁移时，才会重置trigger，否则如果trigger被set，但是其他条件不满足导致没有transition触发，则trigger将一直处于set状态。
+开关动画的状态机可以如此配置：创建一个“开”动画片段，将动画片段拖拽到gameobject上，此时将自动创建一个Animator Controller（动画状态机），状态机中默认进入的状态引用的就是“开”动画片段；创建一个空的状态（不引用任何动画片段）作为默认状态；创建一个新的状态作为“关”动画的状态，设置引用动画为“开”动画，并将speed设置为-1，此时“开”动画会反向播放；“开”“关”状态都没有transition进出，从anyState分别各自设置到“开”“关”状态的transition，anyState指的是从任何状态到“开”“关”状态的迁移；创建两个trigger变量，一个on，一个off，on作为到开状态迁移到条件，off作为到关状态迁移到条件。想要触发开关动画只需要调用gameobject上的animator.SetTrigger("name")，这个可以在unity事件的Inspector中直接设置而不需写任何代码。

@@ -1,0 +1,32 @@
+nodejs程序运行时是一个事件循环，只有事件循环退出时，nodejs进程才会退出
+js入口文件是一个普通函数，不是async函数，这允许你在入口函数中创建你的程序需要的协程，入口函数从头到尾执行完毕即退出，但是要等事件循环中所有的协程退出时，进程才会退出
+因为入口文件main.js只是一个普通的函数，因此在其中不能执行await代码，await只能在async函数中出现
+async定义一个协程，await创建一个运行时的协程，一个协程一旦创建，就由nodejs事件循环管理，await这个协程的父协程只有在它执行完毕时才会恢复执行
+调用async函数生成一个协程，其将由事件循环管理。await它的代码在它执行完毕前不会恢复调度。没有await而直接调用async函数，无论在普通函数（包括入口函数）还是async函数，调用者都不会在此停留，因为这相当于生成了一个协程，但是抛弃了对它的引用，因此调用代码只是简单的向下执行，而生成的协程仍然会被事件循环执行完，但是因为没有人await它，因此它执行完毕后直接从事件循环中移除，并不会解除任何其他阻塞（await它）的协程，仅此而已
+nodejs也理应如此，因为nodejs首先是js程序，然后才是异步的框架。它就像python等脚本语言一样，默认都是同步程序，因为不是所有程序都是异步程序，同步程序才是绝大多数。python默认就是同步程序，需要显式调用asyncio库才能写异步程序，nodejs也是如此，只不过它不需要利用库，而是内置事件循环。因此入口文件就是一个同步程序，可以通过调用async函数在事件循环中添加协程，但是不能await一个协程
+
+调用async函数返回的是一个promise，它被运行时管理。调用者得到返回的promise可以在上面注册完成回调函数.then(value => {})，或者异常回调函数.catch(error => {})。await的参数就是一个promise，但是它自动处理promise，使得当前协程被挂起直到promise被resolve或reject。如果调用async函数而并不使用返回的promise，promise代理的逻辑仍然会被执行（因为它被运行时管理），但是，协程不会挂起，而是继续向下执行，相当于这个promise对象被忽略
+
+await Promise.all([async_func1(), async_func2(), promise3, promise4])并行执行多个promise，在所有promise完成时返回
+
+Promise的创建
+var promise = new Promise((resolve, reject)) => {
+    //resovle(data)
+    //reject(error)
+}
+
+Promise本身是一个具体的类，它内部由具体的实现代码
+Promise的构造参数是一个函数，这个函数里面包含的就是由Promise代理的用户逻辑，也就是我们真正要执行的异步代码
+Promise会传递两个函数参数，在用户逻辑执行完毕之后，通过调用这两个函数标识Promise执行结束，同时调用外层使用Promise对象在上面通过.then和.catch注册的回调函数
+调用resolve时，标识Promise执行成功（设置Promise状态为resolve的），同时调用.then在Promise上注册的回调函数，传递给resolve的参数被传递给这些回调函数
+调用reject时，标识Promise执行失败（设置Promise状态为reject的），同时调用.catch在Promise上注册的回调函数，传递给reject的参数被传递给这些回调函数
+当创建Promise的时候，在Promise构造函数里面就立即调用代理的用户逻辑函数，即用户逻辑开始执行。用户逻辑视自身执行情况调用resolve或reject参数函数通知Promise自己执行成功或失败
+
+Promise.race([promise0, promise1, ...]) 在第一个 resolve/reject 的 promise 完成时返回，并且这个 promise 的状态决定 race promise 的状态。但是，race 本身也是 promise，只是它是一个包装器而已。当 race 返回之后，尚未完成的其他 promise 仍然会在事件循环中继续，直到被 resolve 或 reject。promise 是被事件循环 hold 的，只有被明确 resolve 或 reject 之后，事件循环才会将其释放。只有当事件循环左右的 promise 都完成之后，程序才会退出。在 main.js 文件等级 level 调用一个 async 函数，就是想事件循环中放了一个 promise，因此虽然 main.js 执行完成了，但是程序不会退出，必须等到 promise 完成。
+
+Cancel Promise 的方法就是调用它构造时传递的 resolve 或 reject。默认这两个函数只在构造器中的 lambda 能访问。可以将它们赋值传递到其他地方。然后在外部调用 resolve/reject，这样就能在其他地方直接 resolve 和 reject promise 了。对于系统内置的 promise 接口，例如 IO promise 必须由系统提供明确的 cancel 方法，才能将它取消，就像 Python 中的 asyncio 一样，自定义的 Task/Future 都可以 cancel，但是内置的 IO 等系统的接口都必须有 asyncio 提供异步的版本。例如 AWS JavaScript SDK 的接口 API 都返回 AWS.Request，例如 dynamodb.listTables(params = [], callback) => AWS.Request. 而 AWS.Request 提供了 abort 来中断请求，发送 error 并完成事件。还有，AWS.Request 提供了 promise() 函数返回一个 Promise，这样可以用在 async 函数中用于 await。
+
+AWS.Request 的 callback 为 (err, data) => {}，err 为错误时的错误对象，data 为正确时返回的数据。当转换成 Promise 用于 await 时，await 的返回值是 data，出错时需要在 await 周围加上 try-catch，catch 的对象就是 err。
+
+被 reject 的 Promise 必须具有 try-catch 或者 .catch（）来捕获并处理 error，否则 node 报错：unhandled rejected promise.
+

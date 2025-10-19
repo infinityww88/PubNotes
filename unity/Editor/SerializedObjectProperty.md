@@ -1,0 +1,32 @@
+# SerializedObject and SerializedProperty
+
+- 只是UnityObject可序列化属性的通用访问器
+- 通过序列化的数据结构来读写object的属性
+- 与直接读写object的属性不同之处是，它不仅仅读写属性值，而是以Unity3d Editor的标准操作方式来操作对象属性，其中的读写代理方法包括和Editor整合的代码，使得通过代码操作object属性，就像手动在Editor界面中操作一样，包括：
+  - Scene变dirty，提示场景有所修改，需要保存
+  - Undo history记录改变，使修改可以undo/redo
+  - 其他
+- 或许应该反过来说，Editor中操作对象属性就是通过SerializedObject实现的，这就是通过代码调用SerializedObject修改对象的效果和手动在Editor中操作对象属性的效果相同的原因
+- 所有能通过手动修改对象属性在Unity Editor产生的效果都能通过直接调用SerializedObject实现。一个很有用的例子就是，Unity Animation记录动画时，记录的都是通过手动操作修改的属性，在editor脚本中直接修改对象属性是不会在animation窗口中生成key的，但是在脚本中通过SerializedObject修改对象属性则能够自动在animation窗口中生成key
+- 一份资料说Animation是注册Undo的回调事件，并在其中创建animation key，因此如果想在代码中实现Animation自动记录key，必须注册好正确的Undo事件。注册好正确Undo事件相对复杂，但是SerializedObject则已经正确处理了这些事情，因此我们只需要通过SerializedObject来修改对象属性就能够自动记录animation key，very cool！
+- 为了使修改对象属性能像unity editor原生那样，你可以直接调用相关的editor api，包括：
+  - 调用EditorUtility.SetDirty(object)来标记scene有修改
+  - 调用Undo.RecordObject来添加Undo history
+  - 可能还有更多，尤其使Undo
+  - 正是这些步骤很多，而这种行为有很常用，因此Unity提供了SerializedObject来简化操作，换句话说SerializedObject只是这些操作步骤的包装函数，它只不过是先调用那一组editor相关的函数，然后修改对象属性而已
+  - 正因为如此，我们只要调用SerializedObject，就可以完全忽略那些繁杂的editor函数，SerializedObject会处理它们
+- SerializeObject包含了一组修改对象属性时需要执行的editor函数（以使它们能像手动修改的一样），而在自定义editor时，属性的修改值又是通过gui控件函数调用获得(value = ControlFunction(rect))，因此在自定义控件中修改对象的属性常用模式是
+  - 为修改的对象创建访问器
+    - SerializedObject so = new SerializedObject(target)
+  - 获取要修改的属性值SerializedProperty
+    - SerializedProperty sp = so.FindProperty(propertyPath)
+  - 读取属性的当前值（sp.intValue），传递给组件函数用来绘制组件的当前状态
+  - 组件函数返回UI操作后的属性值
+    - value = ControlFunction(rect, value)
+  - 将控件返回值写入SerializedObject中
+  - 因为一个函数调用可能会多次修改一个属性值或者一次修改多个属性值，因此每次修改不会直接应用，需要显式调用so.ApplyModifiedProperties最终应用，这样所有的属性修改将作为一次修改记录到undo中，而不是多次。对于不需要undo的操作，则调用ApplyModifiedPropertiesWithoutUndo
+- 控件函数负责绘制UI和返回UI数值，SerializedObject负责和editor沟通，使editor做出标准动作，两者各司其职
+- SerializedObject是UnityEditor程序集的类
+- 总而言之，SerializedObject是自定义Editor中修改对象属性的标准入口，除非不关心Editor的相应动作（此时，可直接修改对象属性）
+- SerializedObject.FindProperty用来返回一个对象属性的访问器，属性路径中的属性名不一定是Inspector上显示的属性名。SerializedObject是通过序列化数据结构来读写属性的，因此属性名只能是真正的字段名，而不是setter/getter的名字
+- 可以通过GetIterator来遍历查看所有的属性名

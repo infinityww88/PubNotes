@@ -1,0 +1,26 @@
+至少指定一个path参数
+两种参数：LocalPath S3Uri
+
+参数顺序
+每个命令使用一个或两个位置path参数：源path[, 目的path]。源path和目的path都可以是local path或s3 path
+
+单个local file和s3 object操作
+cp mv rm，无 --recursive flag
+第一个参数是必须是已存在的local file或者s3 object。第二个参数可以是一个local file名字，local directory，s3 object，s3 path，s3 bucket。
+目的参数指示一个local directory，s3 path前缀，s3 bucket（s3路径、bucket参数需要后缀/）。如果指定带/后缀的path参数，目的文件/对象将使用源文件/对象的名字，否则文件将被使用提供的path中的文件名
+
+目录和s3 Prefix操作（s3 prefix=s3 directory）
+一些操作只在一个local directory或s3 prefix/bucket的内容上进行操作。在参数名末尾添加/与否并无影响，因为总是被当作directory参数
+sync mb rb ls
+
+Exclude和Include Filters
+当前不支持在path参数中使用Unix风格wildcards。绝大多数命令包含--exclude <value>，--include <value>参数可以达到此效果
+参数执行模式匹配来包含或排除特定的file/object。支持一下模式符号
+*
+?
+[sequence]
+[!sequence]
+可以传递任意多个exclude/include参数，从左到右求值，右边的参数优先级更高。所有参数都是对source directory求值。如果source参数是一个file而不是directory，包含文件的目录将被用作source directory
+默认地所有文件都被包含，因为include只用于重新包含它左面的exclude排除都文件
+
+s3命令输出中 PRE表示prefix（directory）

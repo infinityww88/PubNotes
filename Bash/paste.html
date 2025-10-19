@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title>paste</title>
+    </head>
+    <body>
+        <h2 style="text-align: center;">paste</h2>
+
+        <h3>描述</h3>
+        <p>
+            paste将给定的输入文件对应行连接起来，使用tab替换除了最后一个文件的line的newline，并把结果写入到stdout。如果其中一个文件读到eof，而其他文件还有lines，则这个文件被当作有无限个空行。
+        </p>
+
+        <h3>格式</h3>
+        <p>
+            paste [选项] files
+        </p>
+
+        <h3>选项</h3>
+        <p>
+            -d list<br />
+            使用一个或多个字符来替换newline而不是默认的tab。paste只会使用一个字符分隔要连接的行。当-d提供多个字符时，paste对每一行对连接循环使用分隔字符。可以使用\n \t \\ \0等特殊字符作为分隔符
+        </p>
+        <p>
+            如果输入文件参数使用-，则循环地读取stdin，每个-读取一行
+        </p>
+    </body>
+</html>

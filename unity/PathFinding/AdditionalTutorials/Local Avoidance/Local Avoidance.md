@@ -1,0 +1,61 @@
+# Local Avoidance
+
+A* Package中但local avoidance是基于RVO的：Reciprocal Velocity Obstacles。非常适合例如人之类的agent四处移动，不适合车辆等不能快速改变速度方向的 agent。
+
+Reciprocal（倒数）
+
+## Overview
+
+RVO系统分为两部分。首先是核心模拟code。这完全独立于Unity特定object例如GameObjects和MonoBehaviours。唯一真实使用的Unity相关的classes是math相关类，而它们是很容易更换的。Core code处理所有rvo（local avoidance）agents的模拟。  
+第二部分是Unity界面。这些类的绝大多数都只是core classes的Unity接口。RVOSimulator类就是Pathfinding.RVO.Simulator类的包装器类。Unity interface还包含辅助类以更容易集成local avoidance。其中RVOController是可能经常使用的类。它被写成和Unity Character Controller非常相似，支持诸如Move函数，并具有诸如velocity之类的属性。
+
+Unity interface部分所有的脚本共享相同scene如何set up的假设：scene应该总是有一个RVOSimulator。所有脚本会找到它并获得它包装的核心模拟实例。全局应只有一个RVOSimulator实例。
+
+## 集成
+
+AIPath，RichAI开箱即支持RVOController，简单地将RVOController添加到AIPath/RichAI组件的GameObject就可以了。
+
+AILerp被设计精确按照path移动，因此让它从path偏离没有意义，因此它不支持local avoidance。
+
+可以自定义脚本使用local avoidance。
+
+## 和物理集成
+
+通常想要agents上具有collider，使它可以和物理引擎交互。但是如果简单添加colliders（以及一个rigidbody）到agents，就会看到在一群agent拥挤在一起时，local avoidance的质量变得非常差。这是因为当agents拥挤在一起时，彼此之间会有所重叠，而物理系统会解析这些碰撞，但是物理解析不像local avoidance系统以平滑的方式解析碰撞，因此导致非常差的移动。
+
+如果agents上有colliders，建议关闭agents之间的碰撞检测。将agent放在单独的一个layer中，在Unity Physics setting中关闭这个layer上的物理碰撞检测。Unity对2D和3D物理有单独设置。
+
+## 保持agent在navmesh上
+
+当使用local avoidance时，有时会出现 agnets 将其他 agents 推到 graph 之外的情况。
+
+如果使用RichAI，它自动处理这种情况，因为它对移动对处理已经包含了这种情况。
+
+如果使用AIPath，可以开启constrainInsideGraph选项
+
+还有一种方法，使用RVONavmesh组件，它将添加obstacles使local avoidance系统知道graph对borders。这会有一点性能的消耗（尤其是大的graph或者在运行时更新graph的情况），然而这允许local avoidance系统更好地预测obstacles而不是只有在撞到墙上之后才发现墙的存在。
+
+将RVONavmesh添加到scene中的任何gameobject上，当graph被scan或load时，它将graph border作为RVO obstacle添加到graph上。
+
+RVONavmesh组件同时支持navmesh，recast和grid graphs。
+
+如果想要频繁更新graphs，使用RVONavmesh会有明显到性能消耗。因为所有基于graphs到RVO obstacles在有任何graph更新时必须重新构建。
+
+## Obstacles
+
+Obstacles可以添加到模拟中。agents将不能通过它们，agents还可以使用local avoidance避开它们。
+
+Obstacle不是graph的一部分，不影响graph的拓扑；也不是navmesh cutting，navmesh cutting会动态影响navmesh的拓扑。Obstacle只是agent通过local avoidance躲避的目标。
+
+Graph创建时的hole是初始创建的永久的obstacle。Navmesh cutting是运行时动态创建的永久obstacle，影响navmesh的拓扑。Obstacle不影响navmesh拓扑，而是运行时agent通过local avoidance躲避的gameobject。
+
+Local Avoidance下面有一些内置的colliders，也可以自定义RVO collider脚本。Obstacle可以四处移动，但是不意味着它们可以用力将agents推开。事实上情况更糟，只要它们在缓慢移动时才工作，如果它们移动过快就会使agents卡在里面。
+
+Obstacle Mode：
+
+- KeepOut：agent不能进入obstacle，但是可以离开
+- KeepIn：agent可以进入obstacle，但是不能离开
+
+## Number Cruching（数量碾压）
+
+Local Avoidance系统非常高性能。尤其是考虑到这个事实：一个local avoidance不需要以非常高到fps运行，那只是在浪费CPU周期，因为质量并不会有所提高。i7处理器上可以以一个非常好的fps模拟5000个agents，local avoidance模拟运行在10fps，游戏运行在50-100fps，最低30-40fps。

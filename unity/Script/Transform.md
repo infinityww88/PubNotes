@@ -1,0 +1,136 @@
+# Transform
+
+## 成员
+
+- childCount：子transform的数量，gameobject的父子关系通过transform维护
+- eulerAngles：以角度表示的旋转的欧拉角
+  - 欧拉角可以表示一个3D旋转，通过沿着各自坐标轴执行3个独立旋转，Unity中欧拉角的旋转顺序是ZXY顺序，即先绕Z轴旋转，然后绕X旋转，最好绕Y轴旋转
+  - 可以将一个Quaternion的欧拉角设置到这个属性上来执行Quaternion指定的旋转
+  - 通过eulerAngles设置rotation内部是通过Quaternion实现的，即先通过eulerAngles创建一个Quaternion，然后将Quaternion设置到rotation上
+  - 读取eulerAngles实质上也是读取的rotation的eulerAngles
+  - 只设置一个旋转轴的欧拉角是使用eulerAngles和localEulerAngles的唯一有意义的使用方式
+    - 设置绕一个轴的旋转是非常场景的应用情形
+    - 避免万向锁的问题
+    - 容易理解：eulerAngles是按照世界坐标系的一个轴进行旋转，localEulerAngles是绕着父坐标系的一个轴进行旋转
+    - 欧拉角必须同时指定x，y，z角，而且强制zxy顺序，实践中几乎不会以这种方式使用欧拉角，例如我们可能只需要围绕两个轴的旋转，而且以任意的顺序，使用欧拉角的方法就必须总是考虑欧拉角的顺序是否满足我们需要的顺序
+  - 要实现沿着任意轴而不仅仅是X/Y/Z坐标轴的旋转，使用Quaternion
+- localEulerAngles：参见eulerAngle
+  - eulerAngles对应的是rotation
+  - localEulerAngles对应的是localRotation
+- forward/right/up：世界空间中localForward/localRight/localUp的标准化方向
+- localPosition：相对于父坐标系X/Y/Z的位置，设置它的x，y，z将沿着父坐标系的坐标轴
+- position：相对于世界空间坐标系X/Y/Z的位置，设置它的x，y，z将沿着世界空间坐标系的坐标轴
+- localRotation：相对于父坐标系的旋转，所有生成Quaternion的数据都是相对于父坐标系坐标轴的
+  - 以欧拉角生成的Quaternion，欧拉角是绕着父坐标系的x，y，z坐标轴
+  - 以Axis+angle生成的Quaternion，axis是在父坐标系中确定的
+- rotation：相对于世界空间坐标系的旋转，所有生成Quaternion的数据都是相对于世界空间坐标系坐标轴的
+  - 以欧拉角生成的Quaternion，欧拉角是绕着世界空间坐标系的x，y，z坐标轴
+  - 以Axis+angle生成的Quaternion，axis是在世界坐标系中确定的
+  - Quaternion是描述了在一个坐标系中的旋转，至于这个坐标系是哪个完全依赖于如何使用，这个坐标系既可以是某个局部坐标系（父坐标系），也可以是世界坐标系
+- localScale：相对于父坐标系坐标轴的缩放
+- 没有scale，相对于世界空间坐标轴的缩放
+- localToWorldMatrix：局部坐标系到世界坐标系的转换矩阵，使用这个矩阵乘以一个vector3，将把这个局部空间的位置转化为世界空间的位置
+  - TransformPoint(Vector3)
+- worldToLocalMatrix：世界坐标系到局部坐标系的转换矩阵，使用这个矩阵乘以一个vector3，将把这个世界空间的位置转化为局部空间的位置
+  - InverseTransformPoint(Vector3)
+- parent：父transform
+- root：最上层transform祖先
+
+## 方法
+
+- Hierarchy方法
+  - DetachChild：移除所有子object而不销毁它们
+  - Find：按名字查找child，名字可以是hierarchy路径，以/分割，未找到返回null
+  - GetChild：返回指定索引处的transform，如果索引超出childCount会抛出异常
+  - GetSiblingIndex：返回兄弟节点索引，LayoutGroup
+  - isChildOf：直接子节点/间接子节点/自身
+  - SetParent：设置父节点
+    - worldPositionStays = true：修改相对于parent的position/rotation/scale，使得它保持世界空间的position/rotation/scale，默认
+    - worldPositionStays = false：保持local的position/rotation/scale不变，因此相对于世界空间的positino/rotation/scale取决于parent到世界空间的变换
+    - 与设置parent属性相同，除了它还让transform保持它的local orientation而不是global orientation（worldPositionStays=false），说明直接设置parent与worldPositionStays=true情形相同，即保持世界空间变换而不是相对于parent的变换
+  - SetAsFirstSibling：移动到兄弟节点最前面
+  - SetAsLastSibling：移动到兄弟节点最后面
+  - SetSiblingIndex：设置自身的兄弟节点索引，修改在兄弟节点中的顺序，通常只用于UGUI AutoLayout
+- 自身空间变换函数
+  - LookAt
+    - 旋转transform使得forward向量指向target transform
+    - 然后它绕forward旋转，使得up向量落在forward向量和hint up向量组成的平面上。只有当hint up向量和forward向量垂直时，up向量才与hint up向量重合
+    - 如果不指定hint up向量，默认使用世界空间的y轴
+  - Rotate
+    - 以各种方式旋转一个GameObject
+    - 旋转通常指定欧拉角而不是Quaternion
+    - 可以沿着world axes或者local axes指定旋转
+    - 旋转总是通过GameObject的中心，可以认为在GameObject中心建立一个和world或local平行align的坐标系，GameObject在这个坐标系中旋转
+    - 通过Space relativeTo指定Self还是World
+    - Vector3 eulers
+    - float xAngle/yAngle/zAngle
+    - Vector3 axis, float angle
+  - RotateAround
+    - Vector3 point, Vector3 axis, float angle
+    - 其他所有的旋转方法旋转轴都是通过gameobject中心，RotateAround提供来绕着不经过gameobject中心的轴的旋转
+    - 这与将gameobject保持世界位置地将parent设置为位于point的target transform，然后调用target.Rotate(axis, angle, Self.World)是一样的
+    - 这将同时修改gameobject的position和rotation
+    - 旋转发生在世界空间，即axis是在world空间中的，point只是提供了旋转轴经过的位置
+  - SetPositionAndRotation
+    - 设置**世界空间**中的transform的position和rotation
+  - Translate
+    - 与Rotate一样，只是操作position
+    - Transform relativeTo参数对应Space.Self参数，只是位移将参考relativeTo的self参考系而不是gameobject自己的self参考系
+- 矩阵变换函数
+  - TransformPoint/InverseTransformPoint
+    - 将self坐标系中的position变换到world坐标系，self坐标系的posiiton和scale都会影响返回的世界中的位置
+  - TransformVector/InverseTransformVector
+    - 将self坐标系中的vector变换到world坐标系，self坐标系的position不影响返回的vector，因为vector没有位置（只是一个位置到另一个位置的差），但是self坐标系的scale影响返回的vector，因为坐标系被缩放了，两个点的位置也被缩放了
+    - 返回值=TransformPoint(vector) - TransformPoint(Vector3.zero)
+  - TransformDirection/InverseTransformDirection
+    - 将self坐标系中的方向变换到world坐标系，self坐标系的position和scale都不影响返回的vector，self坐标系不缩放的情况下TransformDirection的返回值与TransformVector相同
+
+## Tips
+
+- Rotate/Translate都是基于当前状态进行旋转/位移。通常用法是在Update时每一帧都以参数speed * Time.deltaTime调用Rotate/Translate，就可以看见gameobject以指定的speed保持旋转/位移，因此Rotate/Translate都是增量操作
+  - (local)position += speed * Time.deltaTime
+  - (local)rotation \*= speed * Time.deltaTime
+- Rotate/Translate都支持Space参数，指定是沿着世界坐标系变换Space.World，还是沿着这是坐标系变换Space.Self。默认是Space.Self
+- 要实现基于初始位置的全量rotate/translate，需要手工实现
+  - 初始时记录gameobject的rotation/position等各种数据的初始状态，并保持不变
+  - 每一帧更新时，根据输入数据的当前状态和初始状态计算从初始到现在的delta
+  - 计算rotation/position相应的delta，即将Input的delta转换为transform的delta
+  - 将初始rotation/position的值和delta的值相加赋值给transfrom.rotation/transform.position
+- Quaternion的本质是围绕3d空间中一个向量（axis）的旋转（angle），而以单轴方式适用欧拉角可以认为是Quaternion的特例，即旋转轴是坐标轴，而不是任意向量。这也是为什么以单轴方式适用欧拉角是最适合的方式的原因
+- Quaternion定义的是旋转，旋转围绕这个一个向量，向量没有位置的只有方向的，而旋转总是通过GameObject的中心，即transform.position，旋转不会造成任何位移，只有父Transform的旋转才会造成子Transform的位移。因此Quaternion定义的旋转的物理意义是，围绕这一个从GameObject中心出发的轴（向量方向）旋转一个指定角度，而这个轴的定义则依赖于适用的上下文。Unity中定义Quaternion有3个上下文
+  - 基于world坐标系：旋转轴的方向是基于world坐标系（x/y/z单位向量）定义的
+  - 基于local坐标系：旋转轴的方向是基于父坐标系（x/y/z单位向量）定义的
+  - 基于self坐标系，即GameObject自身的坐标系（它的子节点的父坐标系）
+- 假设Quaternion是围绕x轴旋转t度
+  - 如果是基于world坐标系，旋转轴就是通过transform.position并且平行world坐标系的x轴
+  - 如果是基于local坐标系，旋转轴就是通过transform.position并且平行父坐标系的x轴
+  - 如果是基于self坐标系，旋转轴就是transform.right
+- Unity的旋转有3个参考坐标系，并且提供相应的成员字段或成员函数来在相应的参考坐标系设置旋转
+  - eulerAngles/rotation：参考世界坐标系**world**
+  - localEulerAngles/localRotation：参考父坐标系**local**
+  - Rotate(Space.self)：参考自身坐标系**Self**
+- Quaternion是围绕一个3d axis旋转一定的angle
+  - angle是相对axis的，与参考的坐标系无关
+  - 参考坐标系用来确定axis的方向
+- Rotate（Translate）：是将Quaternion应用到当前GameObject的rotation上，因此具有累积效果，而设置eulerAngles/localEulerAngles，rotation/localRotation是直接设置GameObject的rotation。若想使用eulerAngles/rotation等实现与Rotate一样累积效果，需要使用+=, *=而不是=
+- Quaternion旋转遵循左手定则，拇指朝向旋转轴的正方向，四指弯曲方向就是旋转的正方向
+- Unity坐标系遵循左手定则
+  - 对于位移：拇指指向x轴，食指指向y轴，中指指向z轴
+  - 对于旋转：拇指朝向旋转轴的正方向，四指弯曲方向就是旋转的正方向
+- Unity统一使用Quaternion表示旋转
+- Quaternion本质就是围绕经过gameobject中心的一个空间向量（旋转轴）旋转一个角度
+- 只要一个Quaternion理解Unity所有的旋转，就不会遇到困难
+- 欧拉角可以认为是3个Quaternion相乘的结果，相乘的顺序是zxy
+  - Quaternion(Vector3.forward, zAngle) \* Quaternion(Vector3.right, xAngle) * Quaternion(Vector3.up, yAngle)
+  - Quaternion相乘是安装从左到右的顺序，左边的Quaternion先引用，右边的Quaternion后应用，相当于右边的Quaternion是左边的Quaternion的parent
+  - y旋转是x旋转的parent，x旋转是z旋转的parent
+- 尽管欧拉角可以同时指定3个axis，但是最佳使用方式是只指定围绕一个轴的旋转
+  - 可以将所有旋转统一以绕一个3d轴的旋转
+  - 欧拉角强制zxy的顺序，实践中我们可能需要不同的顺序
+    - 通过建立Transform父子关系可以建立任意Quaternion的相乘顺序，每个Quaternion只控制绕一个轴的旋转
+      - unity自动计算最终的旋转而不需要我们手动设置eulerAngles
+      - 通过hierarchy建立的Quaternion相乘顺序和eulerAngles强制的相乘顺序完全相同
+- Unity的3个参考坐标系：world，local，self
+  - local指的是parent空间
+  - 即使Rotate(axis, angle, Space.Self)在self空间调用，axis也是使用self坐标系确定的axis，连续调用时，每次self坐标系都会变换，下一次的axis总是基于新的self坐标系计算
+- Transform的两个矩阵成员localToWorldMatrix和worldToLocalMatrix都是RO的，不可以设置，它们返回的是从root节点到当前节点的矩阵连乘的结果，而不是真正的变量

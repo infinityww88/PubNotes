@@ -1,0 +1,169 @@
+# IMGUI
+
+- IMGUI = Immediate Mode GUI
+- Immediate mode vs retained mode
+  - Immediate
+    - GUI system generally does not retain information about GUI, but instead repeatedly asks you to re-specify what you controls are and where they are, and so on.
+    - You specify each part of the UI in the form of function calls, it is processed immediately(drawn, clicked etc) as the functions called, and the consequences of any user interaction returned to you straight away, instead of you needing to query for it in callback function.
+    - very code-dependent
+    - inefficient for game UI and inconvenient for artists to work with
+    - very handy for non-realtime situations(Editor panels) which are heavily code-driven and want to change the displayed controls easily in response to current state
+    - 类似很多情景类似，适合解决简单问题的快捷手段不适合构建大的系统，适合构建大的系统的手段不能快速地解决简单问题
+  - retained
+    - GUI system retains information about GUI. You just declare the GUI layout and action(callback)
+- When IMGUI code is running, there is a current Event being handled
+  - Event.current.type
+    - EventType.MouseDown
+    - EventType.MouseUp
+    - EventType.KeyDown
+    - EventType.KeyUp
+    - EventType.Repaint
+- IMGUI run GUI code once for every event
+- IMGUI doesn't retain GUI state
+- ControlID refer a unique control across every event type/sessions, so we can recognise the same control in different event to implement some action that occur during multiple events
+- IMGUI有许多全局变量/状态来实现各种GUI功能，需要所有GUI组件按照约定相互协调get/set这些全局状态，来保证交互的正确性。或许正是这种基于全局状态的耦合使得编写复杂的IMGUI系统变得困难和不可维护
+- 不是所有control都需要ID，只有那些需要在不同event session中标识自己的control才需要
+- IMGUI对每个事件都执行一次完整的UI函数调用过程，在函数调用过程control调用GUIUtility.GetControlID来申请controlID
+- IMGUI按照申请controlID的顺序来分配id，因此只要control保证调用GetControlID的顺序不变，则每个control每次都会得到相同的id
+- GUI/GUILayout属于UnityEngine，EditorGUI/EditorGUILayout属于UnityEditor. GUI/GUILayout既可以用于runtime也可以用于editor，EditorGUI/EditorGUILayout只可用于editor
+- IMGUI使用函数来封装控件，一个函数调用就是一个控件，函数的参数是绘制控件需要的信息，函数的返回是控件基于用户操作的相应（按钮是否按下，滑动条的当前数值等等），函数体根据当前event确定如何绘制控件和返回何值
+- 一旦需要申请ControlID，则需要对每个event都申请，即使那些不关心的事件。因为IMGUI对每个event都执行一次绘制函数层次的调用，如果一个控件函数只对一些event调用GetControlID，而对另一些event不调用，则会导致后面执行的control获得的GetControlID不一致
+- Requesting ID：all-or-none
+  - either you request an ID for every event type
+  - or you never request it for any of event(for simple non-interactive control like label). Not all controls need controlId
+- GUIUtility.GetControlID(FocusType.Passive)
+  - FocusType.Passive: don't respond to key press
+  - FocusType.Keyboard: respond to key press
+  - IMGUI will record this control id will respond key press
+- Event.current.GetTypeForControl(controlID)
+  - just a utility function to filter out some event that should ignore some event. For example the FocusType.Passive should ignore the key event, GetTypeForControl will check the controlID against the IDs recorded when GetControlID(FocusType), and return EventType.Ingore
+  - you can implement it manually by check Event.current.type
+  - Unity just wraps the common check in GetTypeForControl
+- GUIUtility.hotControl
+  - just a simple variable to hold the control ID of the control which has captured the mouse
+  - 任何想要捕获鼠标的control可以把它的controlID设置到hotControl，GetTypeForControl只对和hotControl相等的controlID返回鼠标事件，对不相等的controlID或者hotControl=0则返回EventType.Ignore
+  - IMGUI为每个事件都调用control函数，所以control可以不适用GetTypeForControl函数直接响应事件。就像之前说的IMGUI不是强制约束的系统，它期待各个组件遵守规则，如果组件没有遵守规则，它也无法强制，但是交互出现问题还是要我们自己去调试。所以所有函数都应该使用GetTypeForControl函数而不是直接检查Event.current.type
+- 0是一个特殊的controlID，相当于null，任何不使用controlID的函数都可以认为controlID=0，并且可以传递0给那些需要controlID的才能执行的函数
+- GUI.changed
+  - 有一个全局状态。IMGUI大量使用全局变量来协调组件之间的交互，在组件之间传递信息。GUI.changed就是用来向组件函数的调用者（父组件函数）通知本组件状态发生改变了
+- EditorGUI.BeginChangeCheck()/EndChangeCheck()，用来检查GUI.changed是否在其间的code block从false变成true
+  - EditorGUI.BeginChangeCheck()
+  - control_function()
+  - if (EditorGUI.EndChangeCheck())
+  - IMGUI可能在内部维护一个stack来对任何control进行change检查，BeginChangeCheck将当前GUI.changed值压入stack，然后将GUI.changed设置为false，EndChangeCheck检查GUI.changed的值，并将stack顶部的值弹出到GUI.changed，返回一个bool。这样子组件的change检查不会影响父组件change检查
+- IMGUI中所有Being/End的成对函数调用可能都和stack_push/stack_pop有关
+- Handles are powered by IMGUI as well
+- UI系统基本就是两大部分：组件绘制和事件响应
+  - 绘制既可以是在2d context中，也可以还是3d context中
+  - 事件处理只是注册回调函数相应鼠标/键盘事件
+  - 因此SceneView也可以使用类似UIElements的方案来实现，通过声明的方式在SceneView中添加3d control（系统组件或自定义组件），为其注册事件回调函数，在其中实现相应处理（例如3d handle的回调中可以将相应gameobject移动到回调函数参数对应的vector3位置上）
+    - 声明 + 监听器
+  - 绘制不仅局限于2d，也可以是3d，而事件处理则是一致的
+  - 3d版本IMGUI就是Handles，Handles操作和GUI／EditorGUI IMGUI函数一样，在函数内处理绘制和事件，返回值表示操作结果：newPosition = Handles.PositionHandle(oldPosition, quaternion)
+- Handles只能用在绘制SceneView中，因为SceneView包含了3D变换矩阵
+  - 在3d事件处理中，不能简单使用Event.current.mousePosition，mousePosition只是2d屏幕空间位置，需要对鼠标位置进行3d变换，HandleUtility提供了处理3d事件的各种辅助函数
+- Though bear in mind that it is possible to use Handles in 2D contexts like custom editors, or to use GUI functions in the scene view
+  - Use Handles in Editor: need to do things like setting up setting up GL matrices，确定3d变换到2d空间（editor window）的路径——矩阵链(MVP)
+  - Use GUI in SceneView: calling Handles.BeginGUI and Handles.EndGUI
+- State for IMGUI.
+  - IMGUI provides a simple storage system for 'state objects' that are associated with a control.
+  - You define your own class for storing values, and then ask IMGUI to manage an instance of it, associated with your control's ID.
+  - You're only allowed one state object per control ID, you don't instantiate it yourself, IMGUI does that for you, using the state object's default constructor.
+    - state objects is just common c# class, don't need to inherit any class
+    - state objects are not serialized when reloading editor code - something that happens every time your code is recompiled. state objects only exists in running memory. so you should only be using them for short-lived stuff. This is true even if you mark your state objects as [Serializable], Editor just doesn't serialize them.
+  - 让IMGUI为指定控件创建state object只要简单调用(StateObjectType)GUIUtility.GetStateObject(typeof(StateObjectType), controlID)，IMGUI在内部创建一个StateObjectType对象并返回引用或者直接返回如果已经创建，之后就可以直接使用state object了，因为直接引用着state object，而state object只保存在内存中，每次GetStateObject都返回它
+- Style
+  - GUIStyle就像CSS样式，包含了所有显示需要的信息，例如alignment, border, fixedHeight/fixedWidth, font, fontSize, lineHeight, margin, padding. 此外还包括一些基于状态的样式数据，onActive, onFocused, onHover, onNormal，就像CSS状态伪类，记录不同状态使用的数据
+    - GUIStyleState
+      - background(Texture2D)
+      - scaledBackgrounds(Texture2D[])
+      - textColor()
+  - 组件函数可以使用style信息绘制组件，这样就可以通过传入不同的GUIStyle来更换组件外观，而不用修改组件函数。GUIStyle只是数据容器，仅仅把组件绘制需要的数据集中在一起而已，真正发生作用需要看组件函数如何使用它们
+  - GUIStyle还包含来组件占用空间信息（width／height），以及相关函数来计算一些使用style的内容的width和height
+  - GUIStyle还包含来绘制函数，给定Rect／GUIContent／controlID，GUIStyle直接使用样式信息绘制出组件
+  - 有4种主要方式获得GUIStyle
+    - new GUIStyle并设置具体样式
+    - 使用EditorStyles内置的样式，EditorStyles可以使自定义样式看起来像内置的组件
+    - clone EditorStyles内置样式，并修改其中一些new GUIStyle(existingStyle)
+    - 从GUISkin中获得
+- GUISkin
+  - GUIStyle包含一组样式映射，GUISkin包含一组style映射，button/box/label/slider
+  - assets，可以在project中创建并通过inspector编辑
+  - 除预定义的key-style，还可以在custom styles中添加更多的自定义key-style
+    - 通过GUISkin.GetStyle("nameOfCustomStyle")获得style
+  - 应用在游戏中的GUISkin可以直接引用assets
+  - 应用在Editor中的GUISkin
+    - 如果skin在Editor Default Resources目录中，EditorGUIUtility.LoadRequired()
+    - 否则，AssetDatabase.LoadAssetAtPath从任何目录加载skin（只要注意不要将editor-only的assets放在打包目录，否则它们会被作为游戏资源的一部分被打包但实际上没有用到）
+- GUIContent
+  - a mix of text/icon/tooltip
+  - using GUIStyle.Draw(), passing ti the rect you'are drawing into, the GUIContent you want to draw, the controlID that should be used to figure out whether the content has things like keyboard focus
+- 自定义控件
+  - 处理事件switch
+  - 处理鼠标／键盘输入，rect.contain(mouseposition)
+  - 判断控件状态
+  - 根据状态绘制控件GUIStyle.Draw(rect, hover, active, on)
+    - GUIStyle.Draw只是简单绘制控件的某个状态的外观，需要你根据事件和鼠标／键盘输入来判断控件正处于那个状态，然后使用正确的状态作为参数调用Draw
+  - 返回值
+- 自定义控件代码封装在一个函数内，就是一个IMGUI控件。GUI／EditorGUI提供来很多预定义控件，使用这些控件无需处理事件／绘制等任务，只需要简单调用并判断返回值就可以
+- IMGUI的控件函数分为两类
+  - 手动指定rect，GUI/EditorGUI
+  - 通过布局系统自动获得rect，GUILayout/EditorGUILayout
+- GUI（EditorGUI）与GUILayout（EditorGUILayout）都包含相同的控件接口，只是GUI是手动指定rect，GUILayout是自动布局指定的rect
+- GUI（GUILayout）和EditorGUI（EditorGUILayout）包含了两组组件，前者主要是常见的UI控件，例如button/label/window/label等等，既可以用在game中又可以用在editor中，后者主要包含了只用于editor的组件，大部分是操作各种基本数据类型的field，例如DoubleField/IntField/ColorField
+- 手动指定rect，在构建复杂UI时需要手动进行复杂的布局计算确定每个控件的rect
+- IMGUI提供来自动布局系统，每个控件只需要报告它对自己所需对rect对要求，布局系统会按照这些要求计算出每个控件对rect
+- Retained mode GUI组件通常会包含Layout相关的回调函数，用来向布局系统报告本控件需要的空间信息，布局系统先在UI层次树中自定向下call一遍，获得每个控件的需要的空间信息，然后计算出每个控件的最终被分配的rect并设置在控件rect属性上，然后再自定向下call一遍进行绘制，每个控件通过GetRect就可以得到自己最终的rect，然后在其中绘制
+- IMGUI自动布局系统也是这样的机制，但是像所有其他功能一样，关于GUI的所有信息都是通过函数调用的方式获得的。IMGUI为每个事件自顶向下call一遍ControlFunctions。IMGUI为EventType.Layout事件call一遍ControlFunctions，在事件处理过程中：
+  - 控件函数调用GUILayoutUtility.GetRect告诉IMGUI它要参与自动布局，并通过GetRect参数传递给IMGUI它对布局空间对需求
+    - GUIContent，文字、图片本身对于布局空间大小对需求
+    - GUIStyle，其中和布局有关对样式属性
+    - GUILayoutOption，显式指定对布局需求
+    - minWidth/maxWidth/minHeight/maxHeight
+  - GUILayoutUtility.GetRect还在自动布局控件树中创建了一个节点
+  - 控件函数调用GUILayout.BeginHorizonal/Vertical和GUILayout.EndHorizontal/Vertical在当前节点下创建一棵子树，所有在Being/End之间调用的GetRect和Begin/End都在这个子树下面
+- IMGUI通过对EventType.Layoutd调用一遍控件函数，控件函数调用GetRect/Begin-End-Layout，最终IMGUI得到一棵控件树，并知道每个节点对布局空间对需求，IMGUI因此可以计算出每个控件最终对rect
+  - BeingHorizonal/Vetical与GetRect一样，也可以传递一组GUILayoutOptions来通知所需对布局空间
+- GetControlID与GetRect使相互平行独立的IMGUI机制（所有的IMGUI全局机制都是相互独立平行的）。可以认为每种机制都是一个独立的空间，但是它们运行的方式都是相同的，就是以来与控件函数调用IMGUI函数的顺序。IMGUI只是简单记录调用IMGUI函数的序号，序号相同的函数调用被认为是相同控件在调用。第n次IMGUI函数调用总是返回相同的值。这就是在IMGUI事件处理过程中必须特别注意函数调用次数的一致性的原因。但是GetControlID和GetRect是两套相互独立的机制，它们只需要各自保持函数调用次数一致性就可以来，而不需要相互一致，即参与自动布局的控件不一定需要控件ID，需要控件ID的控件不一定参与自动布局
+- 因为调用IMGUI函数需要所有的控件保持一致的调用顺序，因此如果一个控件在某个事件中需要调用GetControlID/GetRect，那么所有的控件都需要在这个事件中执行相同的调用，不能这个控件在这个event中调用，那个控件在那个event中调用。为了简化保持一致的工作，只需要在控件函数开始执行时调用IMGUI函数，而不是在event中调用。这样对所有事件，IMGUI函数调用顺序都是一致的
+- 在执行EventType.Repaint（或任何其他事件时），所有控件调用相同的IMGUI Layout functions，这一次，IMGUI不是收集信息，而是返回信息，GetRect会返回最终分配给组件的真正rect
+- GetRect在EventType.Layout事件中返回的结果是无用的
+- GetRect/BeginHorizontal/BeginVertical可以使用GUILayoutOption向IMGUI报告其需要的空间信息，因此可以传递不同的GUILayoutOption来产生动态布局信息，例如实现拖拽修改控件尺寸的功能
+- 实现控件一般方式是，先实现一个手动指定rect的版本，在其中实现绘制和事件处理，然后再用一个wrapper实现自动布局的版本，它只是调用GetRect等布局函数获得rect，然后直接调用手动指定rect版本的函数而已。这就是GUI控件和GUILayout控件的关系
+- 手动布局和自动布局控件可以混合使用。IMGUI的一切只和函数调用有关。你可以使用GetRect获取一块空间，然后自己计算分割这块空间成为多个sub-rect，然后可以使用这些sub-rect绘制多个控件（调用手动指定rect版本的函数）
+- 因为GetControlID和GetRect是两套相互独立平行的IMGUI全局机制，因为每个自动布局rect具有多个controls或者每个control具有多个rect都是没有问题的。有时手动分割rect比自动布局系统便捷
+- GUI/GUILayout类包含大量封装好的控件，自动控件绘制需要使用一些基础的绘制功能，但是也可以基于现有控件自定义：
+  - GUIStyle.Draw(GUIContent)
+  - GUI.Box
+  - GUI.DrawTexture
+  - GUI.Label
+- 如果编写PropertyDrawers（Inspector），不能使用自动布局系统，而应该使用系统传递给PropertyDrawer.OnGUI函数的rect。原因是Editor（Inspector）自身不使用自动布局系统，它只是计算一个简单的rect，对每个属性从上向下排列。如果使用来自动布局系统获取rect，控件就不知道其他组件是如何在Inspector中布局的，因此可能会绘制在其他property之上
+- SerializedProperty **wraps** a single variable handled by Unity's serializaion(load and save) system. Every variable on every script you write that shows up in the inspector as well as every variable on every engine object that you can see in the inspector can ben accessed via the SerializedProperty API.
+- SerializedProperty is useful because it doesn't just give you acces to the variable's value, but also:
+  - track whether the variable's value is different to the value on prefab it came from
+  - track whether a variable with child fields(e.g. a struct) is expanded or collapsed in the Inspector
+  - integrates any changes you make to the value into the Undo and scene-dirtying systems
+- If we want our IMGUI controls to play nice and easy with a slew of editor functionlity(undo/scene dirtying/prefab override etc), we should make sure we access variable through SerializedProperty
+- EditorGUI是SerializedProperty的主要用户。EditorGUI控件使用SerializedProperty参数作为in-out参数，从SerializedProperty可以读取属性的value，对属性对修改可以直接写入SerializedProperty
+- SerializedProperty.prefabOverride检查prefab属性是否有所修改，如果是则可以以特殊效果绘制这个属性
+  - 如果只是将属性字体变为bold，IMGUI已经这样做了，只要确保没有修改或者正确修改GUIStyle的字体
+- EditorGUI.showMixedValue判断是否正在同时编辑多个属性，是则可以以特殊效果绘制属性
+- Retain模式GUI提供了通常我们所认为的UI功能，例如点击一个输入框，它就被激活，成为当前焦点控件，按下按键，就会向其中输入字符，文本有变化就会调用OnValueChanged回调函数。这些都是按照我们所熟知的GUI功能被封装好的。但是IMGUI有着另一个完全不同的约定，只有以这个约定来理解和利用IMGUI才能流畅地使用它，就像Retain GUI也有着自己的约定（即我们所熟知的GUI约定）。我们总是按照Retain GUI的约定来理解IMGUI，这是IMGUI难以理解的主要原因。IMGUI提供了更加底层的功能，要实现我们理解的通常意义上的GUI需要我们手工做一些工作，而Retain GUI就不需要，因为我们理解的通常意义的GUI就是RetainGUI
+- 通过运行时函数调用构建UI层次（函数调用结构就是UI树结构）
+- 函数封装就是控件封装
+- 函数就是控件
+- 每次GUI绘制会自定向下执行多遍pass，每个pass传递一个事件，这个multipass过程成为IMGUI循环
+- control必须在GUI循环的多个pass中保持一致的controlID
+- 每个循环至少包含两个event，第一个总是Layout，最后一个总是Repaint
+- GUI基础控件需要明确指定Rect，IMGUI在其基础上提供了自动布局系统，自动布局系统在Layout pass调用全部的控件函数，控件函数在这个事件中报告所占用的空间信息，通过GUILayoutUtility.GetRect()，GUILayout.BeginHorizonyal/Vertical和GUIlayout.EndHorizonyal/Vertical以及其他Layout相关函数，然后IMGUI通过收集的空间信息为每个控件（函数调用）分配最终的空间，然后以Repaint事件重新调用全部的控件函数，每个控件函数按照于先前一致的顺序调用Layout函数，这次IMGUI只是简单回放刚才计算的Rect，这样就可以得到IMGUI为这次函数调用分配的Rect，然后就可以使用这个Rect调用基础控件函数进行绘制了。但是注意IMGUI只是返回这个rect而已，用不用完全取决于控件自身。这时IMGUI到处可见的模式，IMGUI只是提供了一种可用的方式，用不用全在于你的自由。这是与Retain模式GUI所不同的，RetainGUI的约定是强制的，例如如果你指定一个控件时它父控件width的50%，你只需要指定这个约束，RetainGUI自动维护这个约束，但是在IMGUI中需要你自己手工实现这个约束
+- GetRect等Layout用函数需要在Layout和Repaint中保持一致的调用，简单的方式是让Layout和Repaint事件执行相同的代码，包括最终绘制的代码。绘制的代码不会在Layout事件中真正运行的，即使在输入事件的pass中也是不会执行的。IMGUI的这些事件相关函数应该在内部以及判断了Event.current.eventType，在不是它们期望的事件中是不会执行的，因此所有Layout和Repaint函数甚至可以不进行任何事件类型判断，直接在控件函数最外层直接调用，它们自动会在不同的事件中执行相应的动作。因此在控件函数中，只对需要对哪些依赖特定事件的部分进行分类处理即可
+- 在MonoBehaviour的OnGUI中绘制GUI时，调用BeginHorizontal/EndHorizontal，GetRect，甚至GUIStyle.Draw等函数，通常都会直接调用，而不判断是不是在Layout和Repaint函数，因此说明它们是可以在任何事件中调用的
+- 甚至在输入事件中通过Rect判断鼠标是否落在控件上面，都需要在输入事件中按照与Layout/Repaint事件一致的顺序调用GetRect等Layout函数，以获得控件正确的Rect，这样，这些Layout函数和绘制函数更需要在外出，不依赖任何事件而进行调用了
+- 因为IMGUI在Layout事件中进行Layout Rect计算，因此如果在GUI循环的中一旦出现动态创建的UI，就应该调用GUIUtility.ExitGUI跳出当前GUI循环，重新开始以将新加入的控件计算在内
+- IMGUI只是提供了可以用于实现GUI的底层基础设施，若想实现高级的GUI控件，需要我们手工将这些基础设施组合起来。这不像RetainGUI一样，拿来即用
+- hotControl和keyboardControl只是两个简单的变量而已，只是它们的名字暗示应该用在对应的功能里面，但是IMGUI不进行任何强制
+- 按钮选中这样的高级功能需要手工实现，对于2D控件，通过GetRect获得控件的矩形，然后判断鼠标指针是否落在Rect中确定是否选中此控件，对于3Dhandle，通过再Layout事件中报告当前鼠标到cap的位置，再输入事件中判断nearestControlId是否是本控件来判断是否选中此handle
+- 如果一个控件判断自己被选中，它可以将自己的controlid设置到hotControl/keyboardControl上面，但是IMGUI不对hotControl进行任何使用，它完全被控件们自己使用。IMGUI只是简单地将每个事件发送给每一个控件函数，由控件函数自身以及相互协作完成特定的UI功能。当一个控件将hotControl甚至为自己的controlId时，其他控件函数完全可以忽略无视，而继续处理鼠标事件，但是为了实现良好的UI系统，每个控件应该在收到鼠标事件时，判断hotControl是否是自己，如果不是并且不是0，则说明有其他控件声明自己需要捕获鼠标事件，它就应该忽略目前的鼠标事件
+- IMGUI不是提供了要给GUI系统，而是提供了一个实现GUI系统基础设施
+- 控件函数在Repaint中进行绘制需要的图形表示，在其他事件中调用没有意义，但是也没有伤害
+- 控件函数应该在switch中的对每个需要的事件进行处理，在处理每个事件时，应该记住当前处于哪个事件

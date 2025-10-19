@@ -1,0 +1,35 @@
+# Action
+
+好像等价于Unity的Animation Clip
+
+当在Blender中动画objects和properties时，Actions记录和包含数据。就像Blender中的任何其他东西，Actions是data-blocks
+
+当通过使用keyframes改变object的locaitons来动画object时，动画被保存在Action中
+
+每个Property有一个记录它的channel。例如Cube.location.x被记录在Channel X Location中。X location和Y location属性可以在多个objects中共享，如果所有物体下面都具有X locaiton和Y location属性
+
+每个channel都有一个在keyframes之间用lines表示的F-curve
+
+Actions：记录和包含动画数据
+
+Groups：一组channels
+
+F-Curves：用来在keyframe之间插值变化
+
+keyframes：用来设置绑定到特定时间的属性值，类似curve的控制点（marker），在指定位置曲线总是通过这个点。keyframe插值实际上也是通过F-curve在指定时间通过keyframe的属性值点完成的
+
+## Working with Actions
+
+当第一次通过添加keyframes动画一个物体时，Blender创建一个Action来记录这个数据
+
+Actions可以使用Action Editor header中Dope Sheet的Action data-block菜单管理
+
+如果为同一个object制作多个actions，为每个action点击shield 按钮。这将给action一个Fake User（引用计数），使blender保存没有被link的actions
+
+Objects每次只能编辑一个Action
+
+## Bake Action
+
+Objects或bones的最终运动不仅依赖于keyframed animation，还依赖于激活的F-curve modifers，drivers，constraints。在scene的frames的每一个frame，Bake Action工具计算选择的objects/bones应用所有modifier、drivers、constraints的最终的动画数据，并keyframe结果
+
+这可以用来通过drivers或constraints创建一个keyframe动画

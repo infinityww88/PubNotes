@@ -1,0 +1,83 @@
+<html>
+    <head>
+        <title>xargs</title>
+    </head>
+    <body>
+        <h2 style="text-align: center;">xargs</h2>
+
+        <h3>描述</h3>
+        <p>
+            xargs读取stdin，将space、tab、newline和end-of-file（EOF=-1）作为分隔符分隔字符串，将它们作为参数调用utility程序
+        </p>
+        <p>
+            在命令行中指定的utility参数对于其每次调用都给出，跟随从标准输入读取的字符串参数。utility重复执行直到标准输入结束。
+        </p>
+        <p>
+            space、tab和newline可以使用单引号、双引号、反斜线转义被嵌套在参数中。单引号转义所有非单引号字符，除了newline，直到对应的匹配的单引号。双引号转义所有非双引号字符，除了newline，直到匹配的双引号。任何字符包括newlines，可以被一个反斜线\转义（多行）
+        </p>
+        <p>
+            从stdin读取的参数默认追加在命令行中指定的xargs arguments之后，可以使用—I、-J调整参数位置
+        </p>
+
+        <h3>格式</h3>
+        xargs [选项] utility arguments
+
+        <h3>选项</h3>
+
+        <h4>分隔符相关</h4>
+        <p>
+            -0<br />
+            使xargs使用NUL(\0)作为分隔符，而不是空白。这允许字符串参数中包含空白。与find的-print0对应。
+        </p>
+        <p>
+            -E eofstr<br />
+            默认当读取输入读到-1时，输入结束。通过eof指定一个逻辑结束符，当遇到它时便结束
+        </p>
+
+        <h4>参数位置相关</h4>
+        <p>
+            -J placeholder<br />
+            xargs将使用从stdin读取的参数列表替换placeholder的第一次出现，而不是追加在命令行指定的参数之后。这个参数不影响从input读取多少个参数（-n），以及xargs生成命令的大小（-s）。这个选项只是简单地移动这些参数在最终命令中的位置。placeholder必须在xargs中是一个独立的token。只有placeholder的首次出现被替换，之后的placeholder被当作utility的参数
+        </p>
+        <p>
+            -I placeholder<br />
+            不考虑分隔的字符串，对每个输入行（newline结束）执行一次utility，每次执行时使用整行文本替换命令行参数中最多replacements个placeholder对出现，所有被替换的placeholders被截取到255bytes。255bytes不会限制不包含placeholders的参数。placeholders可以不是独立的token，即可以是一个参数的一部分
+        </p>
+        <p>
+            -R replacements<br />
+            指定-I命令最多可以替换的最大数量。负数表示替换个数没有限制
+        </p>
+
+        <h4>调用频率相关</h4>
+        <p>
+            -L number<br />
+            每number个lines调用一次utility。与-I一样，基于行处理而不是基于分隔的字符串参数进行操作，每行作为一个参数。 以空格结束的行扩展到下一个非空行。如果遇到EOF，utility使用可用的lines执行。
+        </p>
+        <p>
+            -n number<br />
+            基于分隔的字符串参数进行操作。每number个参数执行一次utility。如果从input读取的参数总长度超过-s指定的长度，或者剩余不到number个参数，utility将使用更少的参数执行。
+        </p>
+        <p>
+            -s size<br />
+            生成的utility命令的最大长度，包括utility名字，传递给它的参数。默认值4096。这个参数影响-n选项，但是与-I选项255bytes的限制无关
+        </p>
+
+        <h4>生成命令回显</h4>
+        <p>
+            -p<br />
+            回显每个被执行的命令，并等待用户确认（y/n）。y执行，n跳过
+        </p>
+        <p>
+            -t<br />
+            将每个执行命令在执行前回显到stderr
+        </p>
+        
+        <h3>退出状态</h3>
+        <p>
+            0:没有错误<br />
+            127:找不到utility<br />
+            126:utility不能被执行<br />
+            1:发生其他错误<br />
+        </p>
+    </body>
+</html>

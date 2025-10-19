@@ -1,0 +1,7 @@
+# Introduction
+
+Curves和Surfaces是特殊类型的Blender objects。它们通过数学公式表达，而不是vertices/edges/faces。
+
+Blender提供了Bezier和Nurbs曲线/曲面。它们通过一组控制点定义
+
+Bezier更直观，因为它在设置控制点处的start和end。Nurbs在具有很多twist和turn时计算更高效

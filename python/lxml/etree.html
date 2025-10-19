@@ -1,0 +1,98 @@
+<html>
+  <head>
+    <title>Etree</title>
+  </head>
+  <body>
+    <h1>Element类</h1>
+    <p><code>from lxml.etree import Element</code></p>
+    <p>
+      Element是ElementTreeAPI的主要容器对象。绝大多数XML tree功能通过这个类访问
+    </p>
+    <ul>
+      <li>
+        创建节点: e = etree.Element("root")
+      </li>
+      <li>
+        访问元素标签: e.tag == "root"
+      </li>
+      <li>
+        添加子节点
+        <ul>
+          <li>
+            e.append(etree.Element("child1"))
+          </li>
+          <li>
+            child2 = etree.SubElement(parent, "child2")
+          </li>
+        </ul>
+      </li>
+      <li>
+        打印xml
+        <ul>
+          <li>
+            etree.tostring(root, pretty_print=True) -> bytes
+          </li>
+          <li>
+            etree.tounicode(root, pretty_print=True) -> str
+          </li>
+        </ul>
+      </li>
+      <li>判断value是否是etree元素：etree.iselement(e)</li>
+      <li>每个Element只有一个parent，不会有一个Element被多个parent引用</li>
+      <li>创建一个元素的副本，使用python的deep copy
+        <pre style="color: red;">  from copy import deepcopy
+  element.append(deepcopy(anotherelement))</pre>
+      </li>
+      <li>访问兄弟元素：e.getprevious(), e.getnext()</li>
+    </ul>
+
+    <h2>Element是子元素列表</h2>
+    <ul>
+      <li>索引：child = root[0]</li>
+      <li>长度：print(len(root))</li>
+      <li>查找：root.index(root[1])</li>
+      <li>列表：children = list(root)</li>
+      <li>迭代：for child in root</li>
+      <li>插入：root.insert(0, etree.Element("child0"))</li>
+      <li>子列表
+        <ul>
+          <li>starts = root[:1]</li>
+          <li>ends = root[-1:]</li>
+        </ul>
+      <li>移动：root[0] = root[-1]，移动节点，删除第一个节点，将最后一个移动到第一个，并自动删除被移动的节点的原始引用</li>
+    </ul>
+
+    <h2>Element元素属性是dict</h2>
+    <ul>
+      <li>
+        创建属性：root = etree.Element("root", interesting="totally")<br />
+        root.tostring() == b'&lt;root interesting="totally"/&gt;'
+      </li>
+      <li>
+        读取：root.get("interesting")，不存在返回None
+      </li>
+      <li>
+        设置：root.set("hello", "Huhu")
+      </li>
+      <li>
+        字典
+        <ul>
+          <li>
+            root.keys()
+          </li>
+          <li>
+            root.values()
+          </li>
+          <li>
+            root.items()
+          </li>
+          <li>
+            root.attrib：dict-like object<br />
+            dict(root.attrib)：创建真正dict
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </body>
+</html>
+

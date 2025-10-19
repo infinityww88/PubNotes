@@ -1,0 +1,80 @@
+# Editor
+
+- OdinEditorWindow继承自EditorWindow
+- EditorWindow只在窗口打开期间保持状态，每次窗口关闭时都会直接销毁EditorWindow，调用OnDestroy，其状态也会随之销毁。重新打开的窗口都是全新的窗口。因此如果需要在窗口多个实例之间保持状态需要自己处理状态序列化。
+- EditorWindow使用单例模式，因此每次只能打开一个窗口。在窗口打开期间，GetWindow总是返回当前窗口。关闭并重新打开窗口会重新创建EditorWindow
+  - EditorWindow.GetWindow\<CustomEditorWidnow>().Show()
+- EditorWindow的绘制和Editor/PropertyDrawer相同，OdinEditorWindow的绘制和OdinEditor/Property的绘制也一样相同
+- Editor是针对特定Component的Inspector的绘制类，只在相应的Component的gameobject被选中时，相应的回调函数才会调用。当Editor附着的组件的对象被选中时
+  - OnInspectorGUI：绘制Inspector中的GUI
+  - OnSceneGUI：绘制Scene窗口
+    - 这就是为什么绝大多数plugin都把逻辑附加在一个gameobject上，使用plugin时需要先选中gameobject，然后各种GUI才会出现在scene中。这样的好处是，每个gameobject可能都会在scene窗口绘制各种GUI，通过先选中脚本所在的gameobject再显示GUI可以保持scene窗口的干净，否则所有plugin的GUI会同时绘制在scene窗口中
+- 在scene窗口中绘制2D GUI就是用EditorGUI/EditGUILayer，绘制3d GUI使用Handles
+- EditorWindow不是针对特定component的，只是全局的一个窗口，因此没有OnInspectorGUI和OnSceneGUI。使用Handles绘制scene必须在Scene绘制回调中完成（Editor中的OnSceneGUI）。EditorWindow可以向SceneView注册Scene绘制回调函数
+  - SceneView.duringSceneGui：whenever the scene view calls the OnGUI method
+  - 很多plugin不需要挂载到gameobject上就可以在scene窗口中绘制，就是使用这种方法
+  - 注册之后回调函数将一直有效，直到反注册为止
+  - EditorWindow若要在Scene中绘制，可以在OnFocus中注册SceneView.duringSceneGui，在OnLostFocus/OnDestroy中反注册
+- C#事件对添加的监听器函数不会判断重复，event只是个简单的delegate的list，将一个监听器添加多次，其就会被调用多次，每次移除监听器也只是移除list中第一个出现的监听器引用
+- Editor本身是UnityEngine程序的超集，Editor就是用UnityEngine实现的一个application，并在此基础上添加了Editor相关编辑功能。所有在UnityEngine的功能都能用在Editor中
+- Physics.autoSimulation and Physics.Simulate 可以控制物理引擎进行手动模拟。Editor中物理引擎始终是关闭自动自动模拟的，即使打开autoSimulation。但是在Editor中可以用Physics.Simulate进行手动物理模拟。可以实现很多基于物理的编辑功能，例如基于物理的物体放置场景编辑等等
+- Unity功能十分强大，我们已经十分熟悉，又能熟练编写编辑器扩展，而且所有的功能都是在Unity中直接可用的，因此应该以扩展Unity为主来实现特殊的功能，而不是放在Blender实现。因为我们不熟悉Blender脚本功能，blender和unity很多功能并不互通（材质/物理/cloth），在blender中实现的功能不能导入的unity中。blender应该只作为unity的外部建模软件，只应作为做创建模型或动画的工具
+- GameObjectRecorder可以用来程序化记录动画。
+  - init
+    - m_Recorder = new GameObject(gameObject)
+    - m_Recorder.BindComponentOfType\<Transform>(gameObject, true)
+  - update
+    - m_Recorder.TakeSnapshort(Time.deltaTime)
+      - 记录绑定组件的变化到keyframe，并前进time header
+  - save
+    - m_Recorder.SaveToClip(AnimationClip)
+      - 将当前记录的动画数据写入clip
+      - 必须判断m_Recorder.isRecording
+        - m_Recorder.TakeSnapshort必须之前执行过，否则报错无数据可记录
+  - reset
+  - GameObjectRecorder是UnityEditor程序集的代码
+    - UnityEditor是editor相关的功能，但是在UnityEditor的play mode下，UnityEditor也是可用的程序集。即在UnityEditor play时，MonoBehavior也能够引用UnityEditor并使用其中的类（很容易误解的是认为Play模式下MonoBehavior只能使用UnityEngine）。只要在Unity3d Editor中运行的代码都可以同时使用UnityEditor和UnityEngine，包括MonoBehavior脚本和Editor脚本。
+    - 只有在最终build成程序包时，UnityEditor才不可用，因为它不会被打包，只有UnityEngine被打包。如果此时被打包的脚本还引用UnityEditor，就会报错。那些使用了UnityEditor的MonoBehavior或者不被打包（没有任何gameobject使用它），或者将所用UnityEditor相关代码包括在#if UNITY_PLATFORM #endif中
+    - UNITY_EDITOR是在Unity3D Editor中运行的程序定义的宏，不仅是editor脚本，MonoBehavior脚本也是一样，只有在build时，才变成UNITY_ANDROID/UNITY_IOS/UNITY_WINDOWS等等
+    - 也就是在开发模式下下，MonoBehavior也可以引用UnityEditor的类，来实现一些编辑器功能，例如引用GameObjectRecorder来程序生成动画，或者其他所有Editor相关功能类（动画/纹理/材质/所有）。只要保证它们在最终build时不会被引用即可（因为它们本质是一些edior代码，只不过需要在play运行时才能发挥作用
+    - GameObjectRecorder UseCase：bake physics模拟到animation clip中。为gameobject创建rigidbody/collider/joint，然后再play时使用GameObjectRecorder记录动画到clip，之后就可以删除物理相关组件，只使用动画clip来回放就可以了。所有要记录的gameobject应该放置再GameObjectRecorder的root gameobject下，尽管它们的运动被物理系统支配，不再被transform父子关系固定，但是GameObjectRecorder可以递归记录所有子物体的动画数据，即在这里transform的父子关系只用来组织记录动画的物体
+- Editor Script
+  - IMGUI
+    - 窗口创建 Editor／EditorWindow／DrawProperty／ScriptWizard
+    - 控件绘制
+      - GUI／EditorGUI／GUILayout／EditorGUILayout
+    - 样式 GUIStyle/GUISkin
+    - 事件
+      - Event.current.type
+      - Event.current.mousePosition
+      - Event.current.keyCode
+    - 交互HotContorl／ControlID／FocusType
+  - 编辑器交互
+    - 属性modify
+      - SerializedObject／SerializedProperty
+    - Scene绘制／OnSceneGUI
+      - Handles
+    - 选择Selection
+- UI Builder使得使用UIElements构建GUI变得简单，通过所见即所得的编辑器可以直接创建UI，而不必写繁琐的UXML/USS。因此UIElements现在可以正是加入工具箱中
+- 但是Editor GUI方面的工作Odin已经得非常好，即使有UI Builder，Odin仍然是最简单的实现EditorUI的工具，只需要attribute就可以了。因此IMGUI几乎可以彻底弃用了，使用Odin实现EditorUI，使用UI Builder实现运行时UI。IMGUI还可能用到的地方包括：
+  - OnSceneView中在SceneView中绘制GUI
+  - 游戏进行简单调试（例如帧率显示）使用IMGUI是最快的，比Console更直观，比UGUI，UIElement更轻量，Odin无法用于运行时
+  - Handles绘制3D控件的各种概念仍然与IMGUI是一致的，因此如果使用Handles绘制SceneView，仍然需要了解IMGUI的工作原理
+- SerializedObject和SerializedProperty是以和Unity Editor一致的方式操作对象和数据的工具类。它们只和数据有关，即使数据没有对应的UI，数据仍然可以undo/redo，只是从编辑器中看不见而已。GUI中数据undo/redo的可视表示，只是因为数据在变化，GUI只是显示当前的数据而已
+- 在编辑器中操作一个数据时只需要记得使用SerializedObject和SerializedProperty就可以了
+- 通过google上的示例（任何示例），购买的插件，学习自定义Editor
+- OnSceneView和OnGUI/OnInsepctorGUI等函数一样，都是对每个Event事件调用一次，这也是为什么OnSceneView中可以像OnGUI一样绘制2D UI。任何需要对不同事件进行处理的功能都需要通过Event判断。很多UnityEditor内置的GUI函数例如Handles.SphereHandleCap内部也对不同事件进行了处理，调用它们时需要让它们知道外部当前发生了什么事件，因此它们最后一个参数是EventType。EventType只是用来将外部的Event传递到函数内部，函数内部和常规的代码一样通过switch进行判断和不同处理
+- Handles绘制的3D控件和IMGUI 2D控件几乎是相同的，唯一的区别在于一个是3D空间的，一个2D空间的，因此创建绘制SceneView中的3D控件遵循的规则和IMGUI 2D控件完全一样，例如也需要controlID来标识同一个控件
+- GUI.changed用来判断之前进行GUI操作是否对数值有修改，发生修改的控件会将GUI.changed设置为true来通知之后的代码。但有时候需要分块跨函数确定一段代码是否修改来状态，而GUI.changed是一个全局变量，为了在不同的作用域确定是否changed，通过EditorGUI.BeginChangeCheck/EndChangeCheck确定一块作用域，在进入作用域时将GUI.changed入栈，然后设置为false，之后这块作用域的代码就可以使用全新的GUI.changed了，调用EditorGUI.EndChangeCheck时，离开作用域，将GUI.changed恢复为栈顶当前的值，并返回作用域结束时的值。
+- IMGUI整个流程都是在运行时确定的，因此IMGUI常见通过调用各种Begin/End函数在运行时创建一个运行时作用域，将之前的状态入栈，设置全新的状态并执行作用域内的代码，并在结束时从栈顶恢复之前的状态。这种方法在IMGUI中大量被使用，理解它也是理解IMGUI工作原理的核心之一
+- IMGUI在每次绘制GUI（在一个frame中）会执行多遍整个GUI Call（OnGUI在一个frame中会执行多次），这个过程称为IMGUI循环。Retain模式GUI也包含类似的过程，这不过Retain模式UI的GUI循环以及其他很多细节都是隐藏都。GUI循环对每个event调用一次，而每次GUI绘制至少包含两个事件：Layout和Repaint。Layout自顶向下通知每个control计算自己的尺寸并报告，然后IMGUI会为每个control计算真正的尺寸，并再次调用GUI Call，这次调用GUI controls进行真正的绘制，这就是Repaint事件。除此之外，对于每个GUI事件也会调用一次GUI Call，使得每个control可以处理输入。ControlID需要在一个GUI循环中保持一致（直接在所有事件判断开始之前，即GUI函数调用最开始申请ControlID），即对一个GUI循环中每个事件保持相同即可，而不需要在整个程序过程中保持相等，实际上两个frame中同一个控件的controlID就可以是不同的。如果controlID需要在整个程序保持相同，那我们就拥有了真正的一致的controlID，就不需要一直调用GetControlID了。所以ControlID在程序运行过程中肯定可以是不同的。当控件的controlID变化时，GUIUtility.hotControl/GetStateObject肯定是无法保持一致的。IMGUI仅仅是提供了一个可以work方法，并不是足够安全的，它也不必是足够安全的。当遇到这些功能无法工作的情况时，就需要我们自己处理它们。ControlID变化时确实会影响hotControl/GetStateObject，此时需要自己处理以避免可能出现的问题，但是这就是IMGUI的方式。例如如果我们需要稳定的ControlID和StateObject，可以不依赖IMGUI提供的基础设施，而是自己实现一个全局的ControlID和StateObjectMap，使得它们对于一个control是稳定的。IMGUI只是提供了一些可行的工作方式，需要我们自己仔细小心的将它们组装起来
+- 只有需要交互的组件才需要ControlID，只有在动态UI（有组件动态创建的情况下）ControlID才会变化。但是IMGUI现在完全针对Editor扩展，Editor不需要花哨的GUI效果，而常见的动态GUI例如folder/tab等等，Unity都已经提供了，因此在实践中很少会遇到需要如此精细设计的情况，但是知道这些细节可以在遇到问题时避免被陷入。我们只需要熟悉常见的GUI使用模式即可
+- 对事件的处理通常只在自定义控件时需要，如果只是使用已经封装好的组件，只需要调用它并使用返回值就可以了
+- GUIUtility.ExitGUI，GUI异常，有动态GUI变化（新的组件创建），有新的control加入，当前的Layout计算已经没有意义，因此通过异常退出当前GUI循环，重新开始一个新的GUI循环，将新的组件加入Layout
+- GUI函数对GUI循环中的每个事件执行一次，每次Event.current包含当前的事件信息，第一个事件总是Layout，最后一个事件总是Repaint，中间包含可能的输入事件（mouse，keyboard）。
+- GUIOptions，GUILayout.Width()
+- GUIStyle/GUISkin
+- GUI.color, GUI.backgroundColor
+- EditGUI/EditGUILayout/EditGUIUtility是在GUI/GUILayout/GUIUtility基础上添加了新的功能，而不是替换GUI的功能，这些新加的功能只用在Editor中，而GUI不仅可以用在游戏中，还可以用于Editor中
+- 函数组合即创建复合组件
+- Unity Editor暴露了所有它自己使用API，因此Editor中native的功能都能通过API实现

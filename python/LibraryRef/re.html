@@ -1,0 +1,632 @@
+<html>
+
+<head>
+    <style>
+        .indent {
+            padding-left: 1em;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid blue;
+        }
+        th {
+            text-align: center;
+        }
+        th, td {
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>正则表达式</h1>
+
+<p>
+    pattern和被搜索的string既可以是str，也可以是bytes
+</p>
+
+<p>
+    反斜线\用来转义元字符为正常字符，这与python字符串字面量中转义冲突，因此4个\才能在regex中表示一个正常的\
+</p>
+
+<p>
+    python提供来raw string来方便书写regex pattern。r-string中，反斜线不再做任何特殊处理，因此r'\n'表示的是两个字符\和n。r-string只是能简化regex的书写，它仍然是普通的字符串
+</p>
+
+<p>
+    大多数regex操作既可以以module-level函数上执行，也可以在编译后的regex对象上作为方法执行。模块函数是regex对象方法的快捷方式，不需要先编译regex对象，但是缺失一些微调参数，它内部仍然是先编译相应的regex对象，然后将操作route到regex对象上
+</p>
+
+<h2>正则表达式语法</h2>
+
+<h3>
+    核心功能
+</h3>
+<ul>
+    <li>表达式组合：&，|，重复(*, ?, +, {m}, {m,n}</li>
+    <li>分组、捕获、反引用：位置分组，命名分组，分组flags</li>
+    <li>位置匹配：^, $, \A, \Z, \b, \B, 正向预测，反向预测，肯定预测，否定预测</li>
+    <li>表达式flags：表达式中传递，re.compile()传递</li>
+    <li>字符集：. \char, \s, \S, \w, \W, \d, \D, [a-z], [[:space:]]</li>
+</ul>
+
+<p>
+    正则表达式就像常规表达式一样，可以有primitive表达式构造复合表达式，例如若A和B都是正则表达式，则AB也是正则表达式。正则表达式定义一组规则明确如何由已知的正则表达式构造新的表达式
+</p>
+
+<p>
+    正则表达式同时包含特殊字符和普通字符
+</p>
+
+<p>
+    大多数普通字符本身就是最简单的正则表达式，它们简单地匹配自身。两个正则表达式可以串联起来形成新的正则表达式。因此regex('a')匹配str('a')，regex('b')匹配('b')，则regex('ab')匹配str('ab')
+</p>
+
+<p>
+特殊字符或者表示普通字符的种类class，或者影响它周围的regex如何解释
+</p>
+
+<p>
+    重复修饰符repetition qualifier(*, +, ?, {m, n} etc)不能直接相互嵌套，例如a?+\*。这避免了使用非贪婪修改符modifier?时的歧义。要在一个repetition上再应用一个repetition，需要使用()。例如(?:a{6})\*匹配任意多个aaaaaa字符串
+</p>
+
+<h3> 特殊字符 </h3>
+
+<p>.</p>
+<p class="indent">
+    默认模式中，匹配除了newline的任何字符。如果指定DOTALL flag，匹配包括newline的任何字符
+</p>
+<p>^</p>
+<p class="indent">
+    匹配字符串的开始。如果指定MULTILINE flag，还匹配每个newline之后的位置（即每一行的开始）
+</p>
+<p>$</p>
+<p class="indent">
+    匹配字符串的结束位置。如果指定MULTILINE flag，匹配每个newline之前的位置（即每一行的结束）
+</p>
+<p>*</p>
+<p class="indent">
+    生成新的re，它将匹配0个或多个前面的re，尽可能多地匹配
+</p>
+<p>+</p>
+<p class="indent">
+    生成新的re，它将匹配1个或多个前面的re，尽可能多地匹配
+</p>
+<p>?</p>
+<p class="indent">
+    生成新的re，它将匹配0个或1个前面的re
+</p>
+<p>*?, +?, ??</p>
+<p class="indent">
+    *, +, ?修饰符都是贪婪的，尽可能多地匹配。有时这并不是期望的行为。通过在后面放置一个?使其不执行贪婪匹配，即最少匹配<br />
+</p>
+<p>{m}</p>
+<p class="indent">
+    生成新的re，它将严格匹配m个前面的re
+</p>
+<p>{m,n}</p>
+<p class="indent">
+    生成新的re，它将匹配m到n个前面的re，尽可能多地匹配
+</p>
+<p>{m,n}?</p>
+<p class="indent">
+    生成新的re，它将匹配m到n个前面的re，尽可能少地匹配
+</p>
+<p>\</p>
+<p class="indent">
+    转义一个特殊字符为普通字符，或者singals一个特殊序列（引用前面的分组）
+</p>
+<p>[]</p>
+<p class="indent">
+    指定一个字符集合
+    <ul>
+        <li>字符可以单独列出来，[amk]将匹配a, m, k中的任何一个</li>
+        <li>通过两个字符[a-z]指定字符范围，范围可以是多个[0-9a-zA-F]。如果-被\转义或者是放置为第一个或最后一个字符[-a] [a-]，它将成为普通字符-</li>
+        <li>[]中的特殊字符失去意义，成为普通字符。[(+*)]匹配任何一个(, +, *, )字符</li>
+        <li>字符种类\w, \S也可以放在[]中</li>
+        <li>[^...]是[...]的补集，匹配所有字符集合范围之外的字符。[^^]匹配任何非^字符。^如果不是[]中的第一个字符则只是普通字符</li>
+        <li>要匹配字符]，或者使用\转义，或者或者将它放置在[]开始[]]</li>
+    </ul>
+</p>
+<p>|</p>
+<p class="indent">
+    生成新的re A|B，或者匹配A，或者匹配B。从左向右匹配，遇到第一个sub re就返回，即使后面的re可能匹配更长的序列。即|不是贪婪的。要匹配|字符，使用\转义或者放在[]中[\]
+</p>
+<p>(...)</p>
+<p class="indent">
+    分组。匹配()内部的re，并且re引擎记录group的start和end。在匹配完成后，可以获取group的内容，以及在后面的字符串中使用\number特殊序列进行匹配。要匹配()字符本身，使用\转义或者放在[]中
+</p>
+<p>(?...)</p>
+<p class="indent">
+    分组的扩展记法。?之后的第一个字符决定后面的表达式的语法和意义。扩展通常不会创建任何分组group，只有(?P&lt;name&gt;...)是例外，它创建一个命名group<br>
+    <ul>
+        <li>
+            (?aiLmsux)
+            <p>'a', 'i', 'L', 'm', 's', 'u', 'x'中的一个或多个字符。这个group匹配empty string，()中没有任何正则表达式。字符用来设置整个正则表达式相应的标记：re.A, re.I, re.L, re.M, re.S, re.U, re.X。使用扩展可以直接在正则表达式中包含这些flags，而不是传递flag参数到re.compile()中。(?x)修饰的是整个表达式，应该放在表达式的最开始</p>
+        </li>
+        <li>
+            (?:...)
+            <p>
+                非捕获版本的()。匹配()中的正则表达式...，但是匹配的分组不能在之后获取，亦不能在之后的pattern中引用。只用于正则表达式的组合
+            </p>
+        </li>
+        <li>
+            (?imsx-imsx:...)
+            <p>
+                'i', 'm', 's', 'x'中0个或多个字符，可选的跟着一个'-'以及1个或多个相同集合的字符。这个分组匹配内部的任何正则表达式，但是第一个flag为这个分组设置相应的标记，第二个flag为这个分组移除相应的标记，这样这个分组匹配可以使用和整个正则表达式不同的flags
+            </p>
+        </li>
+        <li>
+            (?P&lt;name&gt;...)
+            <p>
+                和常规的()分组一样，但是与这个group匹配的子串通过符号化的group名字name引用，而不是常规分组()按位置匹配。符号化group仍然是一个位置分组，就像没有名字的()分组一样
+            </p>
+            <p>
+                命名分组可以在3个上下文中被引用<br>
+                如果pattern是(?P&lt;quote&gt;['"].*?(?P=quote))，匹配被单引号或者双引号引用的字符串
+
+                <table>
+                    <tr>
+                        <th>引用"quote"分组的上下文</th>
+                        <th>引用方式</th>
+                    </tr>
+                    <tr>
+                        <td>在pattern自身中</td>
+                        <td>
+                            <ul>
+                                <li>(?P=quote)，通过名字引用</li>
+                                <li>\1，通过位置引用</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>在match对象m中引用</td>
+                        <td>
+                            <ul>
+                                <li>m.group('quote')</li>
+                                <li>m.end('quote')</li>
+                                <li>etc</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>在传递给re.sub()的repl参数字符串</td>
+                        <td>
+                            <ul>
+                                <li>\g&lt;quote&gt;</li>
+                                <li>\g&lt;1&gt;</li>
+                                <li>\1</li>
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
+            </p>
+        </li>
+        <li>
+            (?P=name)
+            <p>
+                在pattern中反向应用一个命名分组named group。它匹配相应分组匹配的任何文本。反向引用分组引用的是分组匹配的文本，不是重新应用一次分组匹配
+            </p>
+        </li>
+        <li>
+            (?#...)
+            <p>
+                注释，括号中的内容被简单地忽略
+            </p>
+        </li>
+        <li>
+            (?=...)
+            <p>
+                如果...匹配接下来的字符串则匹配成功，但是不消耗任何string。这称为预测断言。例如Isaac(?=Asimov)只有在后面跟着'Asimov'时才匹配Isaac，但不消耗'Asimov'
+            </p>
+            <p>
+                后向预测断言，放在正式re的后面
+            </p>
+        </li>
+        <li>
+            (?!...)
+            <p>
+                与(?=...)相似，否定预测断言，如果...不匹配则匹配成功
+            </p>
+        </li>
+        <li>
+            (?<=...)
+            <p>
+                与(?=...)相似，前向预测断言，如果...匹配当前字符串位置之前并到当前字符串位置结束的内容，则匹配。预测正则表达式必须匹配固定长度的子串，意味着abc或者a|b是可以的，但是a*和a{3,4}是不行的。使用前向预测断言的patterns不能匹配字符串的开始，你很可能需要使用search()而不是match()，match只从字符串的起始开始匹配，但是前向预测断言起始处匹配的是断言，因此match无法使用前向预测断言。但是search可以从字符串的任何位置上寻找匹配，因此可以使用前向预测断言
+            </p>
+            <p>
+                前向预测断言，放在正式re的前面
+            </p>
+        </li>
+        <li>
+            (?<!...)
+            <p>
+                否定前向预测断言，预测正则表达式必须匹配固定长度的内容。可以匹配字符串的开始，因此可以用于match()
+            </p>
+        </li>
+        <li>
+            (?(id/name)yes-pattern|no-pattern)
+            <p>
+                如果(id/name)指定的分组存在，则使用yes-pattern进行匹配，否则使用no-pattern进行匹配
+            </p>
+        </li>
+    </ul>
+</p>
+<p>特殊序列</p>
+<p class="indent">
+    特殊序列包含'\'和下面列表中的一个字符，其他字符将使re简单匹配这个字符而没有特殊意义，即\o,\$简单匹配o和$
+    <ul>
+        <li>
+            \number
+            <p>
+                匹配number对应的group匹配的文本内容。Group从1开始计数。只能引用前99个分组。如果第一个数字是0，或者number是3个八进制数字长度，它将不被解释为分组匹配，而是八进制数对应的字符。在[]中，所有\number都被当作字符。因为\number匹配的是任意长度的文本，而[]中定义的是字符
+            </p>
+        </li>
+        <li>
+            \A \Z
+            <p>
+                \A只匹配字符串的开始，类似^
+            </p>
+            <p>
+                \Z只匹配字符串的结束，类似$
+            </p>
+            <p>
+                无视多行模式，总是匹配字符串的开始和结束位置。这样即使在多行模式下，也可以指定只匹配字符串的开始和结束位置
+            </p>
+        </li>
+        <li>
+            \b \B
+            <p>
+                \b匹配empty string，即不消耗任何字符，当时只匹配在一个word的开始或结束位置上，即word的边界，用来定位一个word。通常，\b定义为\w和\W（或者反过来）的边界，或者\w和字符串start/end的边界
+            </p>
+            <p>
+                \B是\b的逆
+            </p>
+        </li>
+        <li>
+            \d \D
+            <p>
+                \d匹配数字0-9
+            </p>
+            <p>
+                \D是\d的逆
+            </p>
+        </li>
+        <li>
+            \s \S
+            <p>
+                \s匹配空白，等价于[\t\n\r\f\v]
+            </p>
+            <p>
+                \S是\s的逆
+            </p>
+        </li>
+        <li>
+            \w \W
+            <p>
+                匹配字母、数字和下划线，等价于[a-zA-Z0-9_]
+            </p>
+            <p>
+                \W是\w的逆
+            </p>
+        </li>
+        <li>
+            大多数python字符串字面量的标准转义也被re接收
+            <p>
+                \a \b \f \n \r \t \u \U \v \x \\
+            </p>
+            <p>
+                \b在re中表示word边界，只在字符集合[]中才表示backspace。其他转义字符可以同时用在[]内外
+            </p>
+        </li>
+    </ul>
+</p>
+
+<h2> 模块常量 </h2>
+
+模块定义来一些函数，常量，和一个异常。一些函数只是一个编译的regex对象的全功能方法的简化版本。大多数非简单应用总是使用编译的regex对象
+
+<p>
+    re操作分为
+    <ol>
+        <li>查找（匹配，单次）：match，search，fullmatch，findall，finditer</li>
+        <li>查找（匹配，多次）：多次匹配：findall，finditer</li>
+        <li>替换：sub, subn</li>
+        <li>分割：split</li>
+        <li>转义：escape</li>
+
+    </ol>
+</p>
+
+模块函数：
+
+<ul>
+    <li>
+        re.compile(pattern, flags=0)
+        <p>
+            编译一个regex pattern到一个regex对象中，可以使用它的match(), search()，以及其他方法进行匹配
+        </p>
+        <p>
+            正则表达式行为可以通过flags进行修改。flags可以使用按位或|进行组合
+            <ul>
+                <li>
+                    re.A re.ASCII 内联标记(?a)
+                    <p>
+                        对\w, \W, \b, \B, \d, \D, \s, \S只执行ASCII-only匹配，而不是使用Unicode匹配。这对Unicode pattern有效（str），对于bytes无效。
+                    </p>
+                    <p>
+                        re.U re.Unicode (?u)是这个标记的方向标记，指示使用Unicode进行匹配，在Python3中，默认使用Unicode匹配，因此unicode标记是多余的，只出于兼容性考虑存在
+                    </p>
+                </li>
+                <li>
+                    re.I re.IGNORECASE (?i)
+                    <p>
+                        执行非大小写敏感的匹配，[A-Z]也会匹配小写，反之亦然
+                    </p>
+                </li>
+                <li>
+                    re.M re.MULTILINE (?m)
+                    <p>
+                        ^ $匹配每一行的开始和结尾，而不仅是字符串的。但是\A \Z总是匹配字符串的开始和结尾
+                    </p>
+                </li>
+                <li>
+                    re.S re.DOTALL (?s)
+                    <p>
+                        使.匹配任何字符包括newline。没有这个flag，.将不匹配newline
+                    </p>
+                </li>
+            </ul>
+        </p>
+    </li>
+
+    <li>
+        re.search(pattern, string, flags=0)
+        <p>
+            搜索整个字符串找到第一个和self正则表达式匹配的位置，并返回一个match对象。如果没有任何匹配返回None。不匹配和zero匹配是不同的
+        </p>
+    </li>
+    <li>
+        re.match(pattern, string, flags=0)
+        <p>
+            如果string起始处的0个或多个字符匹配self，返回match object；否则返回None。不匹配与zero匹配是不同的。
+        </p>
+    </li>
+    <li>
+        re.fullmatch(pattern, string, flags=0)
+        <p>
+            如果整个string匹配pattern，返回match object，否则返回None
+        </p>
+    </li>
+    <li>
+        re.split(pattern, string, maxsplit=0, flags=0)
+        <p>
+            使用与pattern匹配的子串分割string。如果pattern使用()进行捕获，则所有的捕获分组匹配的文本也在结果list中被返回，这样可以知道每个分割子串是什么。如果pattern使用()进行捕获，而且分割表达式匹配字符串的开始和结尾，则开始和结尾将返回一个空字符串，这样分割字符串总是在结果list中以相同的索引找到
+        </p>
+        <p>
+            如果maxsplit不是0，则最多产生maxsplit个分割，剩余的string作为最后一个元素被返回
+        </p>
+    </li>
+    <li>
+        re.findall(pattern, string, flags=0)
+        <p>
+            返回string中所有不重叠的和pattern匹配的字符串（不是match object）。如果pattern中有一个或多个group，则返回一个tuple list，第一个tuple是所有匹配的子串，接下来的每个tuple包含相同位置的group针对每个子串捕获的group子串
+        </p>
+    </li>
+    <li>
+        re.finditer(pattern, string, flags=0)
+        <p>
+            返回一个迭代器，产生不重叠匹配的match object。这样就可以无需手动实现遍历匹配了
+        </p>
+    </li>
+    <li>
+        re.sub(pattern, repl, string, count=0, flags=0)
+        <p>
+            使用repl替换string中最左边的与pattern不重叠的匹配，返回结果字符串。如果pattern没有任何匹配，string原样返回。repl可以是一个string或者一个function
+        </p>
+        <p>
+            如果repl是string，任何\转义都被处理，\number被替换为对应group捕获。还可以使用\g&lt;&gt;语法引用group。\g&lt;name&gt;引用相应的命名group；\g&lt;2&gt;应用第2个group，与\2相同。但是\number无法表示\2后面跟着0的情形，因为\20表示引用第20个group，而\g&lt;2&gt0则可以表达。\g&lt;0&gt;替换整个匹配的子串
+        </p>
+        <p>
+            如果repl是function，它对于每一个non-overlapping匹配执行一次，以本次匹配的match object为参数，返回用于替换的字符串
+        </p>
+        <p>
+            pattern可以是正则表达式字符串，或者编译的regex对象
+        </p>
+        <p>
+            count指定最多执行多少次替换，如果忽略或为0，所有匹配都被替换。只有之前之后没有紧挨着的匹配时，空匹配才被替换
+        </p>
+    </li>
+    <li>
+        re.subn(pattern, repl, string, count=0, flags=0)
+        <p>
+            执行和sub相同的操作，但是还返回发生的替换的数量，结果为一个tuple(new_string, number_of_subs_made)
+        </p>
+    </li>
+    <li>
+        re.escape(pattern)
+        <p>
+            将pattern中除了ASCII字母，数字和'_'的字符进行转义。这对于你想匹配任何字符串字面量但其中可能包含正则表达式元字符的情况下非常有用。正则表达式没有字面量表示，它只能通过字符串创建，而字符串既可以是字面量，也可以是变量。对于变量不能直观地看见里面包含的是什么字符串
+        </p>
+    </li>
+</ul>
+
+<h2> 异常 </h2>
+
+当创建regex的字符串不是有效的正则表达式，或者其他编译、匹配时发生错误时，抛出异常re.error。字符串不匹配regex从来不是错误
+
+<h2>正则表达式对象</h2>
+
+<p>
+    re模块函数提供了与re对象方法相同的功能，re对象的方法只是对单次匹配search, match, fullmatch提供了可选的pos, endpos参数，可以用来遍历匹配。但是findall, finditer提供了非重叠的遍历匹配功能，re对象唯一的优势只在于性能，因为re模块函数每次都可能需要重新编译正则表达式。但是re模块内部有编译的re对象缓存，对于以相同字符串编译的re，直接从cache中就能得到，性能优势也不复存在了，因此基本上只需要使用re模块函数就可以了
+</p>
+
+<ul>
+    <li>
+        search(string[, pos[, endpos]])
+        <p>
+            参考re.search
+        </p>
+        <p>
+            pos, endpos给出string上的一个搜索区间，基本上等价于在string[pos:endpos]上搜索，只不过^仍然匹配字符串的起始位置，而不是pos的位置。pos可以用来在string上执行连续的search，前一个search给出后一个search开始的位置
+        </p>
+    </li>
+    <li>
+        match(string[,pos[,endpos]])
+        <p>
+            参考re.match
+        </p>
+        <p>
+            pos, endpos与search意义相同。如果regex不指定^，则match可以从pos处开始匹配；否则，即使指定pos，match仍然要从字符串起始处开始匹配
+        </p>
+        <p>
+            Python提供来两个正则表达式基本操作：match和search。match只能从string的起始处匹配，search可以从string的任何位置匹配。即使在MULTILINE模式，match也只从string的起始开始匹配，但是search的^则可以匹配每一行的开始。
+        </p>
+        <p>
+            search是和Perl兼容的行为，match略显怪异。因此除非确定必须从字符串起始处开始匹配，否则应该总是使用search
+        </p>
+    </li>
+    <li>
+        fullmatch(string[, pos[, endpos]])
+        <p>
+            参考re.fullmatch
+        </p>
+        <p>
+            pos, endpos参考search
+        </p>
+    </li>
+    <li>
+        split/findall/finditer/sub/subn 
+        <p>
+            参考re相应函数
+        </p>
+    </li>
+    <li>
+        flags
+        <p>创建正则表达式时指定的flags，无论是compile参数flag，还是regex内联flag</p>
+    </li>
+    <li>
+        groups
+        <p>
+            正则表达式中分组的数量，整数
+        </p>
+    </li>
+    <li>
+        groupIndex
+        <p>
+            正则表达式中命名分组到对应分组index的dict
+        </p>
+    </li>
+    <li>
+        pattern
+        <p>
+            编译RE对象时使用的字符串
+        </p>
+    </li>
+</ul>
+
+<h2>Match对象</h2>
+
+<p>
+    Match对象是Python re匹配的结果，无论是search还是match，返回的都是Match对象
+</p>
+
+<p>
+    主要访问分组信息（包括0分组）：捕获的子串，子串的开始和结束位置
+</p>
+
+<p>
+    Match对象的bool值总是true。对于不匹配，match/search返回None
+</p>
+
+Match对象属性和方法
+<ul>
+    <li>
+        expend(template)
+        <p>
+            使用匹配捕获的分组替换template中的反引用，就像sub的repl一样。普通的转义字符被正常处理，\number, \g&lt;number&gt;, \g&lt;name&gt;被替换为对应的group捕获
+        </p>
+    </li>
+    <li>
+        group([group1, ...]) __getitem__(g)
+        <p>
+            访问捕获的分组信息。单个参数返回对应的捕获子串。多个参数返回对应捕获子串的tuple。指定分组没有捕获则值为None。group 0是匹配整个子串。既可以访问位置group（传递index），也可以访问命名group（传递名字）
+        </p>
+    </li>
+    <li>
+        groups(default=None)
+        <p>
+            返回pattern中从1开始的所有分组的捕获tuple。default是那些没有捕获的group返回的默认值，默认为None
+        </p>
+    </li>
+    <li>
+        groupdict(default=None)
+        <p>
+            返回pattern中所有命名分组捕获的dict
+        </p>
+    </li>
+    <li>
+        start([group]) end([group]) span([group])
+        <p>
+            返回指定group匹配的start和end位置，默认为group 0即整体匹配。如果group没有匹配，则返回-1。span返回(start, end)
+        </p>
+        <p>
+            m.group(g) == m.string[m.start(g):m.end(g)]
+        </p>
+    </li>
+    <li>
+        pos, endpos
+        <p>
+            传递给regex对象match和search方法的pos和endpos
+        </p>
+    </li>
+    <li>
+        lastindex, lastgroup
+        <p>
+            最后一个成功匹配的group的索引和名字。分组是可以嵌套的，但是分组的位置是按照左括号(出现的顺序进行索引的。因此((a)(b))有3个group，group1是最外层的()，group2是包围a的()，group3是包围b的()
+        </p>
+    </li>
+    <li>
+        re
+        <p>
+            产生这个match object的re对象
+        </p>
+    </li>
+    <li>
+        string
+        <p>
+            传递给match和search的匹配目标字符串
+        </p>
+    </li>
+</ul>
+
+<h2>Tips</h2>
+<p>
+    match方法与search方法功能重合，但是match与search相比有一些显得怪异的特性，而且match的所有功能都能被search实现，search是和Perl正则表达式兼容的。match的设计是多余的，只是增加了思维负担。只使用search，忽略match
+</p>
+<p>
+    search的结果match object，主要信息是group。每个group包括（匹配的子串，子串的开始，子串的结束）。group(0)是正则表达式的整体（可以将正则表达式视为最外面有隐藏的括号作为分组0），group(1)开始是子分组
+</p>
+<p>
+    面向对象徒增学习成本。既有的方法论、函数库的设计不一定是最优的，作为高级的程序员要有能力区分不好的设计，将知识尽可能提炼精简
+</p>
+<p>
+    Python re的知识框架就是
+    <ul>
+        <li>search</li>
+        <li>findall/finditer</li>
+        <li>sub/subn</li>
+        <li>split</li>
+        <li>match object(group, content, start, end)</li>
+    </ul>
+</p>
+<p>
+    \w \d等本身就是字符集，不能被放在[]中。[]只能方单个字符和字符范围。
+</p>
+
+</body>
+
+</html>

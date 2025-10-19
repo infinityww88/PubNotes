@@ -1,0 +1,23 @@
+# Animator Controllers
+
+- Animancer does not require the use of AnimatorController assets
+- Animancer does support AnimatorController via the ControllerState class and its children
+- ControllerState
+  - a type of AnimancerState
+  - Clip property == nul
+  - Since they don't have a specific duration or time of their own, they don't actually have an OnEnd callback and will ignore any they are given
+  - Setup in Inspector using Controller Serializables or created manually in script
+  - access AnimatorController via ControllerState.Playable
+    - ControllerState.Playable.Play("Idle")
+    - ControllerState.Playable.CrossFade("Walk", 0.3f)
+    - ControllerState.Playable.SetFloat("MoveSpeed", 0.5f)
+    - ControllerState.Playable.SetTrigger("Attack")
+- Setup using ControllerState.Serializable
+  - serailizable.State.Playable
+  - state will only be created the first time the serializable is passed into the AnimancerComponent.Transition, so you will get a NullReferenceException if you attempt to use it before that
+- Setup by manual Creation
+  - Create a new ControllerState
+    - All constructors require a RuntimeAnimatorController
+  - Store a reference to that state in a field and/or set its Key to register it in the internal Dictionary
+  - Play that state either by passing it into the AnimancerComponent.Play or CrossFade method using state reference or its key
+- Parameter Controller States

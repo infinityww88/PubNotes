@@ -1,0 +1,110 @@
+The control ids you get from GUIUtility.GetControlID are "temporary" control ids which are valid and unique for the current call of OnGUI / OnSceneGUI / OnXXXGUI. The next time OnGUI is called GUIUtility.GetControlID will return the same ids in the same order.
+
+Those ids are used by Unity to identify a control beyond the current execution. Since Unity uses an immediate mode there usually isn't any data preserved after OnGUI has finished.
+
+Yes, control ids refer to controls like Buttons, Toggles, ... Those ids are mainly required for managing events between all the interactive controls or for storing generic information for a certani control.
+
+GUIUtility.hotControl like you already said is used to filter events. All the "controls" will read this variable and if it isn't "-1" or their own id they ignore the event. This filtering is usually done inside Event.current.GetTypeForControl or directly in the controls code.
+
+---
+
+Hot controls in the OnSceneGUI() are even the mouse clicks/drags, handles, etc. In OnInspectorGUI() the hot controls are Button, Tabs, Toggle, etc.
+
+Registering the unique control id (GUIUtility.hotControl = controlID;) in OnSceneGUI() prevents any default Unity scene interactions from happening, except the code which one writes bellow (GUIUtility.hotControl = controlID;)
+
+Event.current.GetTypeForControl(controlID) checks if the given EventType matches the controlID.
+
+And finally as written in the docs when the mouse button is up it sets the hotControl to 0 so once again other interactions can happen.
+
+HandleUtility.AddDefaultControl should be called during the Layout event to register a certain control id as the one that would get the events if no other control has taken it.
+
+---
+
+At a high level, making a custom Handle involves understanding Events, Graphics, and “control IDs.”
+
+Events will be “sent” to your function automatically via the static Event.current variable. Each event object has an EventType stored in the Event.type variable. The two most important event types you should familiarize yourself with are:
+
+EventType.Layout -- This is the first event sent during a repaint. You use it to determine sizes and positioning of GUI elements, or creation of control IDs, in order for future events to make sense. For example, how do you know if a mouse is inside a button if you don’t know where the button is?
+
+EventType.Repaint -- This is the last event sent during a repaint. By this point, all input events should have been handled, and you can draw the current state of your GUI based on all of the previous events. Handles.DrawLine only responds to this event, for example. There are many ways to draw to the screen during this event, but the Graphics API gives you the most control.
+
+All other event types happen between these two, most of which are related to mouse or keyboard interactions. You can accomplish a lot with just this information, but in order to deal with multiple interactive objects from a single Editor.OnInspectorGUI call, you need to use “control IDs.”
+
+Control IDs sound scary, but they’re really just numbers. Using them correctly is currently not well documented, so I’ll do my best to explain the process:
+
+Before every event, Unity clears its set of Control IDs.
+
+Each event handling function (Editor.OnInspectorGUI, Editor.OnSceneGUI, etc.) must request a Control ID for each interactible “control” in the GUI that can respond to mouse positions or keyboard focus. This is done using the GUIUtility.GetControlID function. Because this must be done for every event, the order of calls to GUIUtility.GetControlID must be the same during every frame. In other words, if you get a control ID during the Layout event, you MUST get that same ID for every other event until the next Layout event.
+
+During the EventType.Layout event inside Editor.OnInspectorGUI, you can use theHandleUtility.AddControl function to tell Unity where each Handle is relative to the current mouse position. This part is where the “magic” of mapping mouse focus, clicks, and drags happens.
+
+During every event, use the Event.GetTypeForControl function to determine the event type for a particular control, instead of globally. For example, a mouse drag on a single control might still look like a mouse move to all other controls.
+
+I promise it’s easier than it sounds. As proof, here’s code that demonstrates how to properly register a handle control within Editor.OnSceneGUI:
+
+ int controlID = GUIUtility.GetControlID(FocustType.Passive);
+ Vector3 screenPosition = Handles.matrix.MultiplyPoint(handlePosition);
+ 
+ int controlID = GUIUtility.GetControlID(FocustType.Passive);
+ Vector3 screenPosition = Handles.matrix.MultiplyPoint(handlePosition);
+ 
+ switch (Event.current.GetTypeForControl(controlID))
+ {
+     case EventType.Layout:
+         HandleUtility.AddControl(
+             controlID,
+             HandleUtility.DistanceToCircle(screenPosition, 1.0f)
+         );
+         break;
+ }
+
+ Not so bad, right? The worst part of that is the HandleUtility.DistanceToCircle call, which takes the screen position of the handle and a radius, and determines the distance from the current mouse position to the (circular) handle. With this, you have a Handle in the Scene View that can recognize mouse gestures, but it doesn’t do anything yet.
+
+To make it do something, we can add code for the appropriate mouse events to the switch statement:
+
+case EventType.MouseDown:
+     if (HandleUtility.nearestControl == controlID)
+     {
+         // Respond to a press on this handle. Drag starts automatically.
+         GUIUtility.hotControl = controlID;
+         Event.current.Use();
+     }
+     break;
+     
+ case EventType.MouseUp:
+     if (GUIUtility.hotControl == controlID)
+     {
+         // Respond to a release on this handle. Drag stops automatically.
+         GUIUtility.hotControl = 0;
+         Event.current.Use();
+     }
+     break;
+     
+ case EventType.MouseDrag:
+     if (GUIUtility.hotControl == controlID)
+     {
+         // Do whatever with mouse deltas here
+         GUI.changed = true;
+         Event.current.Use();
+     }
+     break;
+
+You’ll see a few new things in that snippet:
+
+HandleUtility.nearestControl [undocumented] -- This is set automatically by Unity to the control ID closest to the mouse. It knows this from our previous HandleUtility.AddControl call.
+
+GUIUtility.hotControl -- This is a shared static variable that we can read and write to determine which control ID is “hot,” or in use. When start and stop a drag operation, we manually set and clear GUIUtility.hotControl for two reasons:
+
+So we can determine if our handle’s control ID is hot during other events.
+
+So every other control can know that it is NOT hot, and should not respond to mouse events.
+
+Event.Use -- This function is called when you are “consuming” an event, which sets its type to “Used.” All other GUI code should then ignore this event.
+
+I mention that “drag starts / stops automatically” in the comments, which meansEventType.MouseDrag events will automatically be sent instead of EventType.MouseMovewhen a button is held down. You are still responsible for checking hot control IDs in order to know what handle is being dragged.
+
+I didn’t put any useful code in there because at this point, the world is your oyster. Need to draw something? Add a case EventType.Repaint: block and draw whatever you like. Want to repaint your handle every time the mouse moves? Add a case EventType.MouseMove: block and callSceneView.RepaintAll [undocumented], which will force the Scene View to… repaint all!
+
+------
+
+IMGUI的组件化是通过函数来实现的，一个函数就是一个control，通过函数组合构建复合组件，这个组件的所有绘制和所有的事件处理都在函数内部完成，使用这个组件的高层组件不需要对这个组件作任何绘制/事件上的处理，只需要简单的调用组件函数并使用返回值就可以了

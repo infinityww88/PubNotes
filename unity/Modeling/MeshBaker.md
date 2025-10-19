@@ -1,0 +1,124 @@
+# MeshBaker
+
+- Normal Use Case
+  - GameObject/CreateOther/MeshBaker/TextureBakerAndMeshBaker
+    - 在场景中创建一个包含TextureBaker和MeshBakerGrouper的gameobject，下面包含一个MeshBaker
+  - 将要合并的gameobjects拖拽到TextureBaker/ObjectsToBeCombined中，gameobjects出现在下面的列表中
+  - 点击Output/CreateEmptyAssetsForCombinedMaterial，生成一个合并的材质和TextureBakeResults（包含材质纹理rect的映射）
+  - 对于纯色的材质，开启MaterialBakeOptions的"Blend Non-Texture Properties"，可以将哪些只是用tint color的shader属性bake成为合并材质中的纯色纹理矩形
+    - 合并的gameobjects可能使用相同的shader的材质，材质的纹理属性为空，只使用颜色，不同的gameobject的材质使用不同的颜色（包括金属度/光泽度/自发光等等），如果不开启这个选项，就会没有合并生成的纹理，合并的材质对各个颜色属性只有单一的值。开启了这个选项之后，不同的颜色属性（颜色/金属度/光泽度/自发光等等）就会生成一小块颜色纹理，来呈现不同材质的颜色值
+  - 点击Bake Materials Into Combined Material，生成最终的合并材质
+    - 查看console report和生成的合并材质，调整选项重新bake，直到满意
+  - 选择MeshBaker子gameobject，点击Bake，生成最终的合并mesh
+  - 点击Game View的stat面板检查Batches，试验中一个简单的木桶模型drawcall从166降到8
+- MeshBaker烘焙许多mesh到一个mesh中，因此结果mesh的pivot需要手工设置，和任何一个原始mesh的pivot都没有关系
+- 默认情况下合并的mesh是以世界原点作为pivot的，还有其他两个选项
+  - 合并后mesh的center
+  - 手工设置的世界位置
+- Open Tools For Adding Ojects是用来方便添加要合并的原始mesh的工具窗口，使得你可以更方便的找到要合并的mesh并直接创建对应的TextureBaker和MeshBaker
+- 常用情形是手动向Objects To Be Combined面板拖拽原始gameobject
+- Multiple Combined Materials使得针对每一组使用相同material的原始mesh创建一个合并的submesh，最终的mesh有多个submesh和对应的material
+- 通常的使用模式是在场景中添加（或者通过自动工具直接生成）一个附加TextureBaker和MeshBakerGrouper组件的gameobject，下面添加一个或多个附加MeshBaker组件的gameobject
+  - TextureBaker用来合并Texture和Material，这是mesh bake的核心
+  - MeshBakerGrouper用来管理下面的一组MeshBaker
+  - TextureBaker的结果可以用来执行多个MeshBaker，只要其合并的mesh使用的都是TextureBaker bake的material，不仅仅是scene中的gameobject，还可以是prefab asset
+  - MeshBakerGrouper有一个Bake All Child MeshBakers按钮，可以让所有的子MeshBaker同时执行bake
+  - MeshBaker有和TextureBaker一样的选择gameobjects的窗口，可以用来选择要合并的gameobject，而且默认就是使用TextureBaker合并时使用的gameobjects
+  - MeshBaker的Texture Bake Result可以设置使用的TextureBakeResult，说明它是可以独立使用的，可以手工选择使用的TextureBakeResult
+  - MeshBaker的bake按钮用来合并mesh
+  - MeshBaker具有用来设置输出合并mesh目标的选项
+    - Bake Into Scene Object：直接在scene中创建一个使用合并mesh和material的gameobject，但是mesh只存在与内存中，不是asset，不能被引用和作为prefab使用
+    - Bake into prefab：在场景中创建一个empty gameobject，然后拖拽到project中成为prefab，bake的结果就会存放在这个prefab中（自动创建MeshFilter和MeshRenderer）
+    - Bake meshes in place
+- MeshBaker可以不与TextureBaker结合而单独使用。在场景中创建一个MeshBakergameobject，将要合并的gameobjects拖放到组件面板上，选择output目标，点击bake按钮即可。此时，没有texture合并的过程，因此也就没有combined material。而是针对每一个material，创建一个submesh，将所有使用这个material的gameobject的mesh合并到其中。CombinedMaterial目标是使所有使用不同material的gameobjects最终也能使用一个单一的material。所有使用相同material的mesh，都可以直接合并。合并的过程简单明了，就是将所有mesh的顶点、法向量、多边形数据放在一起就可以来。渲染关系是逐三角形渲染的，针对每个material设置一次渲染管线状态。
+- 可以在Runtime模式合并texture和mesh
+- Tools For Adding Objects提供了各种过滤方法来过滤场景中的物体，以方便将其添加到要合并的gameobjects列表中
+- MeshBaker工作核心是
+  - Bake Texture生成combined material
+  - 将使用相同material（不论是原始material还是combined material）的mesh合并成一个mesh
+    - 如果有多个material，就合并成多个submesh，每个submesh对应一个material
+- MeshBaker将多个gameobject的mesh合并成一个mesh，在scene中作为一个gameobject，这样可以使这些mesh一起送往GPU进行渲染。合并后的mesh作为一个整体是固定的。但是有时尽管mesh可以一起送往GPU渲染，但是在游戏逻辑中，每个mesh是一个独立的gameobject，拥有各自的脚本行为，不能合并成一个整体，mesh之间也是独立运动的。对于这种情况，Unity提供了Static/Dynamic Batching功能，使共享同一个material的多个gameobject在游戏引擎底层实现中一起被送往GPU，但是mesh在逻辑层仍然是独立的gameobject。Static/Dynamic Batching特性需要一组gameobjects使用相同的material。MeshBaker为这个目的提供了明确的支持：
+  - Legacy方法（本地烘焙mesh），创建合并材质，不合并使用这些材质的mesh，而是修改每一个mesh的uv生成对应的一个新mesh，这样这些mesh仍然是单独的gameobject，但是都使用相同的meterial，因此可以被Unity批量渲染
+    - GameObject/CreateOther/MeshBaker/TextureBaker & MeshBaker
+    - 创建合并材质资源
+    - 选择合并材质使用的shaders，MeshBaker将对这些shaders的每个texture属性创建一个texture atlas。**选择shader的目的是告诉Baker生成哪些纹理atlas**
+    - 添加要合并材质的objects，**可以是prefab**。如果使用场景中的objects，transform将会被烘焙进保存的mesh
+    - Bake Materials into a Combined Material
+    - 查看console的warning/errors，调整选项，重新烘焙直到满意
+    - 设置MeshBaker的output为bakeAssetsInPlace
+    - 选择生成的mesh输出的目录
+    - 点击MeshBaker的bake，此时将为objects to combine列表中的每个mesh创建一个新的mesh，**而不会合并它们**，只是修改每个mesh的uv，因为这些新mesh将使用新的材质
+    - 对每一个prefab
+      - 替换其mesh为对应的生成的新的uv修改过的mesh
+      - 替换其material为合并的material
+    - MeshBaker只是修改mesh和合并material，如果需要static batching，需要手工设定gameobject为batching static
+  - Batch Prefab Baker
+    - MeshBaker为准备prefab static batching提供了一个简化的工作流——Batch Prefab Baker
+    - GameObject/CreateOther/MeshBaker/BatchPrefabBaker
+      - 创建一个gameobject，附加了BatchPrefabBaker、TextureBaker、MeshBaker3个组件
+        - 所有的组件都可以独立使用，但是需要手工在组件相互之间设置应用，MeshBake CreateOther提供了常用的使用模式，使得我们可以不必手工设置它们
+      - TextureBaker组件用来合并纹理材质
+      - MeshBaker组件用来修改mesh
+      - BatchPrefabBaker用来调度TextureBaker和MeshBaker来实现工作流
+    - 将要合并的gameobject拖拽到TextureBaker组件面板中，设置选项，合并材质
+      - TextureBaker需要scene中的gameobjects，而不是prefabs，因此如果prefab在scene中没有gameobject实例，需要创建一个然后拖拽到TextureBaker中
+    - 在Prefab Rows中添加需要处理的prefab，此处只能是prefab，不能是场景中的物体
+      - 每个row元素包含两个字段
+        - Source Prefab：处理的target prefab
+        - Result Prefab：bake结果保存的prefab，这个字段可以使用“Create Empty Result Prefabs”功能自动添加，也可以手工设置
+      - 可以点击“Populate Prefab Rows From Texture Baker“自动将TextureBaker中使用gameobject对应prefab填充到Prfab Rows中，这样就不用手动添加了
+    - 点击Browse For Output Folder选择bake结果输出目录
+      - 目录最好不要是prefabs所在目录，因为Create Empty Result Prefabs会自动创建和prefabs同名的empty prefab，会覆盖原始prefab，除非手工设置Result Prefab
+    - 点击Create Empty Result Prefabs为Prefab Rows中的每个元素创建创建Result Prefab
+    - Batch Bake Prefabs
+      - Replace Prefab：复制原始prefab，将其mesh和material替换成合并后的版本，然后将复制的prefab替换result prefab，这种情况下，如果result prefab上有其他不同与source prefab的修改，都将丢失
+      - Only Replace Meshes & Materials：直接在result prefab中替换mesh和material为合并后的版本，result prefab上不同与source prefab的更新将会保留
+  - Replace Prefabs In Scene Window
+    - 当我们为prefab生成可以batching版本的prefab之后，通常会将场景中原来那些source prefab的实例，替换成result prefab的实例
+    - 这个窗口用来自动化此过程
+    - 窗口默认填充Prefab Rows中的prefab的映射
+      - source：原始的prefab
+      - target：合并的prefab
+    - 点击Replace Prefabs In Scene完成替换
+- Unity batching
+  - Dynamic batching
+    - 每次drawcall之前都需要合并mesh，有性能消耗
+    - 只能应用于小的模型，不超过900个顶点属性，不超过300个顶点，UModeler随便生成一个sphere就超过500个顶点
+    - Dynamic batching还有许多限制条件，只有满足条件才会进行批处理，但是dynamic batching不需要进行任何设置，完全有unity自动判断和处理，因此dynamic batching是否生效完全看命，所有就不用管它了
+  - Static batching
+    - 将静态不动的gameobject进行批处理
+    - 尽管gameoject不会改变transform，但是每个gameobject仍然可能有各自不同的脚本和行为，因此仍然需要在逻辑层作为单独的gameobject来对待，否则直接使用MeshBaker合并成一个mesh就可以来
+    - 需要在内部保持额外的内存来存储合并的mesh，会有额外的内存消耗，相当于将bathcing的mesh复制来一份数据
+  - Renderers only ever batch with other Renderers of the same type
+  - 半透明物体需要严格按照排序顺序显示来得到正确的结果，因此不能一起送入GPU，所以半透明物体很难进行批处理
+  - 可以调用Unity API Mesh.CombineMeshes在Runtime合并mesh
+- Multiple Materials
+  - Mesh可以认为是有一个或多个submesh组成的。submesh不过仅仅是一组使用相同material的三角形列表。默认情况下，mesh只有一个submesh；但是mesh可以有多个使用不同material的subesh
+  - 使用Single Combined Material模式时，即使合并的原始mesh具有多个submesh和对应的多个material时，bake结果仍然是一个mesh（由一个submesh构成的mesh）和唯一的combined material，因为只有一个combine material
+  - 所有的mesh都是由submesh组成的，一个submesh就是使用一个material的所有三角形列表，MeshBaker的工作单位是这些submesh，而不是mesh
+  - Multiple Material模式可以用来在bake结果中生成多个submesh而不是唯一的submesh
+  - Multiple Material只是Single Combined Material的多子组模式而已，每个子组和Single Combined Material的工作完全一样
+    - 创建多个combined material
+    - 将原始material映射到combined material中的一个
+    - 针对每个combined material创建一个submesh。所有使用这个combined material原material的原submesh烘焙到这个submesh中
+    - Texture Bake Result记录原material到combined material到映射，只不过这此是有多个combine material，而不是只有一个
+  - 选中Multiple Combined Material开启multiple material（multiple submesh）模式
+    - 此时，CombinedMeshMaterial字段消失，因为不再使用一个combined material，而是使用多个combined material，每个combined material是一个或多个原mateiral烘焙的结果
+  - 你可以手动设置原material到combined material到映射，但是可以点击Build Source To Combined Mapping From Objects To Be Combined来自动建立映射，此时会将每一个原material作为一个combined material，因此并没有真正到material bake到过程，combined material只是简单到复制原material而已（因为只有一个原material），所有使用这个原material的mesh bake到一起
+  - 最终bake的结果是使用多个combined material和对应的多个combined submesh
+  - 不预先combine texture直接使用MakeBaker烘焙模型就是MultipleMaterial的自动模式的应用特例，将每个原material作为一个combined material，所有使用相同material的submesh被烘焙到一起成为一个submesh
+- 缺少sub material的submesh将不会显示，在MeshRenderer的Materials列表添加合适的material
+- Consider Mesh UVs
+  - 又称为 fix Out-Of-Bounds UVs
+  - 有时候model会使用超过0-1区间到uv来产生tiling效果
+  - 选中Consider Mesh UVs将model到uv缩小到0-1之间，同时texture也以正确到tiling形式bake到combined texture中
+  - 显示堆叠tiling，一定是uv超过1，例如uv=2，则显示两个texture。因此将超过1的uv缩放到1时，为了使tiling保存正确结果，相应到texture也要以tiling形式缩小，将uv=2缩放到uv=1，则texture要变成原始texture到2x2形式
+  - 将最小能覆盖模型uv的tiling纹理缩放到combined texture上到一个矩形，然后将模型uv缩放到此空间中即可，此时tiling效果已经被bake到真正到纹理上
+  - 一些模型已经使用来图集纹理，并且只使用来其中到一小部分，将原始纹理图集整体拷贝到combined texture上将是浪费空间。Consider Mesh UVs特性将只拷贝原纹理图集中被模型使用到那块
+  - Consider Mesh UVs通常是烘焙使用tiling的模型纹理到唯一办法
+- UV tiling原理就是UV超过0-1区间，对这些超出0-1区间的uv循环取余到0-1，在效果上就相当于0-1区间纹理堆叠，直到覆盖整个UV。TextureBaker因为需要将很多纹理打包到一张纹理上，因此不可能在整个二维纹理上进行tiling，否则就会采样到其他属性的纹理，但是可以使被打包的纹理在1个维度上保持在0-1区间，例如水平方向，在这个维度上从0到1都是一个纹理的rect，只是垂直方向是被限定的（例如0.2-0.4），这样模型仍然可以在水平U坐标上进行tiling（U超过1），而combined texture上仍然有其他空白区间来烘焙其他纹理
+- 打包使用tiling的模型纹理，可以指定tiling的最大值，然后将能覆盖整个uv的tiling纹理（例如0-4）整体缩放到combined texture的一个rect上，然后只需要简单的缩放模型的uv坐标到这个矩形上就可以。此时，并没有真正的tiling，因为tiling已经被烘焙到combined texture
+- MeshBakerTexurePackerHorizontal/Vertial使得那些只是用水平/垂直tiling的模型纹理可以和其他纹理bake到一起，此时tiling纹理在水平/垂直方向上占据整个0-1控件，但是另外一个方向上只占用部分空间，用来bake其他的纹理。这是除了Consider Mesh UVs另一种bake tiling纹理的方法。这种方法最好不要和Consider Mesh UVs一起使用。
+  - 如果bake的所有原纹理不使用tiling或只使用一个方向上的tiling，就可以使用这个Packer来打包纹理
+- Resize Power of 2 Textures
+  - 缩放纹理，使得添加上padding之后纹理尺寸仍然是2的幂

@@ -1,0 +1,30 @@
+# Blender
+
+- 骨骼就像是一组Unity的empty gameobject，只用来记录joint的transform和父子关系，和Camera、Light、Mesh、Curve一样都是场景中的物体
+- Mesh需要绑定到指定的骨骼物体上才能被骨骼操纵，Shift同时选择Mesh和Armature，Ctrl-P创建Mesh和Armature的父子关系，后者为Parent，层级关系窗口中，Mesh也会移动到Armature之下
+- 将Mesh绑定到Armature上时，选择Automatic Weight模式，Blender默认对每个骨骼创建一个VertexGroup，并把各自附近的vertex赋予到所属的vertex group。一个vertex可以同时属于多个vertex group，并且具有不同的weight
+- 只有绑定到Armature上的Mesh才有Weight Paint模式，Armature只有Object/Edit/Pose模式
+- 在Weight Paint模式下可以针对每个骨骼绘制其所控制的vertex及weight
+  - Vertex Group中选择当前绘制的骨骼
+  - 红色表示weight=1，蓝色表示weight=0，橙色为75%，黄色为50%，绿色为25%
+  - vertex可以同时存在多个vertex group，并且在每个vertex group中具有不同的weight，尤其是骨骼连接处的vertex
+- Blender Animation就像UMotion一样默认直接是可编辑的，需要手动显式地记录动画属性到关键帧，但是如果有属性修改没有记录时移动时间线，Blender直接忽略这些属性，而是重置到动画记录的状态（即使是通过插值计算出来的）
+- Blender还没有发现类似Unity animation clip之类的东西，似乎所有动作都记录在一个文件里，通过帧数指定哪个区间的动画是一个片段。尽管可以导入到Unity中，在那里通过Import Inspector切分动画片段，但是Blender应该有类似的机制，标记一下TODO
+- Blender像是基于状态的工作模式。每种工作模式都有自己的状态，当从一个工作模式切换到另一个模式时，当前工作模式的状态会保持下来，下次重新进入这个工作模式时可以直接从上次的状态继续。所以Blender的每种工作模式都是进入之后直接开始工作即可，但是工作内容都是手动保存的，而不是自动保存。
+- 可以这样认为，Blender是基于数据编辑模型的。每个模型拥有大量不同种类的数据，不同数据记录模型的不同方面。例如顶点数据、材质数据、动画数据、骨骼数据等等。Blender拥有不同的工作模式，每种工作模式用来操作特定的模型数据。例如mesh编辑模式操作顶点数据，shader模式操作材质数据，骨骼编辑模式操作骨骼数据，骨骼pose模式操作骨骼和mesh数据。不同的模式可能需要操作同一组模型数据，例如pose模式操作骨骼mesh数据，而mesh数据在object模式和动画模式都是需要的，这样pose模式编辑的骨骼mesh数据在object和animate模式都是可见的。而骨骼edit模式只是记录骨骼结构的原始数据，因此在此模式下，pose模式对骨骼的修改是不可见的。Blender可以同时打开多个窗口，每个窗口处于特定的工作模式下，这样就可以同时在不同的工作模式下编辑模型数据，如果由数据在不同的工作模式下是共享的，那么在一个窗口修改的数据在另一个窗口直接可见
+- Blender IK Setup
+  - 和UMotion一样，每个IK约束有一个IK Handle和一个Pole Target
+  - IK在Pose Mode下setup
+  - 对每个要设置IK的骨骼先从末端骨骼Extrude一个IK handle，从中间骨骼Extrude一个Pole Target
+  - 清楚IK handle和Pole target的parent节点，使它们成为自由骨骼
+  - 在Pose Mode下
+    - 选中IK要约束的末端骨骼，在Add Bone Constraint中添加IK约束
+    - Target选择IK handle所在的骨骼对象，选择Armature
+    - Bone是UMotion的IK Handle，选择对应的bone
+    - Pole Target不是UMotion的IK Handle，而是pole所在的骨骼对象，仍然选择Armature，因为pole在这个骨骼对象下面
+    - Bone是Umotion的Pole Target，选择pole骨骼
+  - Chain Length选择骨骼控制长度，从末端骨骼=1开始
+  - 注意调整Pole Angle
+  - Armature是骨骼对象，保存所有骨骼相关数据，不是像Unity那样的GameObject层次的root节点，那些clear parent的骨骼仍然在Armature下面。Armature下面的Armature.XXX才是骨骼节点
+- Blender IK setup时，IK骨骼链上最好由一定程度的预设弯曲。如果没有预设弯曲，当IK开始bend骨骼链时，只有root骨骼会相对于parent骨骼弯曲，而其他下游骨骼直接都没有相对弯曲。可能是Blender IK先预计算骨骼链上每两个骨骼之间的相对弯曲程度，然后作为权重，当Blender需要Bend骨骼链时，按照权重在将弯曲程度分配在每个骨骼上，这与试验的结果是一致的。但是UMotion中似乎不是这样实现的，UMotion好像总是尽可能弯曲靠近末端的骨骼，并没有将弯曲程度在骨骼链上平均或按预先弯曲的权重分配。除此以外，当弯曲程度越来愈大时，UMotion的骨骼链非常容易产生突变，即从刚才的计算弯曲状态一下变成另一种弯曲状态，尽管最终目标仍然实现了，但是在动画中会产生非常明显的跳变，而Blender则很少出现这种情况，除非按照原来的弯曲状态已经无法达到目标了，Blender才会切换到另一种弯曲状态，否则下一个弯曲状态总是从上一个弯曲状态计算而来。或许可以这样认为，UMotion每次都是从最初状态计算如何达到目标，而Blender总是从当前状态计算如何达到目标，因此Blender总是能产生平滑的效果。总而言之，Blender能产生比UMotion更好的IK效果。
+- IK是个非常复杂和精巧的系统，它的各种约束和限制，说明它基本是就是为生物骨骼动画设计的，因此IK用在生物骨骼动画中才是它原本预期的应用场景，尽管它也可以被用在机器人手臂等类似场景。

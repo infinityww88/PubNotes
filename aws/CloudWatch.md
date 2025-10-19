@@ -1,0 +1,168 @@
+# CloudWatch
+
+CloudWatch实时监控你的AWS资源以及你运行在AWS上的应用程序。你可以使用CloudWatch收集和跟踪metrics（指标），metrics是你用来衡量你的资源和应用的变量
+
+CloudWatch首页自动显示每个AWS service的metrics。你还可以创建自定义的监控面板dashboards来显示你自定义应用的metrics，你选择的自定义metrics集合
+
+你可以创建alarms，监视metrics，在超出阈值时发送通知或者自动修改你监控的资源。例如你可以监控EC2的CPU利用率和磁盘读写，然后使用这些数据确定你是否应该启动更多的实例来处理增加的负载。你还可以使用这个数据来停止较少使用的实例来节约花费
+
+使用CloudWatch，你可以获得资源利用率，应用程序性能，和操作健康状态的系统范围内的可视化
+
+## 相关资源
+
+以下资源可与CloudWatch集成使用
+
+- SNS
+
+当到达一个alarm阈值时，可使用SNS发送一条通知消息
+
+- EC2 auto scaling
+
+允许你自动启动和终止EC2实例，基于用户定义的policies、健康状态检查、调度。你可以使用一个CloudWatch alarm与EC2 Auto Scaling来按需伸缩EC2实例
+
+- CloudTrail
+
+CloudTrail允许你监控对CloudWatch的调用，包括AWS Management Console，AWS CLI，以及其他services。当CloudTrail日志打开时，CloudWatch把日志写入到配置CloudWatch时指定的S3
+
+- AWS Identity and Access Management（IAM）
+
+IAM是一个service，可以帮助你安全控制对AWS资源的访问。使用IAM来控制谁可以使用AWS资源（认证），它们可以以哪些方式访问哪些资源（授权）
+
+## CloudWatch工作原理
+
+CloudWatch基本上是一个metrics注册中心。一个AWS service，就像EC2，将metrics放入repository，你可以基于这些metrics获取统计
+
+你可以使用metrics计算统计，然后在CloudWatch console图形化显示统计数据。一些AWS已经与CloudWatch集成，并自动发送metrics到CloudWatch
+
+你可以在满足特定条件时，配置alarm操作为stop，start，或者terminate一个EC2实例。更进一步，你可以创建alarm，发起EC2 Auto Scaling和SNS
+
+AWS Cloud计算资源被安置在高度可用的数据中心。要进一步提高可伸缩性和可依赖性，每个数据中心设施被放置在特定的地理区域，即Region。每个Region被设计为与其他Regions完全隔离，来达到最大可能的错误隔离和稳定性。Metrics在Regions中被单独地存储，但是你可以使用CloudWatch的跨region功能来从不同的regions中聚合统计信息
+
+## 概念
+
+- Namespaces
+
+Namespace是一个CloudWatch metrics容器。不同namespace中的metrics彼此之间是隔离的，因此不同应用的metrics不会被错误地放在相同的统计中
+
+没有默认的namespace。你必须为你发布到CloudWatch的每一个数据点指定一个namespace。你可以在创建一个metric时指定一个namespace。AWS namespace典型地使用AWS/service命名约定，例如AWS/EC2
+
+- Metrics
+
+Metrics是CloudWatch的基础概念。一个metrics代表一个发布到CloudWatch上的基于时间顺序的数据点集合，x轴表示时间，y轴表示数据点数值。将metric想象成对一个变量的实时监控，数据点代表变量随时间流逝的变量值。数据点可以来自任何你收集数据的应用程序
+
+AWS service发送metrics到Cloud Watch，你可以发送自定义的metrics到CloudWatch。你可以以任何顺序添加数据点，按照任何你选择的速度。你可以按时间顺序的有序集合的方式获取这些数据点的统计
+
+Metrics只存在于它们被创建的Region。Metrics不能被删除，但是它们可以自动过期，如果超过15个月还没有新的数据发不到它上面。超过15个月的数据点以此为滚动基准过期，当新的数据点到来时，超过15个月当数据被丢弃
+
+Metrics通过name，namespace，零个或多个维度唯一定义。每一个数据点有一个时间戳，已经可选的衡量单位（数据点的数值表示什么意思）。你可以从CloudWatch获取任何metric的统计
+
+- Timestamps
+
+每个metric数据点必须关联一个时间戳。时间戳最多可以是两周前或者两小时之后。如果你不提供时间戳，CloudWatch将基于收到数据点的时间自动创建一个
+
+时间戳是dateTime对象，2016-10-31T23:59:59Z。尽管不是必须的，但是建议使用UTC时间。从CloudWatch上获取的统计时间戳都是UTC时间
+
+CloudWatch alarm基于当前的UTC时间检查metrics。发送到CloudWatch的带有不同于当前UTC时间的自定义metrics，可能引发alarms以显示Insufficient Date状态或者导致延迟的alarms
+
+- Metrics Retention（Metrics留存）
+
+CloudWatch以以下方式保持metric数据
+
+1. 3个小时内可以查看小于60s时间段的数据点
+
+    最高分辨率，3个小时之内可以查看每一个数据点
+
+2. 15天内可以查看分钟级别数据点
+
+    超过3个小时后，每分钟的数据点加权合并成一个，3h～15d内可以查看分钟级别数据点
+
+3. 63天内可以查看5分钟级别的数据点
+
+    超过15天之后，每5分钟数据点合并成一个，15d～63d内可以查看5分钟级别数据点
+
+4. 455天内可以查看小时级别数据点
+
+    超过63d后，每小时数据点合并成一个，63d～455d内可以查看小时级别数据点
+
+- Dimensions
+
+一个dimension是一个name/value对，metric的一部分。你可以赋予metric最多10个dimensions
+
+每个metric具有描述它的具体角色，你可以把dimensions想象成这些角色的种类。Dimensions帮助你设计你的统计计划的结构。因为dimensions是一个metric唯一标识的一部分，无论什么时候加入一个唯一的name/value到metrics，你都创建了metric的一个新的变体
+
+发送数据到CloudWatch的AWS service为每一个metric附加dimensions。你可以使用dimensions来过滤CloudWatch返回的结果。例如，如果你搜索AWS/EC2 namespace下的metrics，但是不指定任何dimensions，CloudWatch聚合指定metric的所有数据来创建你请求的统计信息。CloudWatch不会对你自定义的metrics跨dimension聚合数据
+
+Metrics指定一个name属性，每个数据点带有这个name属性对应的value，因此统计时，可以只统计name等于指定value的数据点
+
+- Dimension Combinations
+
+CloudWatch将每一个独特唯一的dimensions的组合(name1, name2)视为一个单独的metric，即使metrics具有相同的metric名字。你只可以使用你特意发布的dimensions的组合获取统计。当你获取统计时，为namespace，metric指定相同的名字，以及创建metrics时使用的dimension参数。你还可以指定用于聚合的CloudWatch开始和结束时间
+
+发布(ns1, m1, d1=v1, d2=v2), (ns1, m1, d1=v3, d2=v4)，则只能获取这两个metric变体的统计，不能获取(ns1, m1, d1=v3, d2=v2)，(ns1, m1, d1=v1, d2=v4)的统计。CloudWatch将每个metric处理为一个单独的metric，metric名字只是一组变体的sub namespace
+
+- Statistics
+
+统计是在一段指定的时间内数据聚合的结果。CloudWatch提供了基于AWS service和你自定义数据的metric数据点的统计。聚合使用namespace，metric name，dimesions（variant），以及数据点的测量单位，在指定的时间段内创建
+
+    Mininum
+    Maxinum
+    Sum
+    Average：Sum/SampleCount
+    SampleCount：用于计算统计的数据点数量
+    pNN.NN：指定百分数的数值。你可以指定任何百分数，使用最多两个十进制数，p95.45。百分数统计对于包含负值的metric不可用
+
+- Unit
+
+每一个统计有一个测量单位。例如Bytes，Seconds，Count，和Percent
+
+创建自定义metric时，可以指定一个unit。如果不指定unit，CloudWatch使用None作为Unit
+
+Unit帮助提供数据的概念上的意义。尽管CloudWatch不会内部地为一个unit附加含义，其他应用可以基于Unit延伸语义信息
+
+指定测量单位的Metric数据点被单独聚合，即每个不同的unit单位都是一个独立的metric。当你不指定unit获取统计时，CloudWatch将所有相同unit的所有数据点聚合在一起。如果你有两个别的具有不同unit的metrics，两个独立的数据流被返回，每个对应一个unit
+
+- Peroids（聚合周期）
+
+统计信息总是要基于某个周期进行聚合的，无论这个周期多么小。Timestamp定义一个时间瞬间，Peroid定义一个时间周期。即使以秒统计，也是1秒（1000毫秒）的时间跨度。因此获取统计信息时总是要指定Peroid，即使是默认Peroid（60s）
+
+Peroid是关联在一个特定CloudWatch统计上的时间长度。每个统计代表一个基于特定一段时间收集的metric数据的聚合。统计将聚合start time和end time之间每Peroid时间段内的数据点。Peroid定义为seconds数，有效值包括1，5，10，30，或者任何60的倍数。例如查看6分钟内的统计，则使用360作为peroid的value。你可以通过变化peroid的长度来调整数据是如何聚合的。peroid可以小到second或者大到一天。默认是60 secs。
+
+只有以1 second定义的存储解析度的自定义metric才支持分钟以下级别的聚合周期peroids。尽管设置小于60s周期的选项在console上总是可用的，你应该选择一个与metric存储对齐的周期（整数倍）
+
+当你获取统计时，指定一个周期peroid，起始时间start time，结束时间end time。这些参数确定统计相关的总体长度。默认的start time和end time为最近一个小时。start time和end time决定CloudWatch返回多少个peroid。例如，使用peroid，start time，end time的默认值获取统计时，将返回前一个小时每分钟的聚合统计集合（即每分钟的count，sum，average，min，max，etc.）。如果你想要统计聚合10分钟时间段，指定peroid为600
+
+当统计在一段时间上被聚合时，它们被标记为peroid的开始时间戳。例如7:00pm～8:00pm内聚合的数据被标记为7:00pm。此外，7:00pm～8:00pm聚合的数据在7:00pm即可见，但是聚合数据的值在这个周期内将随着CloudWatch收集更多的样本而变化
+
+Peroids对于CloudWatch alarms也非常重要。当你创建一个alarm来监控一个指定的metric时，你在请求CloudWatch去比较这个metric与你指定的阈值。你对CloudWatch如何比较拥有广泛的控制。你不仅可以指定进行比较的周期，还可以指定使用多少个求值周期来得出结论（进而发出alarm）。指定比较的peroid和peroid的数量，CoudWatch将会监控连续的指定数量的peroid，如果这段时间内的聚合统计达到阈值将触发alarm。例如，如果你指定3个求值周期，CloudWatch将比较三个数据点的window。CloudWatch只会在最旧的数据点到达于阈值而其他数据点到达或者未到时通知你。
+
+- Aggregation
+
+当获取统计时，CloudWatch将基于你指定的peroid聚合分析。你可以在相同或相似时间戳发布任何数量的数据点。CloudWatch根据指定的peroid聚合它们。CloudWatch不会跨Regions聚合
+
+你可以为一个metric发布共享相同时间戳以及相同namespace和dimension的数据点。CloudWatch返回这些数据点的聚合统计。你也可以以任何时间戳想相同或不同metric发布多个数据点
+
+在相同或相近的时间戳发布任意多个数据点没有任何问题，它们只会增加这个时间段样本的数量，进而提高聚合数据的准确程度
+
+CloudWatch不区分一个metric的发布源。如果你从不同的发布源以相同的namespace以及dimensions发布一个metric，CloudWatch将其视为一个metric。这可以用于分布式，可伸缩的系统。
+
+- Percentiles(百分位数)
+
+统计学中把数据逻辑上分为100等份（每份具有相同个数的数据样本，每份具有1%的观测数据），每一分点处的数据。第x百分数Px的数值，将全部数据分割为两部分：想x%的观测数据比它小，(1 - x%)的观测数据比它大。这种100等份划分只是逻辑上用于理解的方式，实际上会为任何一个百分位数确定分割点的数据，例如95.45%，即P95.45，而不仅是整数的百分位数。CloudWatch最多可以指定2位小数的百分位数，因此可以理解为最多将全部观测数据分割为10000等份。中位数就是p50，即50%样本比这个数据小，50%样本比这个数据大。中位数描述的是数据分布的中心位置的数据，其他百分位数同意表示数据分布不同位置的数据。当数据很多时，百分位数的数值相当稳定，即使两端的百分位数也比较稳定。但是当观测数据不够多时，两端的百分位数易受个别极端数据影响。
+
+使用Percentiles聚合函数，对于start time到end time时间段内，每个时间点处监控的数值是到达当前时间点时全部观测数据样本的百分位数。即Percentiles观测的是连续的百分位数，对于每个时间点，独立计算到当前时间点全部观测样本的metric定义的百分位数的数值
+
+Percentiles帮助你更好地理解metric的数据分布。它通常用于孤立出异常数据。在一个典型的分布中，95%的数据落于平均数的两个标准差内，97%的数据落于平均值的3个标准差内。任何落在3个标准差之外的数据通常被认为是异常的，因为它们于平均值相差太大。利用百分位数确定当前P95的数值，然后找出所有大于它的样本实例，就可以分析这些异常情形了
+
+一些CloudWatch metrics支持百分位数作为统计。对于这些metrics，你可以像使用Average，Minimum，Maximum，Sum等统计一样使用百分位数。百分位数统计可以用于发布原始的，未总结归纳的数据的自定义metric。当metric包含负值时不能使用百分位数
+
+CloudWatch需要原始数据点计算百分位数，而不是统计过的数据点。
+
+- Alarms
+
+你可以使用一个alarm为你自动发起一个操作。Alarm在一段指定的时间周期（连续的几个peroid窗口）监控一个metric，并基于metric的随时间流逝的value相对于一个阈值，执行一个或多个指定的操作。操作是一个发送到SNS的消息，或者一个AutoScalingPolicy。你也可以添加alarm到dashboards上。
+
+Alarm只会为持久的状态改变触发操作。CloudWatch不会简单地因为它们处于特定的状态就触发操作。即Alarm只会边沿触发，而不会水平触发（否则会在一段时间内连续地触发操作）。状态必须改变而且被维持指定数量的peroids，才会触发alarm
+
+当创建一个alarm时，选择一个大于等于metric监控频率周期的周期（最好是整数倍），当状态改变并维持这段时间之后，alarm才会触发
+
+如果你设置一个到高分辨率metric的alarm，你可以指定一个10s或者30s周期的高分辨率的alarm。或者你可以以60秒的整数倍设置一个常规的alarm。高分辨率的alarm需要更多的开销。

@@ -1,0 +1,61 @@
+样条曲线：带CurvySpline组件的gameobject，下面挂载带CurvySplineSegment组件的child gameobject（控制点）
+一下样条曲线需要更多的控制点，一些曲线需要额外的参数，来生成最后的曲线
+segment=controll point=CurvySplineSegment，但是controll point不一定是segment，例如最后一个控制点／额外控制点不引用任何segment。一个segment被它开头的那个控制点引用
+
+单位：F／TF，localDistance／distance
+F表示fregment，表示一个segment上的points的插值参数，0在segment的起点，1在segment的终点
+TF表示Total Fregment，表示整个spline上的points的插值参数，0在整个曲线的起点，1在整个曲线的终点
+Distance，用世界单位（world unit）而不是插值参数（0-1）来计算曲线上的一个点，Curvy能够自动在插值参数F／TF和世界单位（曲线长度）之间进行转换。localDistance对应F，是在segment上的世界距离；distance对应TF，是在整个Spline上的世界距离
+
+所有单位都用在曲线的可见部分上，不在曲线上的控制点不能够通过这些单位得到
+
+不可以在一个spline使用多种曲线类型（linear／tcb／catmull-rom／bezier），但是可以多个不同类型的曲线连接在一起
+
+metadata存储自定义数据
+
+CurvySpline
+Closed最后一个控制点和第一个控制点构成最后一个segment
+Restrict To 2D：SceneView中限制到2D平面编辑，只有两个handler可用
+Auto End Tangents（只应用于开放open的Catmull/TCB样条）：
+第一个和最后一个控制点根据样条方向自动计算（所有CP都用在曲线上，第一个cp前／最后一个cp后自动计算一个隐式的控制点，否则，第一cp／最后一个cp不构成曲线，只作为控制点）
+Orientation：曲线上的每个点（cp以及任意插值点）不仅具有切向量方向，还具有up向量（向上向量），应用在controller／generator中。controller在运动物体时，使物体的forward向量与当前曲线点tangent向量重合，up向量与曲线当前点up向量重合；在generator中生成mesh的up向量和曲线的up向量重合。简单的说，就是曲线上每个点都具有rotation（x／y／z向量），z向量是tangent向量，y向量是orientation向量，x向量根据yz向量叉乘积计算出来，方向按unity默认的左手定则。Orientation选项确定曲线每个点的y向量如何计算：
+none：忽略up向量，每个点只有tangent向量
+static：每个点的up向量根据所在segment两端的cp的rotation的up向量插值计算得出
+dynamic：根据orientation anchor选项计算各种orientation
+每个控制点都可以标记为orientation anchor，当作为anchor时，swirl选项控制其后面 segment上每个点包括cp如何动态计算生成orientation。none-不计算，等同于static，只使用cp的rotation插值得到每个点的orientation；segment-其后面的所有segment都动态计算；anchor group-到下一个anchor之间所有point动态计算
+Turns：每次动态计算的螺旋数量，360度是一个螺旋。以segment计算螺旋数／以anchor group计算螺旋数
+Back Orientation：在dynamic orientation中，所有被动态计算的cp的rotation被自动设置到计算的值（如果不设置，cp的rotation与动态计算曲线上cp的rotation不一致，应用在曲线的controller／generator将使用动态计算的rotation，但是cp的transform的rotation和计算的值不一致，可能导致错误的视觉效果，因此设置back选项，cp的transform的值总是被自动设置到动态计算的值）
+Back orientation to transform：不自动设置cp的rotation到transform中，而是在editor中手动设置一次，此后如果动态计算发生变化，transform的rotation和计算的rotation仍会不一致
+
+Bezier Option：
+auto handles：自动计算每个cp的两个handles，产生平滑的曲线／否则，editor中显示每个cp的两个handles，手工编辑
+distance：自动计算handles时，设置handler的长度为cp所在segment长度的百分比
+handle in：进入handle的位置，相对于cp的局部坐标系，单独控制进入handler
+handle out：离开handle的位置，相对于cp的局部坐标系，单独控制离开handler
+
+connection：将一条曲线或多条曲线的多个cp焊接在一起，相当于这个cp被一条或多条曲线复用，当两条曲线的端点cp connection在一起时，有许多选项控制在连接处平滑曲线
+在editor／hierarchy中选择多个要connection的cp，点击scene view中的connect按钮
+
+曲线可以在代码中动态编辑，curvy全部功能（controllers／editor API）全部使用curvy api实现，没有任何秘密工具。
+在代码中动态编辑曲线，默认在update时才会更新曲线数据，如果想立刻获得最新的曲线数据，调用Refresh
+CurvySpline.TFToDistance：TF value转换世界单位距离
+CurvySpline.DistanceToTF：世界单位距离转换TF
+
+Interpolate：给出指定TF／F处的曲线point位置
+GetTangent：给出指定TF／F处point的切向量
+GetOrientationUpFast：给出指定TF／F处point的up向量
+GetOrientationFast：rotation（eular angle）
+
+Add／Delete／Clear：添加／删除／清除全部控制点
+
+Move：在曲线上给出tf，direction（forward or backward），移动距离（百分比 or 时间单位距离），给出移动后的position和对应的tf
+
+Curvy支持为CP提供自定义元数据，这些数据可以像orientation一样在曲线上每个位置上进行插值
+
+Controller在曲线上移动物体时，经过connection可以控制接下来选择哪条曲线，在不同时刻都有回调事件通知
+
+曲线可以从文件中导入或到处到文件
+
+generator可以使用一个路径曲线，一个横截面曲线，动态生成mesh（轨道，管子）
+
+贝塞尔曲线可以实现已知两个控制点和控制点的切线（物体在两个点处的速度），生成一条平滑曲线，只要使起始点的离开handler和终点的进入handler和两个点处的速度匹配即可，可以用来使用网络游戏平滑运动处理

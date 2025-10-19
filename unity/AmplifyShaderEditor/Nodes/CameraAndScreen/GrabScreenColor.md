@@ -1,0 +1,13 @@
+# Grab Screen Color Node
+
+使用Grab Pass。这个特殊的pass在物体将要被渲染之前抓取屏幕的内容到一个纹理中，其可以使用屏幕空间uv坐标获取采样
+
+这个节点既可以生成它的内部uv坐标，也可以使用自定义uv坐标（如果在UV input port指定uv）。通过一起使用GrabScreenPosition和这个节点，可以非常容易和直观地达成诸如折射之类的效果
+
+当没有UV input port输入时，内部生成的uv坐标就像使用一个Grab Screen Position节点连接到它一样
+
+可以通过激活CustomGrabPass toggle来使用一个自定义纹理名字，在Name参数中指定要使用的名字。Grab Pass的行为在指定自定义名字时将发生改变，当前屏幕内容将只在每一帧第一个使用这个纹理名字的物体被渲染时被抓取一次，之后的当前frame所有对这个名字的纹理引用都使用这次抓取的内容。如果没有使用自定义纹理名字，则当前纹理内容会为每个使用它的物体抓取一次
+
+**Grab Passes只对Forward rendering path起作用**
+
+Forward rendering path每个光源执行一次渲染

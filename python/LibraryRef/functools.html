@@ -1,0 +1,31 @@
+<html>
+    <head>
+        <title>functools</title>
+    </head>
+    <body>
+        <h2 style="text-align: center;">functools</h2>
+        <h3>
+            描述
+        </h3>
+        <p>
+            functools模块提供来高阶函数工具。函数操作和返回其他函数。通用地说，任何callable对象都被当作函数。
+        </p>
+
+        <h4>
+            partial(func, *args, **keywords)
+        </h4>
+        <p>
+            返回一个partial object，当其被调用时，就像使用args和keywords调用func一样。如果提供了更多的位置参数，它们被追加到args中。如果提供了更多的关键字参数，它们被扩展和覆盖到keywords中
+        </p>
+
+        <h4>
+            partialmethod(func, *args, **keywords)
+        </h4>
+        <p>
+            返回一个新的partialmethod描述符，其行为就像partial除了它被设计用于方法定义而不是直接调用。
+        </p>
+        <p>
+            func必须是一个descriptor或者一个callable（它们都是像函数一样可以被调用）
+        </p>
+    </body>
+</html>

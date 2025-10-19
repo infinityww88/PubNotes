@@ -1,0 +1,116 @@
+# UMotion
+
+- UMotion以Project为单位管理为一个gameobject创建的动画片段, 提供了一个non-destructive工作流，你可以循环往复地创建新的或者编辑已存在的片段，把它们导出到指定的目录
+- 每个UMotion Project对应一个GameObject，为每个要animate的GameObject创建一个Project，Animated Properties列表中对应的是这个物体之下所有可animate的属性，不同物体的动画属性是不同的，不可能在一个Project中编辑
+- 与Unity内置动画编辑器不同，UMotion动画片段默认就是处于编辑状态的，而Unity则需要开启enable模式，才记录动画
+- 创建一个新的动画片段之后，在Pose窗口的最开始设置要编辑动画的gameobject
+- 每当移动绿色的编辑时间线时，如果当前gameobject有修改但是没记录到当前帧的属性时，UMotion会弹出窗口提示，还没有在当前时间线保持修改的属性
+  - Cancel，然后将修改记录之后再移动时间线
+  - 放弃记录但是保持修改，这样可以将时间线移动到其他地方，并在那里将修改作为keyframe保存。只要有修改不保存，每次移动时间线都会提示
+  - 放弃修改，将gameobject恢复至当前frame记录的状态
+- 在UMotion中选择要animate的GameObject
+  - 在Scene/Hierarchy中选择对应的GameObject
+  - 在UMotion的Animated Properties中选择对应对应的属性channel
+  - 无论哪种方法，在另一方窗口也会自动选中对应的GameObject
+  - 通过Gear Context Menu/Select In Scene或者Alt+LMB可以在Scene/Hierarchy中focus对应的GameObject
+- Clip Editor以线性列表的方式显示当前gameobject及其子gameobject上所有可animate的属性channel，而不是像Unity Animation窗口那样的Hierarchy
+- UMotion将Animated Properties排列为线性列表可以更方便的找到需要的属性，而在Unity Animation中，动画列表模式是空的，需要手工地在树形的动画列表中导航才能找到并添加其作为animated property，比较麻烦。一个比较方便的办法是直接在场景中操纵相应GameObject的相应属性，Unity会自动将其添加到属性列表，但是这只是为了添加属性而不一定修改属性值，因此需要手工将这些属性重置为之前的值，对于复杂的属性而言非常繁琐（通过copy/paste component value），可是又不能用Ctrl-Z undo，因为那样会将属性撤销。而在UMotion中，所有的Animated Properties都列出来，如果需要添加属性而又不修改属性值，只需要在对应的属性的特定时间处Add Key即可
+- Unity只有在Record模式下才能编辑动画，而且自动对GameObject属性的修改都记录到当前frame中，而UMotion没有Record模式，直接就是编辑模式，但是可以修改GameObject而不记录，UMotion记录关键帧时显式的，只有手工Add Key才会将修改属性记录到keyframe中，而Unity是自动添加。
+- Umotion在当前时间线下可以对game object作任何修改而不自动记录到当前frame中，但是当移动时间线时，如果当前game object修改没有被记录到frame中，UMotion会弹出提示框提示你如何处理这些没有被记录的属性修改：
+  - 保持修改，但不记录
+  - 放弃
+  - 取消移动时间线
+- Unity不能通过在Record和Normal mode之间切换来模拟UMotion的手动添加属性功能，因为每次从Normal切换到Record mode都会将gameobject重置到动画记录状态
+- 就像Vim和Emacs，Emacs模式就是input模式，Vim只有在需要输入时才进入input模式
+- 属性列表中Gear Menu的select all keys是选择这个属性的所有关键帧，就像用鼠标拉一个矩形框选择全部关键帧一样，之后可以移动/缩放这些关键帧
+- Unity和UMotion创建Clip时都可以在一个时间线处创建多个event
+  - 在UMotion中，直接输入event函数名字和可选参数
+  - 在Unity中只能选择当前物体上自定义脚本暴露的函数
+  - 无论哪种方式创建的clip，都可以选中clip asset，然后再animation窗口中创建/删除event，在Inspector窗口中编辑事件函数的名字和参数
+- IK只控制骨骼的rotate，没有translate和scale
+- IK可以直接修改骨骼链条的末端，而骨骼链条上游的骨骼会相应地更新
+- UMotion允许无缝地在FK和IK之间切换（最终骨骼链的状态是FK和IK之间插值结果）,this is possible due to so called rig layers
+  - There is one rig layer for FK and one for IK. It's like the animated GameObject has two skeletons - one that is affected by forward kinematics and one that is affected by IK
+  - Each IK constraint has switch that can be used to smoothly bend between the two skeletons
+- IK handle: 操纵IK的把手（handle），IK constraint配置在IK handle上
+- IK target：IK骨骼链的末端骨骼
+- Pole Axis：空间中的一个轴线，连接IK控制的骨骼链的root和IK handle
+- 每个骨骼有两个joint，子骨骼的第一个joint是父骨骼的第二个joint）
+- IK Goal：IK约束的目标是选择骨骼链中的每个骨骼，使得IK target（骨骼链末端）位置与IK handle位置相同
+- 只有在PoseMode才能移动IK handle
+- 在ConfigMode所有约束都被disable
+- IK solver：Rotate Plane Solver
+  - projects bone chain and IK handle onto a 2d plane and applies the IK solving algorithm in 2D space
+  - Bone chain will only only bend in the Plane
+- Pole Target
+  - 可选的joint/transform
+  - Rotate Plane经过Pole Axis，被Pole target固定
+  - 移动pole target可以绕着pole axis选择plane
+  - Bone chain在Plane上bend，而bend方向总是朝向pole target的一侧
+- IK handle、root bone、pole target三点定位rotate plane。任何一点的移动都可以操控rotate平面。但最常见的是移动IK handle。IK handle和root的连线是pole axis。IK target总是在axis上。IK的目标是将IK target放置在和IK handle相同的位置上
+  - 如果IK handle到root的长度超过骨骼链的总长度，则骨骼链被拉直，IK target在IK handle和root中间
+  - 如果IK handle到root的长度小于骨骼链的总长度，则IK不得不弯曲bend骨骼链，使得IK target落在IK handle上面，而骨骼链bend的方向就是pole target方向
+- IK handle不可以是骨骼链中任何骨骼的child joint/transform
+- 每个joint/transform只可以配置一个IK约束
+- IK Pinning: set IK handle constant to some reference point(让IK handle相对某个gameobject静止，则IK target被固定到相应的gameobject上)
+  - if parent of the IK handle is set to be the hips, the hands (IK target) will stay at the same place relative to the hips when hips move
+  - if parent of the IK handle is set to the animated GameObjects's root, then the hands won't move when the character's hips moved(hips is not parent of IK handle). This way it is possible to pin the hands at a certain location(useful for climbing animations etc.)
+  - The Child-Of Constraint can be used to extend the IK constraint with IK pinning functionality.
+    - Child-Of Constraint can be used to change the parent of a joint/transform during an animation, it's useful for pick-up, throwing or gun reloading animation
+    - Use Child-Of constraint to change IK handle's parent, so it can be pinned during animation.
+  - IK pinning的本质是，rotate plane是由IK handle、root bone、pole target3个点确定的。通常的用法是root bone和pole target固定，移动IK handle；而IK pinning则是IK handle固定，root bone和pole target随着gameobject移动
+- 当骨骼链需要弯曲时，UMotion IK与Blender IK系统处理策略似乎不同。UMotion尽可能先弯曲靠近末端的骨骼来达到目标，而Blender则是均匀的平摊弯曲所有骨骼，因此Blender的弯曲像C字符，而UMotion的弯曲像是问号'？'。但是无论是哪种弯曲，都是朝向Pole Target方向的
+- UMotion的最后骨骼并不显示骨骼形状，而是直线形状，奇怪
+- 不想Blender那样需要自己提前生成IK Handle和Pole Target骨骼，UMotion在IK Setup时自动生成IK handle和Pole target
+  - Name就是生成的handle的名字
+  - Pole Target Name就是生成的pole target的名字
+  - Pole Target Position是pole target生成时所在的位置，需要引用某个joint/transform，但是之后可以任意调整
+- IK Setup Wizard
+  - IK Setup Wiazrd greatly simplifies creating IK rigs
+  - It supports creating rigs for any type of character
+  - Creating a simple IK rig for human like characters is especially easy
+- Custom IK
+  - Name：IK Handle的名字，UM会自动创建一个同名的transform作为handle
+  - Pinning：When checked a Child-Of constraint is added to the created IK handle to enable IK pinning functionality
+    - IK Handle会被创建在root bone下面
+    - 否则，Parent字段可以手动选择IK handle的parent，即IK handle创建在哪个transform下面
+  - Target：IK控制的末端骨骼
+  - Chain Length：IK控制的骨骼链长度，从末端骨骼=1开始
+  - Chain Mask：骨骼掩码，一组checkbox，只包含骨骼链上的骨骼，可以用来在IK约束中排除一些骨骼
+    - 默认情况下，每个骨骼都可以被IK弯曲，以使IK target达到IK handle
+    - 被排除的骨骼不再参与IK约束，这些骨骼就像是固定再其父骨骼上的而不会被弯曲，IK只弯曲那些参与IK约束的骨骼，来达到目标
+  - Parent：Pinning=false时，手工选择一个transform作为IK handle的parent
+  - Plane Dir：设置Plane angle的快捷方式preset
+    - Front
+    - Right
+    - UP
+  - Pole Target Position：可选，the joint/transform at which position an IK pole target should be created at，Pole target总是创建在骨架的root骨骼下面
+  - Pole Target Name：可选，创建的pole target的名字，如果没有pole target，则失去twist骨骼链的功能，骨骼链只能在plane angle确定的平面上bend
+  - Reference
+    - 每次IK约束执行前，所有骨骼链中的骨骼都被重置到reference pose。IK从reference pose开始试图找到旋转骨骼链的方式使得IK Target和IK handle位置相同。这就是为什么UMotion IK在移动Handle过程中经常出现跳变的情况，因为每次都是从reference pose重新开始算，而不是当前的pose。Blender应该是从当前的pose计算IK的。
+    - Reference Pose很大程度影响着IK结果看起来自然的程度。IK通常选择最短的路径来旋转reference pose到target position
+    - IK的过程是计算旋转的过程，既然是过程总是有最初的起始点。Reference Pose就是IK计算的起始点。IK从reference pose开始，找到一条最短的路径使得IK target到达IK handle
+    - 因此reference pose某种程度上算是给algorithm以提示信息，例如肘部或膝盖应该弯曲的方向
+  - Target Rotation
+- 创建之后的IK Constraint可以在Config Mode面板下面的Configuration可以调节许多IK属性，包括IK Target和Pole Target，但不包括IK Handle，因为IK Constraint就是配置在IK handle上面的，只有选中IK handle，面板中才会显示配置在它上面的IK constraint
+- UMotion IK的Plane angle就是Blender IK的Pole Angle。严格的说，IK中有两个平面，两个平面都经过Pole Axis并以它为轴线。但是一个平面被Plane angle（pole angle）确定，另一个被空间中的pole target确定。骨骼链总是在pole target定义的平面内弯曲，但是当两个平面不重合时，骨骼链的root端不仅会bend，还会twist，从plane angle定义的平面扭曲到pole target定义的平面。IK计算是在Plane angle确定的平面中进行的（UMotion的文档：plane angle is the angle of the plane at which the IK algorithm is applied in degrees。IK计算只需要IK Handle、root bone和经过它们的一个平面）。pole target的作用是在IK弯曲计算完成之后，可以再对root bone绕着pole axis进行扭曲，以便对IK结果进行微调。因为骨骼链总是再一个平面上的，因此扭曲只发生在root bone节点上。因为这就是生物骨骼运动的特点，即包含弯曲有包含扭曲。但是生物骨骼每个节点都可以即弯曲又扭曲，但是IK系统为了简化计算只在root bone上进行扭曲，对于运动幅度不是很大的生物骨骼，它们的区别不是很明显而又能大大简化IK系统的实现
+- Pole Target的作用是把在Plane angle平面中计算的IK结果在root bone节点绕pole axis轴进行扭曲旋转
+- Plane angle角度在UMotion中是以+Z为基准，在Blender中是以+X为基准
+- FK to IK
+  - 将当前FK的骨骼都设置到IK计算的位置上，然后就可以直接将FK/IK Blend因子设置为0，即只使用FK骨骼。选择all bones，然后key all modified。因为全部记得是FK的变化，因此变化是平滑的，不再有IK动画中的那种跳变。这么做其实就是用IK系统来引导FK骨骼，最终使用的还是FK，而且可以在IK计算结果的基础上进行进一步调整
+- Selection
+  - Pose Mode每次记录的只是选中的骨骼，通常每次调整骨骼时只会选择一个骨骼，但是最终记录的关键帧通常包含很多骨骼的修改，尤其在IK和FK骨骼混合时，很难找到都有那些骨骼做了修改，除非逐个骨骼地检查一遍
+  - 但是PoseMode提供了Selection面板可以简化此过程
+    - Select All -> Key Selected -> Key all Modified
+- UMotion的每个骨架包含两套骨骼，一个FK，一个IK，可以在Visiblity选项页中设置显示FK骨骼、IK骨骼、或者两者都显示
+- IK计算总是要基于一个pose作为开始，从这个pose计算如何旋转骨骼使IK Target到达IK Handle，这个起始pose就是reference pose。UMotion提供了两种reference pose
+  - ConfigMode下设置的pose，对于每一个关键帧都是相同的
+  - 当前帧的FK pose，这样一个Clip中就不必总是基于同一个reference pose来计算IK了
+- Reference Pose其实就是PoseMode初始的pose，在初始化UMotion Project时，就是骨骼在Unity中的当前位置。每次IK计算都是从Reference Pose开始。当UMotion Project初始化好之后，只能在ConfigMode下修改初始骨骼的位置，在PoseMode下直接修改骨骼位置会变成直接修改FK骨骼（PoseMode只能修改FK骨骼，IK骨骼无法修改只能通过IK Handle来引导），相应的属性会变成modified状态，只于如何影响最终结果则要看IK和FK骨骼是如何结合使用的。
+- UMotion保存了初始化Project时gameobject的骨骼状态，任何时候如果想将骨骼重置到初始状态，只需要点击ConfigMode/Configuration/Refrence Pose Tab/Apply Scene Pose
+- PoseMode是当前骨骼所处的状态，用于摆弄骨骼到指定形态，然后记录到关键帧中，但是每次IK计算并不是从PoseMode下的骨骼pose开始，而是从ConfigMode下的骨骼pose开始，这个pose就是Reference Pose。每次从PoseMode切换到ConfigMode模式下时，如果PoseMode模式下有属性修改但是没有记录到当前关键帧，UMotion会给出提示这个Pose的数据将会被丢弃，进入ConfigMode模式下，骨骼Pose直接变成当前ReferencePose。从ConfigMode模式进入PoseMode，骨骼会处于ReferencePose状态。
+- IK只记录Handle和Pole Target的状态，动画是一切都要从reference pose开始计算。如果之前用某个reference pose设定了一个IK pose并记录到关键帧中，之后又修改了reference pose，之前的Ik pose会在动画时基于当前reference pose计算而不是它记录时的那个，或者说reference pose是一个全局变量，当前clip（或者所有的clip？）都使用这个reference pose来计算IK关键帧。因此使用reference pose时，在整个clip过程中不能修改reference pose，否则会产生怪异的结果。
+- UMotion的IK解析提供了另一种reference，即FK Pose。因为每个gameobject又两套骨骼，一个IK，一个FK，因此动画片段不仅记录IK Handle和Pole Target的变化，还记录FK骨骼的变化，而最终动画效果如何取决于IK和FK如何混合。这样IK计算就可以不参考reference pose，而是基于当前FK骨骼来计算。而FK pose在任何时候都是已知的，因为任何FK骨骼的修改都会被记录到关键帧上。这时候会通过通常FK动画方式得到FK pose，然后基于FK pose来计算IK pose。
+- 无论使用Reference pose还是FK pose来解析IK，IK参考pose应该尽可能接近最终pose的形态（或者说参考pose就是最终pose的粗略形态，为IK算法提供提示最终形态是什么样的），因为只有参考pose和最终pose尽可能接近，IK算法才能产生最好的结果。如果参考Pose和最终Pose相差太大，Ik需要从和目标pose形态差距很远的pose来变换，尽管能给出结果，但是效果很不自然。这就是参考Pose的作用
+- FK pose即可以和IK pose混合，也可以用作IK参考pose，还可以既参考又混合
+- IK和FK的混合因子也是一个动画channel，当它被调整时，也需要记录到关键帧中

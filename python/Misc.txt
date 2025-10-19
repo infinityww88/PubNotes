@@ -1,0 +1,20 @@
+pip安装的模块甚至包括pip本身，安装之后不一定能够直接运行，有可能只能通过python模块的方式运行
+python -m pip install fastapi uvicorn
+python -m uvicorn main:app
+
+不要追求python最新版本的，而要追求当前最普遍使用版
+
+class就像def，它同样定义了一个作用域，这个作用域中可以包括任何语句，就像模块level的代码一样，只是这里定义的变量保存的新的作用域中，这个作用域就是类本身。因此这个作用域中定义的变量，就成为了class变量，定义的函数就成为class函数。通常在class作用域只编写def函数的代码，用来定义类函数，但是也可以定义类变量。class作用域在文件加载时执行一次，用来定义类
+
+var不是语句，但是var:str是
+在一个作用域中可以写var:str，这个语句想当前作用域的__annotations__添加一个annotation，仅此而已。如果是模块作用域，就是就是定义一个全局的annotation，如果是类作用域，就是定义一个类的annotation。它并不定义变量，如果引用这个变量，仍然会报变量未定义错误
+fastapi中
+class Item(BaseModel):
+    name: str
+    id: int
+只是为类添加annotation，然后再生成具体实例时通过Item.__annotations__读取annotations信息，为实例设置对应的字段
+
+变量未定义和变量赋值None是不一样的，将变量设置为None，变量是已定义的
+Python和js不同，js可以引用未定义的变量，但是python不可以
+
+Python约定模块名小写，类名大写

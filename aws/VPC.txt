@@ -1,0 +1,94 @@
+vpc必须具有3个部分
+Subnet
+Internet gateway
+Route table for subnet
+
+Route table have a route to the internet gateway so that the instances in the vpc can access amazon s3
+
+VPC是Aws could的一个隔离部分，用来放置aws objects，例如EC2实例
+你必须为你的vpc指定一个IPv4地址范围，基于CIDR，10.0.0.0/16。不可指定超过/16的IPv4 CIDR地址块
+还可以为这个vpc关联一个IPv6 CIDR地址块
+
+VPC是EC2的网络层
+
+一个Virtual Private Cloud是你的AWS账号专用的一个虚拟网络
+一个Subnet是你vpc中的一个ip地址范围
+一个Route table包含一组称为路由的规则rules，用来确定网络流量的去向
+一个Internet gateway是一个水平扩展的，冗余的，高可用的VPC组件，允许vpc中的instance与internet之间的通信，因此它可以使vpc没有可用性风险和带宽限制。即VPC可以连接多个Internet gateway，每个都是vpc到internet的出口，多个gateway的冗余可以保证vpc不会与internet断开，以及在网络流量增加时，自动增加gateway，使流量分流到多个出口
+一个VPC的endpoint允许你私密地连接你的vpc到被支持的Aws service和基于PrivateLink的VPC endpoint services，而不需要internet gateway，NAT device，VPN connection，或者AWS Direct Connect connection。你的VPC中的instance不需要公有IP地址来与service中的资源通信。你的VPC和其他service之间的网络流量不会离开Amazon网络
+
+VPC 10.0.0.0/16 subnet 10.0.0.0/24 VPC和Subnet都需要指定CIDR地址块，subnet地址块是VPC地址块的子集
+
+VPC与subnet的关系就像进程和线程，VPC是subnet的容器，在subnet上设置在这个subnet中启动的instance是否具有public IP地址
+
+Security Group作为虚拟防火墙，为它所关联的instances控制流量。要使用一个security group，添加inbound规则控制进入instance的流量，添加outbound规则控制流出instance的流量。如果从security group添加移除security group，修改会自动应用到security group关联到instance上
+
+VPC默认带一个Security Group。任何instance在启动期间如果没有关联到其他的security group将被关联到这个默认security group。
+
+Route Tables
+10.0.0.0/16 -> local VPC内部互通
+0.0.0.0/0 -> internet gateway vpc内部与internet通信
+
+VPC允许你在你定义的虚拟网络中启动AWS资源。虚拟网络代表数据中心的传统网络，并且具有AWS基础设施可伸缩的好处。它在逻辑上与AWS Cloud的其他虚拟网络隔离。你可以在VPC中启动AWS资源，例如EC2。你可以为VPC指定一个IP地址范围，添加subnets，关联security group，配置路由表
+
+一个subnet是VPC中的一个IP地址范围。你可以在指定的subnet中启动AWS资源。对那些必须连接到internet的资源使用public的subnet，对于那些不需要连接到internet的资源使用private的subnet。
+为了保护每个subnet的AWS资源，你可以使用多个安全层，包括security groups和network access control lists（ACL）
+
+Default and Nondefault VPCs
+每个Availability Zone拥有一个默认的VPC和subnet。可以自定义创建非默认的vpc和subnet
+
+Accessing the Internet
+
+你控制在VPC内部launch的instances如何访问VPC之外的资源
+默认VPC包括一个internet gateway，每个默认的subnet是一个public subnet。在默认subnet启动的每个instance具有一个private和一个publish的IPv4地址。这些instances可以通过internet gateway和internet通信。一个internet gateway允许你的instances通过Amazon EC2网络边缘访问internet
+
+默认地，你在非default subnet启动的每个instance都有一个private IPv4地址，但是没有public IPv4地址。除非你在启动时显式指定一个，或者你修改
+subnet的public IP地址属性。这些instances可以彼此之间通信，但是不能访问internet
+
+你可以通过添加一个internet gateway到VPC（如果VPC不是默认VPC）上为一个在非默认subnet启动的instance开启internet访问，并为instance关联一个Elastic IP address。
+或者，为了允许VPC中的一个instance发起一个外出到internet的连接，但阻止internet上主动的进入连接，你可以为IPv4traffic使用network address translation（NAT）设备。NAT映射多个private IPv4地址到一个public IPv4地址。一个NAT设备device有一个Elastic IP address，并且通过internet gateway连接到internet上。你可以通过NAT设备连接private subnet中到一个instance到internet上，NAT device路由instance的网络流量到internet gateway，并且路由任何响应到instance
+
+你可以为你的VPC关联一个IPv6地址块，并为你到instance赋予IPv6地址。Instances可以通过internet gateway在IPv6上连接到internet。或者，instance可以使用egress-only internet gateway发起到internet的IPv6上的外出连接。IPv6 traffic与IPv4 traffic是分开的，你的路由表必须包含IPv6 traffic的路由
+
+Accessing Services Through AWS PrivateLink
+
+Cloud的其他虚拟网络隔离。你可以在VPC中启动AWS资源，例如EC2。你可以为VPC指定一个IP地址范围，添加subnets，关联security
+
+要使用AWS PrivateLink，为你的VPC中的service创建一个VPC endpoint接口。这在你的subnet中创建了一个elastic network接口，它具有一个private IP地址，作为到这个service的流量的入口
+
+你可以创建你自己的基于AWS PrivateLink的service（endpoint service），并且允许其他AWS customers来访问你的service。
+
+0.0.0.0/0是路由器的默认路由，路由表里的最后一项
+10.0.0.0/16 16表示高16位全1剩余低位全0的32位掩码，即子网掩码0bFFFF0000。子网地址就是10.0.0.0与0xFFFF0000按位与的结果。任何一个IP地址与这个掩码按位与得到的地址如果与子网地址相同，这个IP地址就是子网内的IP地址
+路由表中记录子网地址/掩码的出口，即与指定子网匹配的IP数据报都发送到对应的网络接口
+0.0.0.0/0的掩码是0x00000000，因此任何IP地址与它按位与的结果都是0.0.0.0，因此总是能匹配这个路由表项。因此任何不能匹配前面路由表项的ip地址都会发送到这个项目记录的网络接口
+在路由表里设置0.0.0.0/0到internet gateway的映射，就可以让所有的internet流量（IP地址不在子网内的数据报）发送到internet gateway，从而进入internet
+
+NAT是具有路由功能的计算机，因此在AWS中称为NAT device
+
+VPC and Subnet Basics
+
+VPC Networking Components
+
+网络接口Network Interfaces
+
+路由表
+
+Internet Gateway
+
+Egress-Only Internet Gateways
+
+NAT
+
+DHCP Options Sets
+Dynamic Host Configuration Protocol提供了通过TCP/IP网络向hosts传递配置信息的标准。一个DHCP消息的Options字段包含配置参数。其中一些参数是domain name，domain name server，netbios-node-type
+
+你可以为VPC配置DHCP Option Sets
+
+DNS
+
+VPC Peering
+
+Elastic IP Address
+
+VPC Endpoint和VPC Endpoint Service（AWS PrivateLink）

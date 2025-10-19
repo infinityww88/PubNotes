@@ -1,0 +1,72 @@
+Naming convention:
+Spring – The actual spring script
+Spring object – The object that contains the spring script
+Attached object – The other object that the spring is connected to
+
+AFAIK the springs are modelled using Hookes law, F = -kx -dv, where F is the resulting force, k is the spring stiffness, x is displacement, d is dampening coefficient and v is the velocity. Both displacement and velocity is that of the spring object relative the attached object.
+
+Axis/Secondary axis – Defines the primary/secondary axis of the spring coordinate system. If we set this to [0,1,0] for example, the spring main axis is in the spring objects Y-direction. This affects most settings. For example, the X motion setting then applies to the spring objects Y-direction.
+
+Configured in world space – Everything should be defined in world space instead.
+
+Swap bodies – This makes the joint behave as if the script was added to the attached object rather than the spring object.
+
+Break Force/Torque – If the Force/Torque specified here is exceeded, the configurable joint is removed from the object.
+
+Enable collision – Should the bodies in each end of the spring be able to collide?
+
+Enable preprocessing – This reduces the accuracy of the joint simulation but is very useful when some degrees of freedom are removed (some motions are set to 'Locked'), because PhysX can then ignore some calculations.
+
+Anchor – This defines where the spring is attached. Defined in the spring object coordinate system.
+
+Connected anchor – Where on the connected body the spring is connected. This is defined in the attached objects coordinate system, as opposed to the anchor.
+
+X/Y/Z Motion - Defines how the spring should behave linearly in the spring coordinate system.
+Free – Can move every which way
+Limited – Obeys the restrictions under ”Linear limit”
+Locked – Cannot move in the specified direction
+
+Angular X/Y/Z motion – Defines how the spring can rotate around the specified spring axes.
+Free – Can rotate every which way
+Limited – Obeys the restrictions under ”Angular limit” - note that this is divide into X and YZ. X is the primary axis, hence it will have more options.
+Locked – Cannot rotate about the specified axis.
+
+Linear Limit Spring – Define the spring end points behaviour.
+Defines end-position behaviour. If Spring/Damper = 0 the spring is forcably stopped in the end position (sort of when you hit the bottom of the dampers on your car when hitting a speed bump at high velocities, there is a hard shock).
+Spring (-kx): Equivalent to spring stiffness that decides how much it should oscillate around the end point
+Damper (-dv): Equivalent to damping coefficient that decides how much oscillation around end point is damped.
+
+Linear Limit – Define the spring end points.
+Limit: Defines how many Units the spring can be stretched/compressed.
+Bounciness: Equivalent to energy conservation at the end points.
+0 = all energy dissipated when end position is reached (like a lead ball dropped),
+1 = all energy conserved when end position is reached (like a bouncing ball)
+Contact distance: How far away from the current position the joint looks to see if we are close to the limit. If this is =0 there is no prediction which is faster but may become jittery since we have no prediction.
+
+Angular X limit spring – Defines how the spring should behave around the end-position of the allowed rotation.
+Spring (-kx): Equivalent to spring stiffness that decides how much it should oscillate around the end point
+Damper (-dv): Equivalent to damping coefficient that decides how much oscillation around end point is damped.
+
+Low/High angular X & Y/Z limit – Defines the lower/upper boundary of the rotation. Note that X is independent and YZ have to be specified together.
+Limit: Defines how many degrees (NOT RADIANS) the spring can be stretched/compressed radially.
+Bounciness: Equivalent to energy conservation at the end points. 0 = all energy dissipated when end position is reached (like hitting a brick wall), 1 = all energy conserved when end position is reached (like hitting a rubber surface)
+Contact distance: How far away from the current position the joint looks to see if we are close to the limit. If this is =0 there is no prediction which is faster but may become jittery since we have no prediction.
+
+Target position – Set the position in spring space where the end point of the joint should aim to be (the rest position of the spring). Creates a distance in the direction of the primary axis from the anchor to the connected anchor. Example: Setting this to [1,0,0] will move the spring object to [-1,0,0] relative the connected anchor (in the spring coordinate system).
+
+Target velocity – Set the contant velocity the spring should try to achieve in spring space.
+
+X/Y/Z Drive – Defines what method we use to control the spring. All defined in spring space.
+Position: Uses Position Spring (Spring stiffness) – equivalent to the kx-term
+Velocity: Uses Position Damper (Damping coefficient) – equivalent to dv-term
+Position and velocity: Uses both terms, complete Hooke's law.
+
+X/Y/Z Drive - Defines behaviour around the mid-position of the spring.
+
+Projection mode – This is a ”Last resort” kind of solution if the spring violates the limits too badly. This has nothing to do with physics and is used only to make sure that things do not explode and go haywire.
+Position and Rotation: If the joint goes above/below the allowed limits it will automatically snap back to the limit.
+Projection distance: How much above/below the linear limit does it have to be before we snap back?
+Projection Angle: How many degrees above/below the angular limit does it have to be before we snap back?
+
+
+Hope this helps someone with this very powerful (but slightly underdocumented) feature!

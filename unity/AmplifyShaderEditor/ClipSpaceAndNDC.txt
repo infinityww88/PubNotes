@@ -1,0 +1,38 @@
+To start, clip space is often conflated with NDC (normalized device coordinates) and there is a subtle difference: NDC are formed by dividing the clip space coordinates by w (also known as perspective divide). NDC boundaries are "normalized" and therefore always consistently bound. 
+
+The conversion from clip space to NDC happens after the vertex shader is run and is done automatically for you. Whatever you put in your w component will be used to divide your xyz components. You output your clip space position as (x, y, z, w) in the vertex shader and the graphics API converts it to (x/w, y/w, z/w, 1). 
+
+Regardless of platform, the NDC for left/right/top/bottom bounds will be the same: the range of the x-coordinate from [l, r] to [-1, 1], the y-coordinate from [b, t] to [-1, 1] 
+
+Unfortunately, the depth coordinate will differ based on whether you are in an OpenGL-like platform or a Direct3D-like one. 
+
+Direct3D-like: The clip space depth goes from 0.0 at the near plane to +1.0 at the far plane. This applies to Direct3D, Metal and consoles. 
+
+OpenGL-like: The clip space depth goes from –1.0 at the near plane to +1.0 at the far plane. This applies to OpenGL and OpenGL ES. 
+
+Also note: from within the shader you can use the UNITY_NEAR_CLIP_VALUE built-in macro to get the near plane value based on the platform.
+
+-
+
+No, clip space and NDC space are not the same thing.
+
+Clip space is actually one step away from NDC, all coordinates are divided by Clip.W to produce NDC. Anything outside of the range [-1,1] in resulting NDC space corresponds to a point that is outside of the clipping volume. There is a reason the coordinate space before NDC is called clip space ;)
+
+Strictly speaking, however, NDC space is not necessarily cubic. It is true that NDC space is a cube in OpenGL, but in Direct3D it is not. In D3D the Z coordinate in NDC space ranges from 0.0 to 1.0, while it ranges from -1.0 to 1.0 in GL. X and Y behave the same in GL and D3D (that is, they range from -1.0 to 1.0). NDC is a standard coordinate space, but it has different representation in different APIs.
+
+Lastly, NDC space to screen space (AKA window space) occurs during rasterization and is defined by your viewport and depth range. Fragment locations really would not make sense in any other coordinate space, and this is what rasterization produces: fragments.
+
+-
+
+This viewing box a projection matrix creates is called a frustum and each coordinate that ends up inside this frustum will end up on the user's screen. The total process to convert coordinates within a specified range to NDC that can easily be mapped to 2D view-space coordinates is called projection since the projection matrix projects 3D coordinates to the easy-to-map-to-2D normalized device coordinates.
+
+Once all the vertices are transformed to clip space a final operation called perspective division is performed where we divide the x, y and z components of the position vectors by the vector's homogeneous w component; perspective division is what transforms the 4D clip space coordinates to 3D normalized device coordinates. This step is performed automatically at the end of each vertex shader run.
+
+It is after this stage where the resulting coordinates are mapped to screen coordinates (using the settings of glViewport) and turned into fragments.
+
+-
+
+3D模型渲染到屏幕空间经历的空间转换
+模型空间-世界空间-视图空间-剪裁空间-NDC-屏幕空间
+剪裁空间的作用是将视锥体拉伸成cube，使视锥体的6个平面全部变成水平或垂直的，来简化裁剪模型的工作。主要针对的是投影视图，投影视图的近平面比远平面要小，因此视锥体拉伸成cube之后，原来的世界空间会沿着视锥体的轴线由远及近地放大，或者说由近及远地缩小，使得视锥体在新的空间中称为方方正正的cube，这个空间就是剪裁空间
+为了进一步简化模型裁剪工作，裁剪空间会进一步将cube（视锥体）缩放为单位立方体，这个缩放之后的空间就是NDC，单位化设备空间，单位化指的就是视锥体大小被规约为单位1
