@@ -191,3 +191,4 @@ Armature 相关的功能可以在 Armature 菜单中访问：
 这些坐标都是世界空间中的位置，不是相对于 Parent Bone 的。
 
 ![alt text](BoneAttributePanel.png)
+
