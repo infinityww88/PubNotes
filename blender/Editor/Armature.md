@@ -183,3 +183,11 @@ Dissolve 只用于骨骼链上连续的部分中的 Bone。例如下面这个对
 Armature 相关的功能可以在 Armature 菜单中访问：
 
 ![alt text](ArmatureMenu.png)
+
+# Bone Attribute Panel
+
+选中骨骼后，右边的属性面板，可以手动编辑骨骼的各种属性，尤其是 Head、Tail 的位置，也骨骼绕轴线的 Roll 角度。
+
+这些坐标都是世界空间中的位置，不是相对于 Parent Bone 的。
+
+![alt text](BoneAttributePanel.png)
