@@ -157,6 +157,8 @@ Apply Pose 时可以指定一个混合因子，以一定比例应用 Pose Asset 
 
 添加 Bone 直接的控制关系，例如 复制旋转，IK，位置限制。
 
+查看 Constraints 内容。
+
 # Pose Bone Properties
 
 # Rest Pose
