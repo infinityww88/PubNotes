@@ -143,6 +143,10 @@ Pose Asset 和 Rest Pose 一样，很多时候用来做参考，例如制作一�
 
 Apply Pose Flipped 和镜像粘贴 Ctrl+Shift+V 一样，将具有对称镜像的骨骼应用到对面。
 
+另外 3D View 窗口底边缘，还有一个隐藏停靠的 Pose Asset Browser，可以快速应用 Pose Asset：
+
+![](PoseAssetView.gif)
+
 ### Blend Pose
 
 Apply Pose 时可以指定一个混合因子，以一定比例应用 Pose Asset 到当前 Pose 中：
