@@ -79,6 +79,10 @@ IK 的原理是 从末端骨骼（例如手或脚）反向计算父级骨骼的�
 
   - 可以一直设置，并时刻通过它来设置 Bones 的 Pose
   - 也可以一次性设置，调整好 Bones 的 Pose 后就丢弃
+  - IK 的设置很容易，就是添加两个控制 Bones（IK Target + Pole Target），然后设置 IK 约束就可以了。
+
+- 尽管可以设置任意长的骨骼链，但是 Ik 系统几乎就是为四肢这种骨骼链提供的。因此几乎不会超过 3 个长度的骨骼。Iterations 保持默认就可以了。
+- IK 约束会完全把 End Bone “钉” 在 IK Target 上。如果 IK Target 是世界空间中的，则 End Bone 就会钉在这个位置。即使移动 Armature 的 Root（例如pelvis/hips）， End Bone 不会动。
 
 ### 骨骼链在设置 IK 之前要有一定的弯曲
 

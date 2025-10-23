@@ -218,3 +218,14 @@ Blender 为各种要操作的元素都提供了 Collections 的功能（例如 V
 Armature 动画不一定需要跟 Mesh 保存在一起。它本身就是单独的资源。它的动画就是对各个 Bone 的 Transform 的动画而已。
 
 这样 Armature 动画可以编辑一次，然后为任意具有相同骨骼结构的 Skinned Mesh 使用。
+
+## Bone 可见性
+
+影响 Bone 可见性有两个因素：
+
+- 每个 Bone 自己属性面板的 Viewport Display 的 Hide 选项，如果开启了，Bone 将不可见
+- Bone Connections 用来包含一组 Bones，它可以整体隐藏和显示 Bones
+
+无论哪种方法隐藏的 Bones，被隐藏的 Bone 都不可见，也不能被选中，只存在于 Collections Hierarchy 中。
+
+因此发现找不到 Bone 时，先看 Bone 的 Hide 是否开启了，然后看是否它所在的某个 Bone Collections 被隐藏了。
