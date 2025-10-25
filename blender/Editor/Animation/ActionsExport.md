@@ -121,48 +121,6 @@ Unity 并没有调用 Blender 的 FBX 导出器，而是使用 **内部的 Blend
 
 ---
 
-## 与 Unity 交互
-
-Action 是独立的 data block，不与任何 Object/Armature 绑定，相反是 Object/Armature 选择 link 到某个 Action。
-
-例如这里先为左边的 Cube 创建了一个动画，然后让右边的 Cube link 到这个动画，因为它们的 Armature 结构一样，因此可以正确播放
-
-![](LinkExistsAnimation.gif)
-
-下面是为右边的 Cube 创建了另一个动画，两个 Cube 就各种播放不同的动画了：
-
-![](LinkDifferentAnimation.gif)
-
-上面说“为 XXX 创建动画”是不对的，Action 与 Object 并无绑定。正确的说法是，“以 XXX 为 Target/模特/属性模板” 创建一个动画，之后只有具有相同属性的 Object/Armature 都可以 link 并播放这个动画。
-
-Blender 中这两个 Armature 的结构是这样：
-
-![](TwoArmatures.png)
-
-导入到 Unity 之后，是这样：
-
-![](TwoArmaturesUnity.png)
-
-可见每个 Action 为每个 Armature 创建了一份。但是只有一份能正常播放（就是以它为 Target 创建的 Action），其他都是空的冗余的。这应该是与 Slot 有关。
-
-如果继续创建一个 Cube 以及一个动画，可见导入后，Cube 的动画也为每个 Armature 创建了一份，但是 Armature 的动画却没有为 Cube 创建 Clip，为什么这样，很难理解，但就是很混乱，但这已经是 Blender 能和 Unity 能正常交互仅有的方式了。
-
-![](TwoArmaturesAndCubeUnity.png)
-
-如果将 Blender 工程作为 .blend 文件保存到 Unity 中，可见它只将当前 scene 中播放的动画整体 bake 到一个 Scene 动画中。
-
-![](TwoArmaturesAndCubeBlendUnity.png)
-
-![](SceneHierarchy.png)
-
-
-
-
-Blender 是完全独立强大 3D 创作工具，它的种种功能都是为了自己的目标设计的，并不会考虑与游戏引擎兼容。因此它的很多功能在 Blender 中是非常好用的，但是无法用在游戏引擎中。相反是游戏引擎选择兼容 Blender 的部分功能，以使用它来创建游戏资源。因此只有一部分功能用在游戏引擎中是没有问题的，其他的无法导入。
-
-即使能导入，还有各种问题，例如 Unit 的缩放，动画片段的冗余等等。因此不要把 Blender 能用在 Unity 中的功能视为理所当然，不兼容才是常态。
-
-
 ## ✅ 总结
 
 | 场景          | 结果               | 原因                            | 解决方法            |
@@ -172,5 +130,3 @@ Blender 是完全独立强大 3D 创作工具，它的种种功能都是为了�
 | 想要角色动画库     | 每 Action 一个 Clip | 使用 Armature + FBX 多 Action 模式 |                 |
 
 ---
-
-
