@@ -141,11 +141,24 @@ Blender 是通过 Keying Set 管理要动画的属性集合。然后有一个当
 
 ![](ActiveKeyingSet.gif)
 
-从弹出的 Keying Set 菜单中可见，动画全部是 Transform 相关的（Position、Rotation、Scale），与 UMotion 类似，但是 Unity 动画可以记录任何 Inspector 显示的（可序列化）属性。对于其他要动画的属性，Blender 提供了 Custom Properties，应该是为自定义的数据添加关键帧，然后脚本中解释如何使用这些属性。
+从弹出的 Keying Set 菜单中可见，动画全部是 Transform 相关的（Position、Rotation、Scale），没有添加其他属性例如材质颜色的 key。这是因为 Blender 在不同的模式下，只能添加那个模式的属性。例如 Object Mode 和 Pose Mode 只能添加 transform 相关的属性。要想添加颜色属性的动画，直接对那个属性添加 Key：
+
+- 将光标移动到那个属性上，按 I（Insert Keyframe） 添加关键帧
+- 直接右键菜单 Insert Keyframe 添加关键帧
+
+![](MaterialColorKeyframeProperty.png)
+
+![](MaterialColorKeyframeProperty1.png)
+
+注意，没有 K 快捷键（Insert Keyframe with Keying Set），但是可以通过菜单中的 Add to Keying Set 把这个属性添加到一个 keying set 中。
+
+![](MaterialColorAnimation.gif)
 
 Animation 窗口设置 Keying Set 只在 Timeline 窗口可见。但是还可以通过 F3 快捷方式设置，而且从中可以看出，Object > Animation > Change Keying Set 菜单也可以改变 Active Keying Set。
 
 ![](ChangeKeyingSet.png)
+
+如果只在 Blender 中创作视觉效果，为任何属性添加动画都没问题。但是如果将 Blender 作为 Unity 的数字内容创作工具，因为 Blender 和 Unity 的渲染系统不同（以及音频、粒子等系统），这些没有办法导入到 Unity 中，这些属性也只能在 Unity 中创建。因此如果仅把 Blender 作为游戏资产的建模工具，只需要为 Transform 属性创建动画就够了。
 
 ## Record Mode
 
@@ -173,9 +186,25 @@ Blender 也提供了类似 Unity 的 Record 模式。默认会记录任何变化
 
 Marker 的添加可以从 Marker 菜单中访问，也可以按 M 键，在当前 Playback Head 处创建一个 Marker。
 
-# Action Editor
+## 镜像关键帧（TODO）
 
+## Action Editor
 
+用于单独管理一个对象（或骨骼）的动画 Action。
+可：
+
+- 创建多个动作；
+- 命名、保存、切换不同动作；
+- 配合 NLA Editor 混合动画。
+
+# 与其他窗口结合使用
+
+一般流程是：先在 Dope Sheet 中组织节奏，再在 Graph Editor 中微调动画曲线。
+
+- 与 Timeline：用于播放控制与预览；
+- 与 Graph Editor：细调动画插值；
+- 与 NLA Editor：组织多个动作；
+- 与 Pose Library / Action Library：快速切换角色动作。
 
 # 动画属性
 
