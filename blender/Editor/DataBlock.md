@@ -8,6 +8,7 @@ Data Block 就是对象 Object。计算机中的 Object 就是内存中的一段
 Blender 中每种资源都是一种 Object（Data Block），Mesh、Material、Armature、Texture、Animation Clip。
 
 每种资源都是独立，但是可以相互引用。例如一个 Mesh Object 可以引用一组 Material，而一个 Material 可以被多个 Mesh Object 引用。Texture 和 Material 的关系也是如此。
+
 # Data Block 是什么
 
 简单说：
@@ -63,14 +64,14 @@ Outlinear 窗口可以认为就是现实 Object（Data Block）之间关系的�
 
 每个 data block 都有一个“用户计数”：
 - 表示当前有多少对象在使用这个 data block；
-- 当 User Count 为 0 时，这个 data block 在保存 .blend 文件时会被自动删除（除非启用 Fake User）。
+- 当 User Count 为 0 时，这个 data block 在 Blender 退出时被自动删除（除非启用 Fake User）。
 
 例如：
 
 - 你创建了一个材质，然后删除了所有用到它的对象；此时它的 User Count 变成 0，下次打开文件它就消失了。
 - 如果你勾选了 “Fake User（盾牌图标）”，它即使没有被使用也会被保留。
 
-在一次 Blender 打开的会话期间，所有创建的资源 Data Block 都不会删除。User Count = 0 的 Data Block 会在保存 .blend 文件时自动删除，下次打开没有了。如果启用了 Fake User 标志，即使 User Count = 0，也不会删除，下次打开 Blender，Data Block 仍然在。
+在一次 Blender 打开的会话期间，所有创建的资源 Data Block 都不会删除。User Count = 0 的 Data Block 会在 Blender 退出时自动删除，下次打开没有了。如果启用了 Fake User 标志，即使 User Count = 0，也不会删除，下次打开 Blender，Data Block 仍然在。
 
 这是因为在编辑过程中，经常切换 Object 应用，偶尔就会 Object 的引用变成 0，但是实际并不想删除它，之后还会再次引用它。User Count = 0 的 DataBlock 也不会立即删除，而 Fake User 的 DataBlock 更是始终保存。
 

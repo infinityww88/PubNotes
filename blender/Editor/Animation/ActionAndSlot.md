@@ -6,7 +6,7 @@ NLA 界面类似 Unity 的 Timeline，将动画片段放在 Track 上，可以�
 
 一个 Object（Mesh、Armature）可以创建多个 Action，每个 Action 又可以创建多个 Slot。使用 Action 播放时，只能播放一个 Slot 的动画。要同时播放多个 Slot 的动画，就需要使用 NLA。
 
-但是 Slot 只是 Blender 中的机制，Unity 中没有这样的对应体。实践证明，如果一个 Object 包含多个 Slot，最后导出到 Unity 中只有一个 Slot（似乎就是最后选择的那个，或 Scene 当前的那个）包含的动画，这个 Object 的所有 Action 中其他的 Slot 动画都不会导出。如果那些 Action 没有定义这个 Slot，那么它们导出后的 Clip 就是空的。
+但是 Slot 只是 Blender 中的机制，Unity 中没有这样的对应体。
 
 要明白一点，Blender 是完全独立的 3D 内容创作工具和动画创作工具，应用于最广泛的 3D 动画领域（例如动画电影），不是专门为游戏引擎（尤其是 Unity）提供的建模工具。只是游戏开发将它的部分功能用作游戏资源的创建。因此 Blender 有自己专有的概念和方法，不会适配游戏引擎的概念。Blender 拥有 3D 内容创作完全的工具，不仅是建模，还有渲染、动画、粒子、物理，甚至有专门的基于 Blener 的游戏引擎。
 
