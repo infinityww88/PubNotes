@@ -49,3 +49,7 @@ Parent > Armature Deform > with Automatic Weights 可以为 Bones 自动计算�
 ![](WeightPaint.gif)
 
 手动权重，先选择要影响的 Vertex Group，后续所有绘制的 Vertex 都会分配到这个 Vertex Group 中。然后就可以用画刷绘制 weights 了。注意，没有擦除工具，无论是想增加权重，还是减少权重，都直接调整上面的 Weight 数值条，然后用不同的数值重新绘制就可以了。
+
+# Misc
+
+注意：Pose Mode 是选中一个 Armature 才出现并能进去的。因此 Pose Mode 跟一个 Armature 绑定，在这个模式下面，只能编辑这个 Armature 的 Bone 的 Pose。如果想操作其他 Object，例如 Mesh 或 Spline，必须先回到 Object Mode 才能选择其他 Object 操作。

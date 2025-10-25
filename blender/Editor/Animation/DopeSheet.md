@@ -186,7 +186,39 @@ Blender 也提供了类似 Unity 的 Record 模式。默认会记录任何变化
 
 Marker 的添加可以从 Marker 菜单中访问，也可以按 M 键，在当前 Playback Head 处创建一个 Marker。
 
-## 镜像关键帧（TODO）
+## 通道管理
+
+![](Channel.gif)
+
+动画窗口坐标的通道 Summary 列表，提供了通道管理功能：
+
+- 通道分组（group）
+
+  将一组属性（通道）放到一个 Group 中，一起管理（mute，protect，toggle visibility）
+
+- 通道 mute
+
+  将通道静默，不再播放这个通道的动画。
+
+- 通道锁定（Protect）：不可编辑
+
+  锁定通道，不允许编辑。
+
+- 通道可见性
+
+  在 Graph Editor 窗口中，可以关闭这个通道曲线显示，让窗口更干净。
+
+这些操作既可以单个属性操作，也可以整组操作，既可以通过 Channel 菜单访问，也可以通过右键菜单访问。
+
+## 关键帧镜像
+
+可以将选择的关键帧，以 Playback Head 或 Marker 镜像翻转到另一侧：
+
+![](./MirrorKeyAround.gif)
+
+也可以将关键帧的 value 以 y=0 为轴翻转（正值变负值，负值变正值）。例如下面的动画，cube 在 x 轴上向右移动，在 y 轴上向上移动，整体向右上移动。选择关键帧，选择 Mirror By Values Over Zero Value，Cube 将向左下移动。切换到 Graph Editor 更直观，Y 属性曲线和 Z 属性曲线都绕着 0 值上下翻转：
+
+![](./MirrorValue.gif)
 
 ## Action Editor
 
@@ -196,6 +228,20 @@ Marker 的添加可以从 Marker 菜单中访问，也可以按 M 键，在当�
 - 创建多个动作；
 - 命名、保存、切换不同动作；
 - 配合 NLA Editor 混合动画。
+
+Action Editor 是 Dope Sheet 的一个子模式，主要用于：
+
+- 编辑单个物体（特别是骨骼）对应的动画关键帧数据（Action）。
+
+Blender 的动画系统是基于 Action 数据块 的。
+
+- 每个 Action 存储了一组 F-Curves（动画通道）。
+- 每个 F-Curve 又由关键帧组成。
+- 动画对象（比如骨架、摄像机、灯光等）可以“拥有”一个当前正在使用的 Action。
+
+简言之：Action = 某个物体的一段完整动画片段。
+
+![](./ActionEditorWindow.png)
 
 # 与其他窗口结合使用
 
@@ -211,4 +257,3 @@ Marker 的添加可以从 Marker 菜单中访问，也可以按 M 键，在当�
 属性面板中的 Output 属性，可以指定 FrameRate 和 Frame Range。
 
 ![](AnimationOutputProperties.png)
-
