@@ -49,6 +49,7 @@ Blender 中，每个 Bone 是由两个 Joint（相当于 Unity Transform）定�
   - Connect 和 Disconnect 在 Unity 中是没有意义的，怎样都可以
   - 无视骨骼的 Body（锥形 shape）和 Tail Joint，只看 Head Joint。将所有的 Head Joint 和末端骨骼的 Tail Joint 按照层级关系连接起来，就是 Unity 中的 Transform Hierarchy
   - 只有 Head 和末端骨骼的 Tail 在 Unity 中有意义
+  - 不要尝试反过来从 Unity 中立即骨骼在 Blender 中的情况，因为 Unity 的骨骼情况是 Blender 的超集，无法反过来映射，例如无法知道两个 Transform（Joint）在 Blender 中是否是绑定在一起移动的
 
 Blender 中 Connected 的 Bones 锁定移动，在 Unity 中，两个 Child Transform 却可以自由移动。那么如果为这样的骨骼创建一个相应的蒙皮模型，在 Blender 中绑定的 Bone 一起移动，在 Unity 中两个 Child Transform 分离移动会是怎样的情况？
 
@@ -57,6 +58,8 @@ Blender 中 Connected 的 Bones 锁定移动，在 Unity 中，两个 Child Tran
 ![alt text](UnitySkinnedMeshDeform.gif)
 
 如果在 Blender 中查看两个骨骼的 Weighted 情况，就会看见左边的 Bone 也会一定程度影响右边的 Vertices，右边的 Bone 也会一定程度影响左边的 Vertices。这些影响都记录在 Bone 上，而 Bone 在 Unity 中都退化为 Transform。因此移动 Transform，就会让它在 Blender 中对应的骨骼影响的 vertices 跟着它移动、旋转。如果两个 Transform 不一起移动、旋转，而是分开进行，就会出现 mesh 被拉扯。如果两个 Transform 一起移动，那就和 Blender 的情况一样了。
+
+另外 Blender 中的骨骼，在 Pose Mode 只能移动和旋转，不能改变长度，但是在 Unity 中，因为 Transform 可以自由移动，因此骨骼长度可以任意改变。
 
 ![alt text](WeightedBoneLeft.png)
 
