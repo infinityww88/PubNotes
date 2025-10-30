@@ -7,9 +7,7 @@ Unity 会在导入模型时把它记录为 **“Bind Pose”**（绑定姿势）
 > 动画片段中的关键帧只是“相对于 Rest Pose 的变换偏移”，
 > Unity 会通过导入的骨骼 Bind Pose 还原出每帧的最终姿态。
 
----
-
-## 🧩 一、Blender 动画的本质：基于 Rest Pose 的偏移
+## 一、Blender 动画的本质：基于 Rest Pose 的偏移
 
 在 Blender 中：
 
@@ -21,9 +19,7 @@ Unity 会在导入模型时把它记录为 **“Bind Pose”**（绑定姿势）
   ```
 * 因此，Blender 的 `.blend` 文件并不会在动画数据中重复记录骨骼的原始位置，只记录相对偏移。
 
----
-
-## ⚙️ 二、导出到 FBX 时发生的事
+## 二、导出到 FBX 时发生的事
 
 当你从 Blender 导出 FBX 时：
 
@@ -38,9 +34,7 @@ Unity 会在导入模型时把它记录为 **“Bind Pose”**（绑定姿势）
    * 例如关键帧曲线控制的是 bone 的局部旋转、位置；
    * FBX 不会重复导出整个姿态，只导出变化。
 
----
-
-## 🧩 三、Unity 导入 FBX 时的处理
+## 三、Unity 导入 FBX 时的处理
 
 Unity 导入 FBX 后，会做以下事情：
 
@@ -64,9 +58,7 @@ Unity 导入 FBX 后，会做以下事情：
 > Unity 在导入时确实获得了 Rest Pose，并以 Bind Pose 的形式保存。
 > 动画片段才能正确地“相对化”地驱动模型骨骼。
 
----
-
-## 🧠 四、如果没有导入 Rest Pose，会发生什么？
+## 四、如果没有导入 Rest Pose，会发生什么？
 
 如果没有正确导出 / 导入 Rest Pose（例如导出错误）：
 
@@ -83,9 +75,7 @@ Unity 导入 FBX 后，会做以下事情：
 * Blender 中修改了骨骼姿态但没 Apply Rest Pose；
 * 或导出时选项错误（如 `Apply Transform` 选项导致 Rest Pose 改变）。
 
----
-
-## 🧩 五、Humanoid 与 Generic 的差异
+## 五、Humanoid 与 Generic 的差异
 
 | 类型               | Rest Pose 用法                               | Unity 的处理方式                              |
 | ---------------- | ------------------------------------------ | ---------------------------------------- |
@@ -95,11 +85,9 @@ Unity 导入 FBX 后，会做以下事情：
 对于 **Humanoid** 模型，Rest Pose 会参与计算标准化的 T-Pose；
 对于 **Generic** 模型，Rest Pose 就是动画的参考零姿态。
 
----
+## 六、验证方式（你可以实验）
 
-## 🧩 六、验证方式（你可以实验）
-
-### ✅ 实验 1：查看 Unity 中的 Rest Pose
+### 实验 1：查看 Unity 中的 Rest Pose
 
 * 导入一个 FBX 模型（Generic）。
 * 在 `Scene` 里展开模型骨骼层级。
@@ -107,13 +95,11 @@ Unity 导入 FBX 后，会做以下事情：
 
   > 它和 Blender 的 Rest Pose 完全一致。
 
-### ✅ 实验 2：清空动画
+### 实验 2：清空动画
 
 * 在 Unity 中将 Animator 暂停在 0 帧（无动画状态）。
 * 模型保持的姿态，就是从 FBX 导入的 Rest Pose。
 
----
-
-## ✅ 总结一句话：
+## 总结一句话：
 
 > **Blender 导出的 FBX 中包含了每个骨骼的 Rest Pose（作为 Bind Pose）。Unity 在导入时保存这些数据，用作动画应用的坐标参考。动画关键帧只记录相对于该 Rest Pose 的局部偏移。没有 Rest Pose，动画就无法正确复现姿态。**

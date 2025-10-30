@@ -3,9 +3,7 @@
 Unity 的 **Avatar 动画重定向（Animation Retargeting）** 是 Unity Mecanim 系统的核心功能之一，用于让**同一套动画数据（动作）在不同角色模型之间共享和复用**。
 下面我会系统地讲清楚它的 **原理、流程、关键机制和常见误区**。
 
----
-
-## 🧠 一、基本概念：Avatar 与 Retargeting 的目标
+## 一、基本概念：Avatar 与 Retargeting 的目标
 
 在 Unity 中，动画文件（例如 FBX 内的 AnimationClip）并不是直接绑定到模型的具体骨骼上，而是通过一个叫做 **Avatar** 的中介结构来实现通用化。
 
@@ -20,13 +18,11 @@ Unity 的 **Avatar 动画重定向（Animation Retargeting）** 是 Unity Mecani
 
 这个对应关系就是“骨骼映射”（Human Bone Mapping）。
 
----
-
-## ⚙️ 二、Mecanim 重定向的基本工作流程
+## 二、Mecanim 重定向的基本工作流程
 
 当一个 Humanoid 动画在另一个 Humanoid 模型上播放时，Unity 会经历以下步骤：
 
-### 1️⃣ 源动画模型的 Human Pose 提取
+### 源动画模型的 Human Pose 提取
 
 从动画文件（或 Animator Controller 的动画 Clip）中读取每一帧：
 
@@ -42,9 +38,7 @@ Spine rotation, LeftUpperArm rotation, RightLowerLeg rotation...
 
 这些参数不依赖具体模型结构。
 
----
-
-### 2️⃣ Human Pose 到目标 Avatar 的骨骼转换
+### Human Pose 到目标 Avatar 的骨骼转换
 
 接着 Unity 通过目标模型的 Avatar，把这组“通用姿态参数”重新投射（retarget）到目标角色的骨骼上：
 
@@ -56,9 +50,7 @@ Spine rotation, LeftUpperArm rotation, RightLowerLeg rotation...
 
 > **Animation Clip → 源 Avatar → Human Pose → 目标 Avatar → 目标角色骨骼动画**
 
----
-
-## 🧩 三、Avatar 的内部结构
+## 三、Avatar 的内部结构
 
 一个 Avatar 文件包含两个核心部分：
 
@@ -73,18 +65,16 @@ Spine rotation, LeftUpperArm rotation, RightLowerLeg rotation...
 
 Unity 通过这两个部分来实现统一的骨骼空间。
 
----
-
-## 🔁 四、Retargeting 的坐标与比例调整机制
+## 四、Retargeting 的坐标与比例调整机制
 
 Unity 做重定向时需要解决两个关键问题：
 
-### 1️⃣ 坐标系差异
+### 坐标系差异
 
 不同模型的骨骼方向、Roll 值、Rest Pose 不同。
 Avatar 在导入时会计算一个 **骨骼到标准姿态（T-Pose）** 的旋转偏移矩阵，用于校正方向。
 
-### 2️⃣ 比例差异
+### 比例差异
 
 Unity 根据 Human Pose 的“标准化骨骼长度”重新缩放动作。
 比如：
@@ -94,9 +84,7 @@ Unity 根据 Human Pose 的“标准化骨骼长度”重新缩放动作。
 
 这就是 **动画动作与模型比例无关** 的原因。
 
----
-
-## 🧍‍♂️ 五、Humanoid vs Generic 的区别
+## 五、Humanoid vs Generic 的区别
 
 | 类型           | 是否支持动画重定向 | 用途               |
 | ------------ | --------- | ---------------- |
@@ -106,9 +94,7 @@ Unity 根据 Human Pose 的“标准化骨骼长度”重新缩放动作。
 Generic Rig 的动画只能在完全相同的骨骼层级上播放；
 Humanoid Rig 的动画可以跨模型共享。
 
----
-
-## 🧩 六、常见细节与误区
+## 六、常见细节与误区
 
 | 情况                         | 说明                                |
 | -------------------------- | --------------------------------- |
@@ -118,9 +104,7 @@ Humanoid Rig 的动画可以跨模型共享。
 | 🔹 Facial / Hand bones     | Unity Humanoid 默认不包含表情骨、手指以外的小骨骼  |
 | 🔹 Retarget 到不同性别或比例差异大的人物 | 需要微调 Avatar 或添加 Avatar Mask       |
 
----
-
-## 🔧 七、简化理解
+## 七、简化理解
 
 你可以把整个系统理解成这样：
 
@@ -130,9 +114,7 @@ Humanoid Rig 的动画可以跨模型共享。
 
 > 翻译语言 A → 译成“通用人体语义” → 翻译成语言 B。
 
----
-
-## 📘 八、附加知识：HumanPoseHandler
+## 八、附加知识：HumanPoseHandler
 
 在脚本层面，Unity 提供了一个类：
 
@@ -155,9 +137,7 @@ handler.SetHumanPose(ref pose);  // 应用姿态到另一个角色
 
 下面详细拆解一下。
 
----
-
-## 🧠 一、转换过程由谁完成
+## 一、转换过程由谁完成
 
 在 Unity 中，这个“骨骼姿态 → 标准人体姿态”的过程由以下模块协同完成：
 
@@ -171,9 +151,7 @@ handler.SetHumanPose(ref pose);  // 应用姿态到另一个角色
 
 > **导入时生成映射关系 → 播放时实时计算重定向**
 
----
-
-## ⚙️ 二、Unity 的数据流：什么时候发生什么
+## 二、Unity 的数据流：什么时候发生什么
 
 ### 1️⃣ 导入阶段（Import）
 
@@ -189,7 +167,7 @@ handler.SetHumanPose(ref pose);  // 应用姿态到另一个角色
 
   它不会被改写成“Humanoid”姿态。
 
-### 2️⃣ 播放阶段（Runtime）
+### 播放阶段（Runtime）
 
 当动画通过 **Animator（设置为 Humanoid 类型）** 播放时：
 
@@ -205,9 +183,7 @@ handler.SetHumanPose(ref pose);  // 应用姿态到另一个角色
 骨骼空间 <--> Human Pose <--> 目标骨骼空间
 ```
 
----
-
-## 🧩 三、举个更直观的例子
+## 三、举个更直观的例子
 
 假设你有：
 
@@ -227,9 +203,7 @@ handler.SetHumanPose(ref pose);  // 应用姿态到另一个角色
 👉 注意：
 FBX 文件里的骨骼曲线依然保持原样，没有被改动。
 
----
-
-## 🧮 四、内部计算示意（简化公式）
+## 四、内部计算示意（简化公式）
 
 对于某个骨骼节点：
 
@@ -243,17 +217,13 @@ FBX 文件里的骨骼曲线依然保持原样，没有被改动。
 * `AvatarA` / `AvatarB`：分别是源/目标 Avatar 中记录的骨骼到 HumanPose 空间的变换矩阵；
 * Unity 在运行时通过这些矩阵进行实时换算。
 
----
-
-## 🔒 五、动画文件数据不会变的原因
+## 五、动画文件数据不会变的原因
 
 **原因 1：** AnimationClip 是资源（Asset），Unity 不会在运行时修改任何 Asset 文件。
 **原因 2：** 同一 AnimationClip 可以被多个 Avatar 复用，如果修改数据会破坏共享机制。
 **原因 3：** 重定向涉及实时比例和方向计算，结果依赖于目标模型比例，不能静态存储。
 
----
-
-## 🧩 六、如果你需要“静态转换”
+## 六、如果你需要“静态转换”
 
 如果你确实希望**生成一个新的动画文件**，让它“看起来像是已经针对另一个模型重定向过”的：
 
@@ -265,16 +235,13 @@ FBX 文件里的骨骼曲线依然保持原样，没有被改动。
 
 这就是 **离线重定向（Bake Retargeted Animation）** 的方式。
 
----
-
-## ✅ 总结
+## 总结
 
 | 阶段   | 操作主体                       | 是否修改动画文件 | 说明                    |
 | ---- | -------------------------- | -------- | --------------------- |
 | 导入模型 | AvatarBuilder              | ❌ 否      | 建立 Human 映射，不动原始动画    |
 | 播放动画 | Mecanim Retargeting Engine | ❌ 否      | 实时把骨骼姿态转换为 Human Pose |
 | 烘焙动画 | 用户/工具                      | ✅ 可选     | 手动生成新动画文件（Bake）       |
-
 
 # 源模型和目标模型是否都需要进行 avatar 映射
 
@@ -283,9 +250,7 @@ FBX 文件里的骨骼曲线依然保持原样，没有被改动。
 
 下面我们详细讲讲 **为什么必须两个都有**、**Unity 内部是怎么用它们的**、以及**有哪些特殊情况**。
 
----
-
-## 🧩 一、为什么需要两个 Avatar
+## 一、为什么需要两个 Avatar
 
 Unity 的 Humanoid 动画重定向过程本质上是：
 
@@ -300,15 +265,13 @@ Unity 的 Humanoid 动画重定向过程本质上是：
 | **源 Avatar（Source Avatar）**  | 定义：源模型的骨骼 → 标准人形骨骼 的对应关系。用于将动画数据转化为标准化的人形姿态（Human Pose）。 |
 | **目标 Avatar（Target Avatar）** | 定义：标准人形骨骼 → 目标模型骨骼 的对应关系。用于把 Human Pose 应用到目标骨架上。        |
 
-🧠 换句话说：
+换句话说：
 
 > Avatar 就像“语言翻译字典”。
 > 你需要一份“源语言 → 通用语言”的字典，也需要一份“通用语言 → 目标语言”的字典。
 > 缺一不可。
 
----
-
-## ⚙️ 二、Unity 内部如何使用这两个 Avatar
+## 二、Unity 内部如何使用这两个 Avatar
 
 在播放时，Unity 的 **Mecanim Retargeting Engine** 会做以下事情：
 
@@ -319,11 +282,9 @@ Unity 的 Humanoid 动画重定向过程本质上是：
 
 因此，两个 Avatar 是成对工作的。
 
----
+## 三、如果只有一个 Avatar，会怎样？
 
-## 🧩 三、如果只有一个 Avatar，会怎样？
-
-### ✅ 只有目标 Avatar：
+### 只有目标 Avatar：
 
 这种情况其实是常见的：
 
@@ -337,9 +298,7 @@ Unity 的 Humanoid 动画重定向过程本质上是：
 
 👉 所以如果 AnimationClip 是 **Humanoid 类型**，即使文件本身没有独立 Avatar 资源，它依然隐式绑定了“源 Avatar”的人形定义。
 
----
-
-### ❌ 没有目标 Avatar：
+### 没有目标 Avatar：
 
 如果目标模型的 Animator 没有关联 Avatar：
 
@@ -353,9 +312,7 @@ Unity 的 Humanoid 动画重定向过程本质上是：
 
 所以目标模型一定要有 Avatar。
 
----
-
-### ❌ 没有源 Avatar：
+### 没有源 Avatar：
 
 如果动画源不是 Humanoid 类型（例如 Generic 或 Legacy）：
 
@@ -366,9 +323,7 @@ Unity 的 Humanoid 动画重定向过程本质上是：
 
 除非你手动把该动画文件重新导入并指定 Avatar Definition = “Create From This Model”，使其变成人形类型。
 
----
-
-## ✅ 四、正确配置方式总结
+## 四、正确配置方式总结
 
 | 文件类型                            | 是否需要 Avatar                | 说明                               |
 | ------------------------------- | -------------------------- | -------------------------------- |
@@ -376,9 +331,7 @@ Unity 的 Humanoid 动画重定向过程本质上是：
 | **目标模型 FBX（要播放动画的角色）**          | ✅ 必须有                      | Animator 会用此 Avatar 播放 HumanPose |
 | **.anim 文件（从 Humanoid FBX 导出）** | 🔸 不单独需要，但隐式绑定源 Avatar 的映射 | 仍然可以在任何有 Avatar 的模型上播放           |
 
----
-
-## 🧠 五、如何检查是否具备 Avatar
+## 五、如何检查是否具备 Avatar
 
 在 Unity Project 视图中选择 FBX 或模型文件：
 
@@ -393,8 +346,7 @@ Unity 的 Humanoid 动画重定向过程本质上是：
 
 只要这两者都设置成 Humanoid 并且 Avatar 映射正确，就能进行动画重定向。
 
-
-## 🧩 六、总结一句话
+## 六、总结一句话
 
 > Unity 动画重定向依赖“Avatar ↔ HumanPose ↔ Avatar”的双向映射。
 > 因此源动画和目标模型**都需要 Avatar 映射**。
