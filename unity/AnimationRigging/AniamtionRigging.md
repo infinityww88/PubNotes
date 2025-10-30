@@ -121,3 +121,5 @@ Rig Constraints 是用来组装 rigs 并在运行时产生 procedural motion 的
 ![butterfly_familiar_rig](Image/butterfly_familiar_rig.png)
 
 ![Crane_structure](Image/Crane_structure.png)
+
+AnimationRigging 类似 Unity Constraints，都是约束 GameObject 位置和旋转的。不同的是，Animation Rigging 专门用于约束 Animator 操作的骨骼，并且其执行阶段是 Animator 输出 Pose 的后处理阶段。而 Unity Constraints 的执行阶段就是普通的 Update。
