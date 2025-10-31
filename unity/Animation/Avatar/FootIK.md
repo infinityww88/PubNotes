@@ -2,6 +2,14 @@
 
 `AnimationClipPlayable.SetApplyFootIK(bool value)` 是 Unity `Playable` 动画系统（即 Animation Playables API）中的一个接口，用于**控制当前 `AnimationClipPlayable` 是否启用脚部 IK（Foot IK）**。
 
+如下图所示，CrouchLeft 动画是以第一个模型创建的，因此它的两个 Foot 可以完全贴合地面，第三个模型因为骨骼尺寸与第一个差不多，因此看起来 Foot 也基本贴合地面，但是第二个机器人的骨骼尺寸与第一个模型并不一致，动画播放时可以看见两个 Feet 并不贴合地面，左脚会陷入地面，而右脚又悬空。如果为机器人模型开启 Foot IK，就可以看见它的两个 Feet 也开始贴合地面了，左脚不会陷入，右脚不会悬空。这就是 Foot IK 的作用。
+
+![alt text](FootIK1.gif)
+
+Foot IK 没有不是基于物理检测来查找地面的，而是仅在模型内部，将 Rest Pose 时，双脚的位置作为虚拟地面，Foot IK 启用时，总会将两个 Feet 进行 Foot IK，落在这个虚拟地面上，因此只要 Rest Pose 时，两个 Feet 贴合地面，启用 Foot IK 后，它们也会贴合虚拟地面。如果模型开始便悬空或陷入地面，开启 Foot IK 后，它们也会一样，不会考虑真实的地面在哪里，只保证两个 Feet 会贴合虚拟地面。因此要使模型动画能响应真实的地面环境，就需要物理检测+IK（或者使用 Animator 内置的 IK，OnAnimatorIK 回调，或者使用 Animation Rigging）。
+
+![alt text](FootIK2.gif)
+
 ## 一、接口定义
 
 ```csharp
