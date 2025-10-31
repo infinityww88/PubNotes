@@ -65,3 +65,11 @@ Root Transform 是一个虚拟 Transform，又动画根据各种 Bake 选项计�
 其工作方式本质上与 Humanoid Root Motion 相同，不同之处在于它不是使用 Body Transform 来计算/投影 Root Transform，而是使用在 Root Node 中设置的 Transform。Pose（位于 Root Motion 骨骼之下的所有骨骼的变换）会相对于 Root Transform 成为相对姿态。
 
 外部工具创建的动画，可能不一定使用 root bone 作为真正的 root，所有动画的 bone 可能基于更下层的某个 bone 运动的，后者是动画的真正“root bone”，其上面的 bone 甚至还有 Sibling 旁支骨骼链，可能仅作为管理或附加其他物体使用，它们在动画过程中不移动也不旋转。因此需要为 Generic 动画指定一个作为 Root Node 的 bone。
+
+# 骨骼结构
+
+通常会在 Hips 之上再加一个控制骨骼，它复制模型的整体移动、旋转，即 Root Motion，Hips 用作模型内部的 Local Pose。
+
+建立骨骼的时候，骨骼的结构和名字就按照 Unity Avatar 标准骨骼名字起即可，后面加上 .L 或 .R 后缀：
+
+![](./UnityAvatarName.png)
