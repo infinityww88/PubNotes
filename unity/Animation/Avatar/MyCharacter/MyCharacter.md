@@ -153,6 +153,10 @@ Vertex Group 与 Pivot Geometries 等价，它们需要被 Bone（Pivot）的位
 
 ![](MultiCharacter.gif)
 
+# Blockbench
+
+Blockbench 创建 Minicraft 风格构造块非常容易，尤其是纹理绘制。一定要重视纹理绘制。很多绚烂的 Blender 场景的纯模型其实并不复杂，它的精华全在模型的纹理上，是纹理的精美让整个场景看起来华丽无比。尤其要善用透明度，很多不规则效果其实都是在简陋的 mesh 上用带透明度纹理达成的。一定要掌握 Blockbench 的 Pixel 纹理绘制。
+
 # Bone Renderer Setup
 
 Animation Rigging 提供了一个辅助功能，就是现实 Bone Hierarchy。它实际可以用于任何 GameObject Hierarchy，但是通常只用于现实 Animator 下面的骨骼结构。
