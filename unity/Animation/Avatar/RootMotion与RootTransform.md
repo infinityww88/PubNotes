@@ -366,3 +366,5 @@ Loop match 指示器显示动画首尾用于 looping 的质量。红色表示最
 - Apply Root Motion：Root Transform（Animator GameOjbect）本身的运动用于实现模型动画整体的运动
 
 如果模型本身就没有 Root Motion，那么是否 Apply Root Motion 没有区别。Apply Root Motion 只在模型有 Root Motion（提前采样）时起作用，控制 Animator GameObject 是否被动画驱动而移动旋转。
+
+无论如何确定 Root Transform（真实 bone，还是虚拟中心），最终都会在动画片段中采样这个点的运动（位移、旋转），然后在 Clip 中为 Root Transform 单独记录这个动画曲线。在运行时播放动画，只要 Apply Root Motion，这个采样的运动就会应用到 Animator GameObject 上，让它来带动整个模型的整体运动。只要不 Apply Root Motion，模型就只会在原地播放动画，Animator GameObject 不被 Animator 驱动。Bake Into Pose（rotation，Y，XZ）可以让你选择将一部分 Root Motion 的运动烘焙到模型中，这样不 Apply Root Motion（Animator GameObject 不动）的时候，模型仍然在这部分分量上有运动。
