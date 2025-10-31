@@ -151,6 +151,8 @@ Vertex Group 与 Pivot Geometries 等价，它们需要被 Bone（Pivot）的位
 
 有了这样的骨骼模型框架，只需要 Duplicate 复制即可重用，在新的副本中修改身体部分组件就能创建新的模型。还可以整体缩放，创建不同 size 的模型。
 
+![](MultiCharacter.gif)
+
 # Bone Renderer Setup
 
 Animation Rigging 提供了一个辅助功能，就是现实 Bone Hierarchy。它实际可以用于任何 GameObject Hierarchy，但是通常只用于现实 Animator 下面的骨骼结构。
