@@ -40,9 +40,21 @@ Blockbench 的对齐精度（颗粒度）成为 Resolution，很多地方都是�
 
   这两个是在上面两个 Resolution 基础上按 Ctrl 键，将每个分辨率再各自放大十倍，分别是 160 和 640. 这样的分辨率已经太细了，几乎可以说是 seamless 的了。
 
+可以按住 Shift 或 Ctrl+Shift 来精细调整对齐，它们的精度对创建任何模型都已经足够了。Ctrl Resolution 已经是 160，即每个标准单位划分 160 份，差不多就是 0.6 cm。对于 Minicraft 风格的模型，不需要创建这么小的 mesh 块。即使在 Blender 中，模型只是提供一个大概粗略的 Mesh，精美的细节都通过 Texture 表现。
+
 Snapping 是 Blockbench 中非常重要的概念。
 
 Snapping 设置可以保存为预设。
+
+# 旋转对齐
+
+按住 Shift 键：以 22.5 度为单位旋转
+
+按住 Ctrl：以 1 度为单位旋转
+
+默认：以 2.5 度为单位旋转
+
+按住 Ctrl+Shift：以 0.25 度为单位旋转 
 
 # 导出选项
 
