@@ -125,8 +125,16 @@ public class CreateBlenderModelWindow : OdinEditorWindow
 2. 将导入的 .lend 文件中的 mesh（其实可以是 Unity 中任何 mesh 资源）拖拽到 scene 中，会自动创建一个新的 GameObject，并带有这个 mesh，但是 material 是空的，为新的 GameObject 选择合适的 Material
 3. 点击 GameObject 的 mesh，可以 ping 这个 mesh 所在的 .blend 文件，将 .blend 文件拖拽到任务栏中的 Blender 图标，会显示 Blender 程序窗口，然后再拖拽到 Blender 的工作窗口中，选择下拉菜单中的 Open，就可以在现有的 Blender 程序中打开这个 .blend 文件。如果 Blender 已经显示，则可以直接拖拽到 Blender 窗口
 
-而且 Blender 现在的打开速度飞快，占用内存也不多，因此就没有使用 UModeler 的必要了。
+而且 Blender 现在的打开速度飞快，占用内存也不多，如果掌握了 Blender，UModeler 并没有太多优势。
 
 UModler 虽然带来一些很方便的东西，但是也带来了很多问题，而且功能远没有 Blender 强大和方便、干净。
 
 UModeler X 不仅收费，即使免费的 UModeler X Basic 在 Unity 进入 Play Mode 时还会显著拖慢进入时间，影响迭代的速度。
+
+但是对于日常频繁使用的小而简单的 lowpoly 几何体，使用 UModeler 还是比 Blender 更便捷，无论是建模还是展开 UV，都不需要太复杂的功能，但它们又很常见、很常用（例如带一定变形的 strip mesh），无论是在游戏汇中使用，还是学习一些其他需要 Mesh 的工具，例如 All In 1 Vfx Toolkit，非常方便。另外很多炫酷的游戏场景，纯模型很简单甚至简陋，只是一些简单几何体，真正的精华在纹理，精美的纹理细节以及光影让场景变得绚烂华美。对于这些简单的几何体，UModeler 也是非常好用的。
+
+因此还是需要联合使用：
+
+- Blockbench 用于 Minicraft Lowpoly + Pixel 风格的模型
+- Blender 用于复杂模型的创建，和蒙皮、骨骼、骨骼动画的创建
+- UModeler 用于日常频繁使用的简易几何体的创建
