@@ -187,3 +187,15 @@ Time.fixedDeltaTime = 0.005f; // 比默认的 0.02 精细4倍
 | 质量差异      | 超过 1000x                          | 控制在 1:100 内                    |
 | Time Step | 0.02f                             | 建议 0.005f                      |
 | 混合复杂度     | 大量混合链                             | 明确分层：机械体 vs 环境体                |
+
+简而言之：
+
+- ArticulationBody 与 Rigidbody 之间，AB 与 AB 之间，RB 与 RB 之间，相互之间的碰撞交互是完全可以的
+- AritculationBody 关节系统是树形的。Child 只能被 Parent 约束，不能再被其他 ArticulationBody 关节或者 Rigidbody 关节约束。如果一个关节 Child 不仅要被 Parent 约束，还要被其他的 AB 关节或 RB 关节约束，这是不能实现的。这种情况只能使用 RB 关节
+- RB 关节是最灵活的，可以创建任意复杂关系的关节系统，包括循环依赖。但也因为如此，它也最容易出问题，不像 AB 关节那样精确。要求创建相互约束的关节，只能使用 RB
+- 关节两端约束的物体质量比不应该超过 1:100
+- AB 关节只有 Root 没有约束，它可以被连接到 RB 关节的一端
+- 物理系统只有 3 种yundong
+  - Kinematic 运动
+  - 碰撞解析
+  - 关节约束 
