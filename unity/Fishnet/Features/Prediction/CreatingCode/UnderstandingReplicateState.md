@@ -14,15 +14,17 @@
 
 - Ticked
 
-  Server 和 client 都使用这个 flag。
+  服务器和客户端都会使用这个标志。
 
-  如果 data tick 已经在 reconcile 之外运行过，设置这个 flag，例如在 user code 的 OnTick 中。
+  如果某个数据 tick 是在 reconcile（状态回滚）之外执行的，比如由用户在 OnTick 中的代码触发，那么该标志就会被设置。
+
+  在 回放（replay）或回滚（reconcile） 过程中，Ticked 状态也可能存在，但仅当该数据在进入 replay/reconcile 之前就已经在正常流程中运行过的情况下才会出现。
 
 - Replayed
 
   只有 client 使用这个 flag。
 
-  如果 data 在一个 reconcile 期间运行，设置这个 flag。
+  当数据在 reconcile（状态回滚）过程中被执行时，Replayed 标志会被设置。
 
   Server 总是认为是正确的，从不需要修正数据，因此它从不会 reconciles 或 replay input。
 
@@ -30,9 +32,11 @@
 
   Server 和 client 都使用这个 flag。
 
-  Data 被 server 或 client 创建。
+  服务器和客户端都会使用这个标志。
 
-  这个 flag 指示 data 已经被 controller 创建，例如 owner 或 server（如果没有 owner），并且准备发送。
+  `Created` 标志表示该数据是由 **控制方（controller）** 创建的，比如拥有者（owner），或者在没有拥有者的情况下由服务器创建。
+
+  如果控制方没有发送任何更新（例如没有进行任何操作），那么这个标志就不会存在。
 
 简而言之
 
@@ -95,7 +99,7 @@ state = ReplicateState.Ticked;
 
 ## Created Flag
 
-当没有 create state 时，data 将是 default。这通常让很多开发者措手不及，因为他们可能期望从 controller 看见连续的 input，就像 controller 一直按住一个移动键。
+如果一个 state 不是 created，data 将是 default。这通常让很多开发者措手不及，因为他们可能期望从 controller 看见连续的 input，就像 controller 一直按住一个移动键。
 
 一个常见的用例是仅在 data 已知时更新 objects animator。
 
@@ -106,8 +110,7 @@ private void MovePlayer(ReplicateData data, ReplicateState state = ReplicateStat
     //左右移动
     float horizontal = data.Horizontal;
     
-    //只在 data 创建时（state 包含 Created）时包含 animator
-    //如果 data 不是 created，不更新 animator，因为这会导致 animator 在 having input 和 default 之间来回切换
+    //只在 data 是 created 时更新 animator。如果 data 不是 created，不要更新 animator，因为这会导致 animator 在 having input 和 default 之间来回切换
     //因为 Replicate 每个 tick 都会调用，不管情况如何，当没有来自 controller 的 input 时，会传递 default 值
     //换句话说，在 Created 这个 channel/序列 上（使用 created 过滤 data），才能看见 controller 的 input
     if (state.ContainsCreated())
@@ -119,11 +122,66 @@ private void MovePlayer(ReplicateData data, ReplicateState state = ReplicateStat
 
 ## Ticked
 
-就像之前提到的那样，Ticked 指示 data 已经在 reconcile 之外运行过了（Created 那个 Tick）。
+就像之前提到的那样，Ticked 指示 data 已经在 reconcile 之外运行过了，例如 OnTick 中的 user code，即下面的 RunInputs.
 
-还如之前描述的，State 可以是 Ticked 和 Replayed 的，这意味着它之前在 reconcile 之外运行，但是当前在 replay/reconcile 之中运行。
+```C#
+public override void OnStartNetwork()
+{
+    base.TimeManager.OnTick += TimeManager_OnTick;
+    base.TimeManager.OnPostTick += TimeManager_OnPostTick;
+}
 
-Ticked 和 not replayed 经常被用于执行 one-time action，例如显示视觉效果（例如跳跃、开火，但并不真正修改关键数据，关键数据只应该由 server 权威修改）。当 jump 第一次发生时，以及每次 input 在 reconcile 中 replay 时，你可能不想播放 jump audio，
+private void TimeManager_OnTick()
+{
+    RunInputs(CreateReplicateData());
+}
+
+private ReplicateData CreateReplicateData()
+{
+    if (!base.IsOwner)
+        return default;
+
+    //Build the replicate data with all inputs which affect the prediction.
+    float horizontal = Input.GetAxisRaw("Horizontal");
+    float vertical = Input.GetAxisRaw("Vertical");
+    ReplicateData md = new ReplicateData(_jump, horizontal, vertical);
+    _jump = false;
+
+    return md;
+}
+
+[Replicate]
+private void RunInputs(ReplicateData data, ReplicateState state = ReplicateState.Invalid, Channel channel = Channel.Unreliable)
+{
+    /* ReplicateState 基于 data 是否是新的来设置，例如 replayed 等等。
+     * 查看 ReplicateState enum 获取更多信息
+     */
+    
+    /* 确保总是使用 PredictionRigidbody 设置和应用 velocities，
+     * 绝不应该使用 rigidbody。这包括从其他脚本访问的情况。
+     */
+    Vector3 forces = new Vector3(data.Horizontal, 0f, data.Vertical) * _moveRate;
+    PredictionRigidbody.AddForce(forces);
+
+    if (data.Jump)
+    {
+        Vector3 jmpFrc = new Vector3(0f, _jumpForce, 0f);
+        PredictionRigidbody.AddForce(jmpFrc, ForceMode.Impulse);
+    }
+
+    /* 添加重力让 object 下落更快。当然这是可选的 */
+    PredictionRigidbody.AddForce(Physics.gravity * 3f);
+
+    /* 模拟添加的 forces。通常你在 replicate 末尾调用这个 Simulate 方法。
+     * 调用 Simulate 最终告诉 PredictionRigidbody 来 iterate 上面添加的 forces。
+     */
+    PredictionRigidbody.Simulate();
+}
+```
+
+还如之前描述的，State 可以是 Ticked 和 Replayed 的，这意味着它之前在 reconcile 之外(OnTick)运行，但是当前在 replay/reconcile 之中运行。
+
+Ticked && !Replayed 经常被用于执行 one-time action，例如显示视觉效果（例如跳跃、开火，但并不真正修改关键数据，关键数据只应该由 server 权威修改）。当 jump 第一次发生时，以及每次 input 在 reconcile 中 replay 时，你可能不想播放 jump audio，
 
 ```C#
 [Replicate]

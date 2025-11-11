@@ -4,11 +4,11 @@
 
 ## Data Structures
 
-实现预测通过创建 replicate 和 reconcile 方法来实现，并按需调用它们。
+预测的实现是通过创建 replicate 和 reconcile 方法来完成的，并按需调用它们。
 
-Replicate 方法会采集你想要在 owner、server、其他 clients（如果使用 state forwarding）上运行的输入。这可以说你的 controller 需要的任何 input，例如 jumping，sprinting，movement direction，甚至可以包含其他机制（例如持续按住 fire 按键）。
+Replicate 方法会采集你想要在 owner、server、其他 clients（如果使用 state forwarding）上运行的输入。这可以是你的 controller 需要的任何 input，例如 jumping，sprinting，movement direction，甚至可以包含其他机制（例如持续按住 fire 按键）。
 
-Reconcile 方法在 replicate 执行之后，采集这个 object 的 state。State 用于修正可能的 de-synchronizations（不同步）。例如你可能向发送回 health，velocity，transform position 和 rotation 等等。
+Reconcile 方法在 replicate 执行之后，采集这个 object 的 state。State 用于修正可能的 de-synchronizations（不同步）。例如你可能想发送回 health，velocity，transform position 和 rotation 等等。
 
 此外，若需在结构体中分配资源，建议使用 ​​Dispose 回调​​，该回调会在数据被丢弃时自动执行清理操作。
 
@@ -56,7 +56,7 @@ public struct ReconcileData : IReconcileData
 
 ## Preparing To Call Prediction Methods
 
-通常建议在 OnTick 中复制运行 Replicate 或 inputs。何时发送 reconcile 依赖于你是否使用 physics bodies。
+通常建议在 OnTick 中运行 Replicate（inputs）。何时发送 reconcile 依赖于你是否使用 physics bodies。
 
 当使用 physcis bodies，例如一个 rigidbody，你会在 OnPostTick 期间发送 reconcile，因为你想在 physics 已经为你的 inputs 模拟之后发送 state。
 
@@ -108,7 +108,9 @@ Update 用于收集单帧发出的 input（例如按键按下、释放）。Tick
 
 Tick 是 Update 的倍数，一个 Tick 内任何 Update 中出现的 Input 都规约到这个 Tick 中。
 
-虽然下面的代码只使用 Update 收集单帧 inputs，但是没有什么阻止你也用它收集 hold inputs（持续按键）。
+网络帧、物理帧的时长（周期）这些通常都比渲染帧更大，也就是频率更慢。例如网络帧或物理帧可能是 20Hz，而渲染帧可能是 60Hz。这是因为无论时网络帧、还是物理帧，它们的负载更重，承担不起像渲染帧那样的频率，而且它们也无需那么快，它们执行按自己的频率在每个周期给出状态，然后让渲染帧去同步这些状态。
+
+虽然下面的代码只使用 Update 收集单帧 inputs，但是也用它收集 hold inputs（持续按键）等任何输入。
 
 ```C#
 private void Update()
@@ -123,7 +125,7 @@ private void Update()
 
 现在 OnTick 将用来构建 Replicate 数据。不需要一个单独的 CreateReplicateData 方法来创建数据，但是这可以让你的代码更有组织。
 
-当尝试创建 replicate data 时，如果不是 object 的所有者，返回 default。Server 接收来自 owner 的输入并运行，因此 server 不需要创建数据，而对非 object owner 的客户端，它从 server 接收输入，就像使用 state forwarding 时其他客户端转发的一样。如果不使用 state forwarding，此情景下仍然会使用 default input，但是 clients 不会在 non-owned objects 上运行 repliates。如果没有 owner，也可以在 server 上运行 inputs，对此，使用 base.HasAuthority 最好。
+当尝试创建 replicate data 时，如果不是 object 的 owner，返回 default。Server 接收来自 owner 的输入并运行，因此 server 不需要创建数据，而对非 object owner 的客户端，它从 server 接收输入，就像使用 state forwarding 时其他客户端转发的一样。如果不使用 state forwarding，仍然会使用 default input，但是 clients 不会在 non-owned objects 上运行 repliates。如果没有 owner，也可以在 server 上运行 inputs，对此，使用 base.HasAuthority 最好。
 
 ```C#
 private void TimeManager_OnTick()
