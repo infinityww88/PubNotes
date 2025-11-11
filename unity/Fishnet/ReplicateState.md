@@ -1,12 +1,12 @@
-Invalid：不应该看见
+Fishnet 内部机制和 ReplicateState 很复杂，难以理解，只需要记住以下内容：
 
-Created：这个 Tick 的 Data 是被 Controller 创建的，是有输入数据的（即使 Controller 发送的是 default input data）。
+- Invalid：不应该看见
+- Created：这个 Tick 的 Data 是被 Controller 创建的，是有输入数据的（即使 Controller 发送的是 default input data）。
+- Ticked：Replicate Data 已经运行过 Replicate 方法中的代码了（根据输入操作 object），基本就是表示这个 Tick 的 Data 已经在 Server 上运行过（确认过）了。
 
-Ticked：Replicate Data 已经运行过 Replicate 方法中的代码了（根据输入操作 object），基本就是表示这个 Tick 的 Data 已经在 Server 上运行过（确认过）了。
+  只有 Ticked 时，表示这个 Tick 凭空过去，Controller 没有发送输入数据过来。
 
-只有 Ticked 时，表示这个 Tick 凭空过去，Controller 没有发送输入数据过来。
-
-Replayed：表示这个 Tick 的数据还没有 Server 确认，在这里真正执行预测的逻辑。
+- Replayed：表示这个 Tick 的数据还没有 Server 确认，在这里真正执行预测的逻辑。
 
 Server Repliate 输入数据、Client 执行预测的逻辑都在 Replicate 方法中执行。
 
