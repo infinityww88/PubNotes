@@ -345,7 +345,7 @@ PhysX 的迭代解法无法完美满足环形方程 → **系统内部产生张�
 >
 > **少量、简洁、非闭环的关节结构 = 高稳定性 + 高性能。**
 
-##  相同情况下，articulation body 更好
+## 相同情况下，articulation body 更好
 
 **ArticulationBody 确实比传统 Rigidbody + Joint 系统在多关节结构上更稳定、更精确、更“机械真实”**。但：
 
