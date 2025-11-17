@@ -38,3 +38,11 @@ HardShadow 不存在这种问题，上面这些调节是针对 SoftShadow 的。
 ![](./HardShadowBiasSetting.gif)
 
 这些问题，跟渲染管线的光照和阴影相关，跟模型本身无关，不管是 UModeler 还是 Blender 还是 Unity 内置的 Primitive Mesh 都一样。
+
+模型曲面上的暗线还与 SSAO 有关（似乎主要与 SSAO 有关）。如果曲面上 Edge 的暗影线很明显，通常就是 SSAO 太大，如下图所示，调整 SSAO 的强度参数，曲面 Edge 的暗线线就会变得明显或不明显：
+
+![](./SSAOAndDarkline.gif)
+
+如果彻底关掉 SSAO，就会发现，曲面彻底没有 Edge 暗影线了：
+
+![](./SSAOAndDarkline1.gif)
