@@ -326,6 +326,41 @@ Assets/Resources/js/main.js.map
 
 ```src/**/*.ts``` 会同时引用到 *.d.ts，但是 *.d.ts 只作为类型提示，不会被编译为 js 源文件。所有 ts 使用的源文件，都需要在 include 中包含，此外 exclude 还可以指定排除哪些文件。这里 ```src/**/*.mts``` 是包含了 ts 的模块文件 *.mts，它们在编译后会生成相应 js 引擎的模块文件，例如 *.cjs，*.mjs，分别是 CommonJS、ES 的模块文件。
 
+### 原因
+
+typeRoots并不会“自动加载”目录下的所有 .d.ts文件​，只有被“间接引用”的声明文件才会生效。
+
+typeRoots≠ “自动扫描并加载所有 .d.ts”，它只是告诉 TS，如果需要，去这些目录里找 @types/xxx包，但并不自动加载。要加载这些类型声明：
+
+
+- 放到 src下就，把它当作项目源码的一部分，自动纳入类型检查，全局生效
+
+- 使用 include 显式包含 *.d.ts（最推荐）
+
+  ```json
+  {
+    "compilerOptions": {
+      "target": "esnext",
+      "module": "es2022",
+      "sourceMap": true,
+      "strict": true,
+      "noImplicitAny": false,
+
+      // 指向 PuerTS 的 C# 类型声明
+      "typeRoots": [
+        "D:/Program/PuerTS_Core_3.0.0/core/Typing/puerts",
+        "../Assets/Gen/Typing/csharp",
+        "./node_modules/@types"
+      ],
+
+      // 编译后 JS 输出到 Unity 能加载的位置
+      "outDir": "../Assets/Resources/js",
+      "rootDir": "src"
+    },
+    "include": ["src/**/*.ts", "D:/Program/PuerTS_Core_3.0.0/core/Typing/puerts/*.d.ts", "../Assets/Gen/Typing/csharp/*.d.ts"]
+  }
+  ```
+
 # 加载运行模块
 
 PuerTS 的 ScripEnv 是 C# 中的脚本执行环境，
