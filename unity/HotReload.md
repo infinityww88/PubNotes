@@ -140,7 +140,7 @@ HotReload 跟 current domain 打交道，跟是在 Editor Mode 还是 Play Mode 
 
 当有 HotReload 不支持的修改时，尽管无法为当前 Domain 打相应的补丁，但是仍然可以继续进行其他 HotReload 支持的修改。
 
-**非常重要：当 Unity Editor 进入 PlayMode 时，性能会飙升。但是如果在 PlayMode 中点击 Pause，Editor 基本会回到 Edit Mode 的性能状态，跟 Editor Mode 差不多。因此当发现问题想要 Hot Reload 修改时，先将 Editor Pause，再修改，然后点击 Play 继续运行**。
+**非常重要：当 Unity Editor 进入 PlayMode 时，性能会飙升。但是如果在 PlayMode 中点击 Pause，Editor 基本会回到 Edit Mode 的性能状态，跟 Editor Mode 差不多。因此当发现问题想要 Hot Reload 修改时，先将 Editor Pause，再修改，然后点击 Play 继续运行。另外当 Editor PlayMode Pause 时，编辑器是可以正常工作的，就像平常一样，因此还可以在 Pause 时正常编辑游戏场景，然后恢复运行查看效果。暂停只是把 GameView 暂停而已**。
 
 Play mode 下 Editor 的性能：
 
